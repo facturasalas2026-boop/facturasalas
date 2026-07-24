@@ -1,0 +1,16 @@
+# Datos reales del negocio — NO subir
+*.xlsx
+*.xls
+
+# Dependencias / sistema
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Plantilla visual de referencia (no forma parte del build)
+extract_visual.html

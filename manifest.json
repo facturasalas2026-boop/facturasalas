@@ -1,0 +1,17 @@
+{
+  "name": "ALAS — Inventario",
+  "short_name": "ALAS Inventario",
+  "description": "Módulo de inventario del ecosistema logístico ALAS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1929",
+  "theme_color": "#0B5F8D",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
