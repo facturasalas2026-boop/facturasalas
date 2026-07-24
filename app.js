@@ -34,8 +34,11 @@
   function loadDB() { try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch (e) { return null; } }
   function initDB() { if (!DB) DB = { seq: 1, planillas: [], repartos: [], facturas: [] }; if (!DB.facturas) DB.facturas = []; if (!DB.audit) DB.audit = []; }
   function saveLocal() { localStorage.setItem(KEY, JSON.stringify(DB)); }
-  // save() = cache local inmediato + espejo en Supabase (si está disponible).
-  function save() { saveLocal(); if (window.CFDB && CFDB.available) CFDB.sync(DB); }
+  // Espejo a la nube recién habilitado tras la carga inicial (evita pisar la nube
+  // con el caché local viejo durante el primer render de un usuario que ya tiene datos).
+  var _syncReady = false;
+  // save() = cache local inmediato + espejo en Supabase (si está listo y disponible).
+  function save() { saveLocal(); if (_syncReady && window.CFDB && CFDB.available) CFDB.sync(DB); }
   function nid() { return DB.seq++; }
 
   var MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -1282,6 +1285,7 @@
           DB.facturas = data.facturas; DB.audit = data.audit; DB.seq = data.seq;
           saveLocal();
         }
+        _syncReady = true; // recién ahora se habilita el espejo a la nube
         go('dashboard'); // re-render con los datos ya sincronizados
       }).catch(function (e) {
         console.error('[CFDB] carga inicial falló, sigo en modo local', e);
