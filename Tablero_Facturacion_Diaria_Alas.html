@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero de Facturación Diaria · Alas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --azul:#0B4F8A; --azul-2:#1466B0; --azul-3:#3B8FD4; --azul-tenue:#EAF2FA;
+  --tinta:#132437; --gris:#5B6B7C; --gris-2:#8A99A8; --linea:#E2E8F0;
+  --bg:#F4F7FB; --panel:#FFFFFF; --pos:#1B8A5A; --pos-bg:#E5F5EC;
+  --neg:#C0392B; --neg-bg:#FBEAE7; --amar:#E8B23A; --verde-fuerte:#127a4b;
+  --sombra:0 1px 2px rgba(19,36,55,.06),0 6px 20px rgba(19,36,55,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--tinta);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.tope{background:linear-gradient(120deg,var(--azul) 0%,var(--azul-2) 60%,var(--azul-3) 130%);color:#fff;padding:18px 26px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.marca{display:flex;align-items:center;gap:13px}
+.logo{width:42px;height:42px;border-radius:10px;background:#fff;display:grid;place-items:center;font-weight:800;color:var(--azul);font-size:19px;letter-spacing:-1px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.marca h1{font-size:18px;font-weight:700;letter-spacing:.2px;line-height:1.1}
+.marca .sub{font-size:12px;opacity:.82;font-weight:400;margin-top:2px}
+.tope .sp{flex:1}
+.scopebox{display:flex;flex-direction:column;gap:4px}
+.scopebox small{font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.75}
+.scopeseg{display:inline-flex;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.26);border-radius:8px;overflow:hidden}
+.scopeseg button{background:none;border:none;color:#fff;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;opacity:.82;transition:.15s;white-space:nowrap}
+.scopeseg button:hover{opacity:1}
+.scopeseg button.on{background:#fff;color:var(--azul);opacity:1}
+.periodo{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:9px;padding:7px 14px;font-size:13px;font-weight:600;display:flex;flex-direction:column;line-height:1.25}
+.periodo small{font-weight:400;opacity:.8;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px}
+.btn{border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.15s}
+.btn-upd{background:#fff;color:var(--azul)}
+.btn-upd:hover{background:#eef5fc;transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.btn-ghost:hover{background:rgba(255,255,255,.22)}
+.tabs{background:var(--panel);border-bottom:1px solid var(--linea);padding:0 20px;display:flex;gap:2px;overflow-x:auto;position:sticky;top:0;z-index:20}
+.tab{background:none;border:none;padding:14px 18px;font-size:13.5px;font-weight:600;color:var(--gris);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:.15s}
+.tab:hover{color:var(--azul-2)}
+.tab.on{color:var(--azul);border-bottom-color:var(--azul)}
+.savebar{background:#fff;border-bottom:1px solid var(--linea);padding:8px 22px;display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--gris);flex-wrap:wrap}
+.savebar #estado{font-weight:700;color:var(--tinta);background:var(--azul-tenue);padding:3px 10px;border-radius:20px;white-space:nowrap}
+.savebar .savehint{flex:1;min-width:180px}
+.savebar .linklike{background:none;border:none;color:var(--azul-2);font-weight:600;cursor:pointer;font-size:11.5px;text-decoration:underline;padding:0}
+.btn-desc{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.34)}
+.btn-desc:hover{background:rgba(255,255,255,.26)}
+.wrap{max-width:1280px;margin:0 auto;padding:22px}
+.page{display:none}.page.on{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--panel);border:1px solid var(--linea);border-radius:14px;padding:18px 20px;box-shadow:var(--sombra)}
+.card.accent{border-color:var(--azul-3);box-shadow:0 0 0 2px var(--azul-tenue),var(--sombra)}
+.card.accent h3{color:var(--azul-2)}
+.card.accent .big{color:var(--azul)}
+.card h3{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--gris-2);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.big{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.05}
+.big .u{font-size:14px;font-weight:600;color:var(--gris-2);margin-right:3px}
+.med{font-size:19px;font-weight:700}
+.sub2{font-size:12px;color:var(--gris);margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px}
+.chip.up{background:var(--pos-bg);color:var(--pos)}.chip.down{background:var(--neg-bg);color:var(--neg)}
+.chip.flat{background:#eef1f5;color:var(--gris)}
+.hero{grid-column:span 2;background:linear-gradient(135deg,#0B4F8A,#1466B0);color:#fff;border:none}
+.hero h3{color:rgba(255,255,255,.75)}
+.gaugewrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.gauge{position:relative;width:150px;height:150px;flex:none}
+.gauge .pc{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.gauge .pc .v{font-size:30px;font-weight:800;line-height:1}
+.gauge .pc .l{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.6px;margin-top:2px}
+.bar{height:14px;border-radius:8px;background:rgba(255,255,255,.22);overflow:hidden;margin-top:4px}
+.bar>span{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#8FD0FF,#fff);transition:width .8s}
+.barwrap .lbls{display:flex;justify-content:space-between;font-size:11.5px;margin-top:7px;opacity:.9}
+.stat-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px dashed var(--linea)}
+.stat-row:last-child{border-bottom:none}
+.stat-row .k{font-size:12.5px;color:var(--gris)}
+.stat-row .v{font-size:15px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;padding:9px 10px;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--gris-2);border-bottom:2px solid var(--linea);font-weight:700;position:sticky;top:0;background:var(--panel)}
+th:first-child,td:first-child{text-align:left}
+td{padding:9px 10px;border-bottom:1px solid var(--linea);text-align:right}
+tbody tr:hover{background:var(--azul-tenue)}
+tr.tot{font-weight:800;background:#f7fafd}tr.tot td{border-top:2px solid var(--azul);border-bottom:none}
+tr.green td{background:var(--pos-bg);color:var(--verde-fuerte);font-weight:700}
+tr.green:hover td{background:#d6efe0}
+.mini{font-size:11.5px;color:var(--gris)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.sec-h{font-size:15px;font-weight:700;margin:6px 0 2px;display:flex;align-items:center;gap:9px}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pill{border:1px solid var(--linea);background:var(--panel);color:var(--gris);border-radius:20px;padding:7px 15px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s}
+.pill.on{background:var(--azul);color:#fff;border-color:var(--azul)}
+.pill:hover:not(.on){border-color:var(--azul-3);color:var(--azul-2)}
+.holiday-in{display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:11px;color:var(--gris);font-weight:600}
+input[type=date],input[type=text],select{border:1px solid var(--linea);border-radius:8px;padding:8px 11px;font-size:13px;font-family:inherit;color:var(--tinta);background:#fff}
+input:focus,select:focus{outline:none;border-color:var(--azul-3);box-shadow:0 0 0 3px var(--azul-tenue)}
+.pedfilters{display:flex;gap:14px;flex-wrap:wrap;align-items:end;background:var(--panel);border:1px solid var(--linea);border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--sombra)}
+.pedfilters .fld select{min-width:160px}
+.tag{display:inline-flex;align-items:center;gap:7px;background:var(--azul-tenue);color:var(--azul);border-radius:8px;padding:6px 11px;font-size:12.5px;font-weight:600;margin:4px 6px 0 0}
+.tag button{border:none;background:none;color:var(--neg);cursor:pointer;font-size:15px;line-height:1;font-weight:700}
+.chartbox{position:relative;height:300px}
+.chartbox.sm{height:230px}
+.scrolltbl{overflow:auto;max-height:300px}
+.note{background:var(--azul-tenue);border:1px solid #cfe3f5;border-radius:10px;padding:12px 15px;font-size:12.5px;color:var(--azul);display:flex;gap:9px}
+.note.ok{background:var(--pos-bg);border-color:#bfe6d1;color:var(--verde-fuerte)}
+.legend-tiny{display:flex;gap:14px;font-size:11.5px;color:var(--gris);margin-top:8px;flex-wrap:wrap}
+.legend-tiny i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+.foot{text-align:center;color:var(--gris-2);font-size:11.5px;padding:24px 0 8px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--tinta);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.25);transition:.35s;z-index:99}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--neg)}
+@media(max-width:960px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.hero{grid-column:span 2}}
+@media(max-width:680px){.g4,.g2{grid-template-columns:1fr}.hero{grid-column:span 1}.wrap{padding:14px}}
+</style>
+</head>
+<body>
+
+<div class="tope">
+  <div class="marca">
+    <div class="logo">A</div>
+    <div><h1>Tablero de Facturación Diaria</h1><div class="sub" id="subhead">Control de meta, proyecciones y pedidos pendientes</div></div>
+  </div>
+  <div class="sp"></div>
+  <div class="scopebox">
+    <small>Almacén</small>
+    <div class="scopeseg" id="scopeSeg">
+      <button class="on" data-s="tot">Total</button>
+      <button data-s="fer">Ferretería</button>
+      <button data-s="hie">Hierros</button>
+    </div>
+  </div>
+  <div class="periodo"><small>Período</small><span id="periodoTxt">–</span></div>
+  <input type="file" id="file" accept=".xlsx,.xls" style="display:none">
+  <button class="btn btn-upd" onclick="document.getElementById('file').click()">&#8635; Actualizar base</button>
+  <button class="btn btn-desc" onclick="descargarTablero()">&#11015; Descargar / guardar</button>
+</div>
+<div class="tabs">
+  <button class="tab on" data-p="principal">Principal</button>
+  <button class="tab" data-p="mesames">Mes a mes &amp; tendencias</button>
+  <button class="tab" data-p="pedidos">Pedidos pendientes</button>
+  <button class="tab" data-p="config">Días hábiles &amp; feriados</button>
+</div>
+<div class="savebar">
+  <span id="estado">–</span>
+  <span class="savehint">Al «Actualizar base» los datos quedan guardados en este navegador (se mantienen al refrescar). Para compartir el archivo o abrirlo en otra PC con los datos actuales, usá «Descargar / guardar».</span>
+  <button class="linklike" onclick="restablecer()">Restablecer a los datos del archivo</button>
+</div>
+<div class="wrap">
+
+  <!-- PRINCIPAL -->
+  <section class="page on" id="principal">
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card hero">
+        <h3>Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3>
+        <div class="gaugewrap">
+          <div class="gauge"><canvas id="gauge"></canvas>
+            <div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div>
+          </div>
+          <div style="flex:1;min-width:180px" class="barwrap">
+            <div class="mini" style="color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.5px;font-size:10px">Meta del mes</div>
+            <div class="med" id="hMeta" style="margin:2px 0 10px">–</div>
+            <div class="bar"><span id="hBar" style="width:0%"></span></div>
+            <div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Facturado acumulado</h3>
+        <div class="big"><span class="u">₲</span><span id="kFact">–</span></div>
+        <div class="sub2">Meta: <b id="kMeta">–</b></div>
+        <div style="margin-top:9px"><span class="chip flat" id="kFalta">–</span></div>
+      </div>
+      <div class="card">
+        <h3>Proyección fin de mes</h3>
+        <div class="big"><span class="u">₲</span><span id="kProy">–</span></div>
+        <div class="sub2">Ritmo diario × días hábiles del mes</div>
+        <div style="margin-top:9px"><span class="chip" id="kProyPct">–</span> <span class="mini">vs meta</span></div>
+      </div>
+    </div>
+
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card accent">
+        <h3>Facturación del día · último día hábil</h3>
+        <div class="big"><span class="u">₲</span><span id="kDia">–</span></div>
+        <div class="sub2" id="kDiaFecha">–</div>
+        <div style="margin-top:9px"><span class="chip" id="kDiaVar">–</span> <span class="mini">vs mismo día hábil año ant. (₲ <span id="kDiaPrev">–</span>)</span></div>
+      </div>
+      <div class="card">
+        <h3>Mes actual vs mismo mes año pasado</h3>
+        <div class="med"><span class="u" style="font-size:12px;color:var(--gris-2)">₲</span> <span id="kMes">–</span></div>
+        <div class="sub2" id="kMesPrevL">–</div>
+        <div style="margin-top:9px"><span class="chip" id="kMesVar">–</span></div>
+      </div>
+      <div class="card">
+        <h3>Proyección fin de año</h3>
+        <div class="med"><span class="u" style="font-size:12px;color:var(--gris-2)">₲</span> <span id="kAnio">–</span></div>
+        <div class="sub2">Acum. año + ritmo meses restantes</div>
+        <div style="margin-top:9px"><span class="chip" id="kAnioPct">–</span> <span class="mini">de meta anual</span></div>
+      </div>
+      <div class="card">
+        <h3>Días hábiles del mes</h3>
+        <div class="big"><span id="kBdEl">–</span><span class="u" style="font-size:16px"> / </span><span id="kBdTot">–</span></div>
+        <div class="sub2">Transcurridos / totales (L-V, sin feriados)</div>
+        <div style="margin-top:9px"><span class="chip flat" id="kBdRest">–</span></div>
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-bottom:16px">
+      <div class="card">
+        <h3>Facturación diaria del mes <span id="dScope" style="font-weight:600;color:var(--gris)"></span></h3>
+        <div class="scrolltbl" id="dailyTbl"></div>
+        <div class="legend-tiny"><span><i style="background:var(--pos-bg);border:1px solid #bfe6d1"></i>Día con ₲ 2.000 millones o más</span></div>
+      </div>
+      <div class="card">
+        <h3>Facturado por almacén</h3>
+        <div id="almBox"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Pedidos pendientes de facturar · resumen <span id="pScope" style="font-weight:600;color:var(--gris)"></span></h3>
+      <div class="grid g4">
+        <div class="stat-row" style="border:none;flex-direction:column;align-items:flex-start"><span class="k">Líneas</span><span class="v" id="pgLin">–</span></div>
+        <div class="stat-row" style="border:none;flex-direction:column;align-items:flex-start"><span class="k">Pedidos</span><span class="v" id="pgPed">–</span></div>
+        <div class="stat-row" style="border:none;flex-direction:column;align-items:flex-start"><span class="k">Monto total ₲</span><span class="v" id="pgTot">–</span></div>
+        <div class="stat-row" style="border:none;flex-direction:column;align-items:flex-start"><span class="k">Peso total (kg)</span><span class="v" id="pgPeso">–</span></div>
+      </div>
+      <div class="note" style="margin-top:6px">Detalle completo con filtros de almacén, etapa, vendedor y peso en la pestaña <b>Pedidos pendientes</b>.</div>
+    </div>
+  </section>
+
+  <!-- MES A MES -->
+  <section class="page" id="mesames">
+    <div class="pill-row" id="mmScope" style="margin-bottom:6px">
+      <span class="mini" style="align-self:center;margin-right:4px;font-weight:600">Almacén:</span>
+      <button class="pill on" data-s="tot">Total</button>
+      <button class="pill" data-s="fer">Ferretería</button>
+      <button class="pill" data-s="hie">Hierros</button>
+    </div>
+    <div class="grid g2" style="margin-bottom:16px">
+      <div class="card"><h3>Facturación mensual · 2026 vs 2025</h3><div class="chartbox"><canvas id="chTrend"></canvas></div></div>
+      <div class="card"><h3>Acumulado del año · 2026 vs 2025</h3><div class="chartbox"><canvas id="chAcum"></canvas></div></div>
+    </div>
+    <div class="card">
+      <h3>Facturación mes a mes · acumulado vs año pasado</h3>
+      <div style="overflow-x:auto"><table id="tblMM"><thead><tr>
+        <th>Mes</th><th>Acum. 2025</th><th>Acum. 2026</th><th>Var. acum. %</th><th>Meta 2026 (mes)</th><th>Cumpl. mes</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- PEDIDOS -->
+  <section class="page" id="pedidos">
+    <div class="pedfilters">
+      <div class="fld"><label>Almacén</label><select id="fAlm"></select></div>
+      <div class="fld"><label>Etapa del pedido</label><select id="fEt"></select></div>
+    </div>
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card"><h3>Líneas pendientes</h3><div class="big" id="p2Lin">–</div></div>
+      <div class="card"><h3>Pedidos</h3><div class="big" id="p2Ped">–</div></div>
+      <div class="card"><h3>Monto total</h3><div class="big"><span class="u">₲</span><span id="p2Tot">–</span></div></div>
+      <div class="card"><h3>Peso total</h3><div class="big"><span id="p2Peso">–</span><span class="u" style="font-size:14px"> kg</span></div></div>
+    </div>
+    <div class="pill-row" id="pedPills">
+      <button class="pill on" data-v="almacen">Por almacén</button>
+      <button class="pill" data-v="vext">Por vendedor externo</button>
+      <button class="pill" data-v="vint">Por vendedor interno</button>
+      <button class="pill" data-v="prod">Prod./Import</button>
+      <button class="pill" data-v="fecha">Por fecha de autorización</button>
+      <button class="pill" data-v="hora">Por hora de creación</button>
+      <button class="pill" data-v="peso">Por peso</button>
+      <button class="pill" data-v="etapa">Por etapa</button>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h3 id="pedChTitle">Distribución</h3><div class="chartbox"><canvas id="chPed"></canvas></div></div>
+      <div class="card"><h3 id="pedTblTitle">Detalle</h3><div class="scrolltbl" style="max-height:360px" id="pedTblBox"></div></div>
+    </div>
+  </section>
+
+  <!-- CONFIG -->
+  <section class="page" id="config">
+    <div class="grid g2" style="margin-bottom:16px">
+      <div class="card">
+        <h3>Cálculo de días hábiles</h3>
+        <div class="stat-row"><span class="k">Mes analizado</span><span class="v" id="cfMes">–</span></div>
+        <div class="stat-row"><span class="k">Días del mes</span><span class="v" id="cfDias">–</span></div>
+        <div class="stat-row"><span class="k">Fines de semana</span><span class="v" id="cfFds">–</span></div>
+        <div class="stat-row"><span class="k">Feriados cargados</span><span class="v" id="cfFer">–</span></div>
+        <div class="stat-row"><span class="k">Días hábiles (L-V, netos)</span><span class="v" id="cfHab">–</span></div>
+        <div class="stat-row"><span class="k">Transcurridos hasta hoy</span><span class="v" id="cfTrans">–</span></div>
+        <div class="stat-row"><span class="k">Que faltan</span><span class="v" id="cfFalt">–</span></div>
+      </div>
+      <div class="card">
+        <h3>Feriados (excepciones manuales)</h3>
+        <div class="holiday-in">
+          <div class="fld"><label>Fecha del feriado</label><input type="date" id="ferDate"></div>
+          <div class="fld"><label>Descripción (opcional)</label><input type="text" id="ferName" placeholder="Ej: Día del trabajador"></div>
+          <button class="btn" style="background:var(--azul);color:#fff" onclick="addFer()">+ Agregar</button>
+        </div>
+        <div id="ferList"></div>
+        <div class="note" style="margin-top:14px">Los feriados solo aplican al mes en curso; se descuentan automáticamente de los días hábiles y recalculan las proyecciones.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Fecha de referencia ("hoy")</h3>
+      <div class="holiday-in" style="margin-bottom:0">
+        <div class="fld"><label>Simular fecha (para proyecciones)</label><input type="date" id="hoyInput"></div>
+        <button class="btn btn-ghost" style="background:var(--azul-tenue);color:var(--azul)" onclick="setHoy()">Aplicar</button>
+        <button class="btn" style="background:#eef1f5;color:var(--gris)" onclick="resetHoy()">Volver a la última fecha con datos</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">Tablero de Facturación Diaria · Alas &nbsp;·&nbsp; Datos en guaraníes (₲) &nbsp;·&nbsp; L-V como días hábiles &nbsp;·&nbsp; usá «Actualizar base» para cargar la planilla más reciente.</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script id="snapdata" type="application/json">{"cur_month": 7, "cur_year": 2026, "meses": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"], "meta_tot": [42378206646.0, 39885370960.0, 37392535275.0, 37392535275.0, 36146117433.0, 43624624488.0, 46117460173.0, 44871042331.0, 43624624488.0, 47363878016.0, 44871042331.0, 34899699591.0], "meta_ldal": [23022679628.0, 21668404355.0, 20314129083.0, 20314129083.0, 19636991447.0, 23699817264.0, 25054092536.0, 24376954900.0, 23699817264.0, 25731230172.0, 24376954900.0, 18959853811.0], "meta_ldfa": [19355527018.0, 18216966605.0, 17078406192.0, 17078406192.0, 16509125986.0, 19924807224.0, 21063367637.0, 20494087431.0, 19924807224.0, 21632647844.0, 20494087431.0, 15939845780.0], "v2025": [37027760271.0, 31194289034.0, 30055674019.0, 27851058577.0, 30578515838.0, 32277344469.0, 38008728966.0, 34591116279.0, 34095235702.0, 38442528954.0, 33382623002.0, 27860741875.0], "v2026": [42890781146.0, 35785934697.0, 36188103964.0, 34183031344.0, 32895967702.0, 35491490575.0, 38167573226.36367, 0.0, 0.0, 0.0, 0.0, 0.0], "v2025_fer": [21256595045.0, 17203967468.0, 17139245922.0, 14904771243.0, 15710492061.0, 17453163330.0, 21174070452.0, 18279038661.0, 19498281898.0, 21288040994.0, 18019204070.0, 14759694591.0], "v2026_fer": [23832153047.0, 20689312267.0, 20787231947.0, 18745344937.0, 17816479920.0, 18370396146.0, 19370983477.272736, 0.0, 0.0, 0.0, 0.0, 0.0], "v2025_hie": [16442186520.0, 14371440851.0, 13287538050.0, 13299456984.0, 15257512805.0, 15318633671.0, 17655181590.0, 16855931076.0, 15000079064.0, 17587220591.0, 15830387346.0, 13540938192.0], "v2026_hie": [19443143196.0, 15698716714.0, 16291448894.0, 15937881700.0, 15779451448.0, 17584737761.0, 18819140112.727276, 0.0, 0.0, 0.0, 0.0, 0.0], "daily": [["2026-07-01", 1011695192.7272741], ["2026-07-02", 1437293398.1818202], ["2026-07-03", 1307782316.3636367], ["2026-07-04", 364624572.72727275], ["2026-07-06", 1265651140.0000007], ["2026-07-07", 1546250743.6363633], ["2026-07-08", 1806777679.0909085], ["2026-07-09", 1706901913.636364], ["2026-07-10", 1412241868.1818197], ["2026-07-11", 600967570.0000008], ["2026-07-13", 1544406078.181819], ["2026-07-14", 1702057801.8181863], ["2026-07-15", 1334126949.0909111], ["2026-07-16", 1834346987.2727292], ["2026-07-17", 1734772991.8181834], ["2026-07-18", 542644187.2727277], ["2026-07-20", 1502509287.2727263], ["2026-07-21", 1638162723.6363654], ["2026-07-22", 1401570069.090912], ["2026-07-23", 2006008758.1818213], ["2026-07-24", 1644441211.8181825], ["2026-07-25", 335868859.9999998], ["2026-07-27", 1603453859.0909128], ["2026-07-28", 1622014865.454545], ["2026-07-29", 1639247954.5454562], ["2026-07-30", 1573397598.1818187], ["2026-07-31", 2048356649.090911]], "daily_fer": [["2026-07-01", 491848185.4545453], ["2026-07-02", 745079285.4545454], ["2026-07-03", 735007827.2727274], ["2026-07-04", 207549614.5454546], ["2026-07-06", 758030776.3636363], ["2026-07-07", 788685829.0909091], ["2026-07-08", 913775790.9090917], ["2026-07-09", 947990002.727273], ["2026-07-10", 683469631.8181821], ["2026-07-11", 276924562.7272729], ["2026-07-13", 853599109.0909097], ["2026-07-14", 898297946.3636369], ["2026-07-15", 680716697.272728], ["2026-07-16", 1002010270.90909], ["2026-07-17", 906281950.0000005], ["2026-07-18", 277392576.3636365], ["2026-07-20", 738124466.363637], ["2026-07-21", 828993939.9999998], ["2026-07-22", 886837905.4545457], ["2026-07-23", 845364127.272727], ["2026-07-24", 848602997.2727284], ["2026-07-25", 209867631.8181818], ["2026-07-27", 618364603.6363642], ["2026-07-28", 754123649.0909089], ["2026-07-29", 852369831.8181833], ["2026-07-30", 759394140.9090909], ["2026-07-31", 862280127.2727288]], "daily_hie": [["2026-07-01", 519847007.272727], ["2026-07-02", 691580720.9090904], ["2026-07-03", 572826034.5454549], ["2026-07-04", 157074958.1818182], ["2026-07-06", 509678090.9090906], ["2026-07-07", 755538096.3636359], ["2026-07-08", 907339615.454546], ["2026-07-09", 758911910.909091], ["2026-07-10", 729983066.3636367], ["2026-07-11", 322944476.3636364], ["2026-07-13", 691018082.7272731], ["2026-07-14", 811037127.2727276], ["2026-07-15", 646305934.5454541], ["2026-07-16", 834344898.1818181], ["2026-07-17", 828491041.8181819], ["2026-07-18", 265251610.909091], ["2026-07-20", 762584365.4545455], ["2026-07-21", 809168783.6363642], ["2026-07-22", 516226380.9090913], ["2026-07-23", 1160644630.9090905], ["2026-07-24", 795908214.5454553], ["2026-07-25", 128211186.36363636], ["2026-07-27", 985691158.1818182], ["2026-07-28", 867891216.3636369], ["2026-07-29", 789016304.545455], ["2026-07-30", 815548677.2727275], ["2026-07-31", 1186076521.818182]], "fact_almacen": {"Hierros": 18819140112.727287, "Ferretería": 19370983477.27267, "Otros": -15378352.727272728, "Almacén LDDV": -7884058.181818182, "Tienda Fábrica": 712047.2727272727}, "devoluciones": -1374109270.0000052, "fact_bruta": 39541682496.36286, "last_bd_cur": 2048356649.090911, "last_bd_cur_fer": 862280127.2727288, "last_bd_cur_hie": 1186076521.818182, "last_bd_prevyear": 2179851250.0, "last_bd_prevyear_fer": 1056394278.0, "last_bd_prevyear_hie": 1133664933.0, "last_bd_date": "2026-07-31", "bd_total": 23, "bd_elapsed": 23, "ped_lines": [["Devoluciones", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-02", 15, 0.0, 1392700.0, "Importados", "1015844218"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-16", 16, 213.6, 1541820.0, "Producción Alas", "1015926990"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-28", 9, 0.0, 186544.0, "Importados", "1015927805"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-17", 13, 566.0, 3554550.0, "Producción Alas", "1015934631"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-23", 17, 410.4, 2442270.0, "Producción Alas", "1015939589"], ["Tienda Fábrica", "No Preparado", "Alas", "Gonzalo Yegros", "2026-07-20", 8, 0.0, 63408.0, "Importados", "1015942835"], ["Hierros", "No Preparado", "Celia Ortiz", "Yanina Caballero", "2026-07-20", 14, 847.0, 5907300.0, "Producción Alas", "1015943194"], ["Hierros", "Controlado", "Celia Ortiz", "Yanina Caballero", "2026-07-30", 10, 276.0, 1957615.2, "Producción Alas", "1015943496"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-21", 8, 250.0, 1827250.0, "Producción Alas", "1015946299"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-20", 17, 125.0, 914540.0, "Producción Alas", "1015946348"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-28", 11, 295.68, 2046739.2, "Producción Alas", "1015947292"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-21", 9, 478.4, 3349080.0, "Producción Alas", "1015949432"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-27", 9, 1380.0, 8178645.0, "Producción Alas", "1015949546"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-21", 15, 239.1, 1707270.0, "Producción Alas", "1015950704"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-21", 14, 82.5, 645450.0, "Producción Alas", "1015952485"], ["Hierros", "No Preparado", "Edgar Gimenez", "Venta Normal", "2026-07-29", 13, 92.4, 580364.0, "Producción Alas", "1015952695"], ["Hierros", "No Preparado", "Jorge Lopez", "Venta Normal", "2026-07-21", 17, 534.0, 3854550.0, "Producción Alas", "1015953540"], ["Hierros", "No Preparado", "Jorge Lopez", "Venta Normal", "2026-07-27", 10, 150.4, 1101820.0, "Producción Alas", "1015953541"], ["Hierros", "No Preparado", "Erika Torres", "Venta Normal", "2026-07-29", 8, 276.0, 1721820.0, "Producción Alas", "1015958323"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-23", 18, 336.0, 2350067.5, "Producción Alas", "1015958631"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-22", 15, 380.8, 2734560.0, "Producción Alas", "1015959298"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-28", 9, 213.6, 1495565.4, "Producción Alas", "1015960287"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-23", 11, 301.5, 2081086.5, "Producción Alas", "1015961820"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-23", 11, 150.0, 1063459.5, "Producción Alas", "1015961820"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-28", 8, 690.0, 4175413.5, "Producción Alas", "1015961821"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-30", 17, 704.0, 5000000.0, "Producción Alas", "1015963602"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-23", 13, 105.6, 750000.0, "Producción Alas", "1015964778"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-23", 17, 207.0, 1472700.0, "Producción Alas", "1015967054"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-23", 17, 55.2, 410460.0, "Producción Alas", "1015967173"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-29", 18, 1408.0, 10000000.0, "Producción Alas", "1015967227"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-24", 9, 875.0, 6400000.0, "Producción Alas", "1015967751"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-30", 18, 184.0, 1368200.0, "Producción Alas", "1015967863"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-30", 17, 120.6, 858180.0, "Producción Alas", "1015967884"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-29", 13, 301.5, 2145450.0, "Producción Alas", "1015967895"], ["Ferretería", "No Preparado", "Diego Delgado", "Venta Normal", "2026-07-29", 11, 0.0, 527274.0, "Importados", "1015968029"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 14, 180.9, 1287270.0, "Producción Alas", "1015968399"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-24", 10, 301.5, 2145450.0, "Producción Alas", "1015968581"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-24", 10, 180.9, 1287270.0, "Producción Alas", "1015968628"], ["Hierros", "No Preparado", "Juan Jose Torres", "Gabriel Saucedo", "2026-07-31", 13, 180.9, 1287270.0, "Producción Alas", "1015968637"], ["Hierros", "No Preparado", "Juan Jose Torres", "Gabriel Saucedo", "2026-07-31", 13, 211.2, 1500000.0, "Producción Alas", "1015968637"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-24", 9, 336.0, 2422750.0, "Producción Alas", "1015969196"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-24", 11, 625.0, 4363727.61, "Producción Alas", "1015969444"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 13, 180.9, 1287270.0, "Producción Alas", "1015969713"], ["Hierros", "No Preparado", "Raul Caballero", "Venta Normal", "2026-07-24", 11, 92.0, 672720.0, "Producción Alas", "1015969754"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-24", 17, 201.6, 1453650.0, "Producción Alas", "1015970652"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-24", 17, 301.5, 2145450.0, "Producción Alas", "1015970653"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-27", 9, 301.5, 2145450.0, "Producción Alas", "1015971283"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-24", 16, 105.6, 750000.0, "Producción Alas", "1015971498"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-24", 17, 84.42, 600726.0, "Producción Alas", "1015971647"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-30", 8, 90.45, 643635.0, "Producción Alas", "1015971649"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-30", 8, 70.4, 500000.0, "Producción Alas", "1015971649"], ["Hierros", "No Preparado", "Osvaldo Piñanez", "Venta Normal", "2026-07-30", 8, 120.6, 858180.0, "Producción Alas", "1015972022"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-24", 17, 201.6, 1453650.0, "Producción Alas", "1015972024"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-30", 17, 22.08, 164184.0, "Producción Alas", "1015972497"], ["Hierros", "No Preparado", "Juan Jose Torres", "Gabriel Saucedo", "2026-07-24", 17, 73.6, 547280.0, "Producción Alas", "1015972570"], ["Hierros", "No Preparado", "Juan Rodriguez", "Venta Normal", "2026-07-25", 9, 150.75, 1072725.0, "Producción Alas", "1015973611"], ["Hierros", "No Preparado", "Juan Rodriguez", "Venta Normal", "2026-07-25", 11, 80.64, 581460.0, "Producción Alas", "1015974232"], ["Hierros", "No Preparado", "Juan Rodriguez", "Venta Normal", "2026-07-25", 11, 352.0, 2500000.0, "Producción Alas", "1015974373"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-25", 9, 70.0, 540910.0, "Importados", "1015974432"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-25", 9, 163.68, 1125088.0, "Producción Alas", "1015974432"], ["Hierros", "No Preparado", "Manuel Colman", "Venta Normal", "2026-07-27", 8, 120.6, 858180.0, "Producción Alas", "1015974923"], ["Hierros", "No Preparado", "Juan Legal", "Venta Normal", "2026-07-31", 14, 150.75, 1072725.0, "Producción Alas", "1015975435"], ["Hierros", "No Preparado", "Marno Schneider", "Gabriel Saucedo", "2026-07-27", 7, 124.2, 904905.0, "Producción Alas", "1015975451"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-31", 14, 70.4, 500000.0, "Producción Alas", "1015975961"], ["Hierros", "No Preparado", "Juan Legal", "Venta Normal", "2026-07-27", 12, 352.1, 2500890.0, "Producción Alas", "1015977439"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-27", 11, 241.2, 1718160.0, "Producción Alas", "1015977501"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-27", 11, 201.2, 1429080.0, "Producción Alas", "1015977501"], ["Hierros", "No Preparado", "Juan Legal", "Venta Normal", "2026-07-28", 8, 904.5, 6436350.0, "Producción Alas", "1015977603"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Isaac Silva", "2026-07-27", 15, 331.2, 2004904.64, "Producción Alas", "1015977736"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-27", 11, 160.8, 1145440.0, "Producción Alas", "1015977768"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-27", 11, 201.2, 1429080.0, "Producción Alas", "1015977768"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-27", 11, 120.6, 858180.0, "Producción Alas", "1015977768"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-27", 12, 2600.0, 16500000.0, "Producción Alas", "1015977887"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-27", 11, 352.0, 2500000.0, "Producción Alas", "1015977889"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-27", 11, 301.5, 2145450.0, "Producción Alas", "1015977889"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-29", 13, 110.4, 688728.0, "Producción Alas", "1015978031"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-27", 11, 99.0, 774540.0, "Producción Alas", "1015978165"], ["Hierros", "No Preparado", "Juan Rodriguez", "Venta Normal", "2026-07-27", 11, 1089.0, 7489080.0, "Producción Alas", "1015978321"], ["Ferretería", "Controlado", "Ebal Gonzalez", "Venta Normal", "2026-07-31", 17, 0.0, 597500.0, "Importados", "1015978322"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-27", 11, 138.0, 1006350.0, "Producción Alas", "1015978615"], ["Hierros", "No Preparado", "Carlos Rojas", "Venta Normal", "2026-07-27", 13, 352.5, 2500000.0, "Producción Alas", "1015978679"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-27", 14, 211.2, 1500000.0, "Producción Alas", "1015978840"], ["Hierros", "No Preparado", "Manuel Colman", "Venta Normal", "2026-07-27", 12, 180.9, 1287270.0, "Producción Alas", "1015979048"], ["Hierros", "No Preparado", "Manuel Colman", "Venta Normal", "2026-07-27", 14, 60.3, 429540.0, "Producción Alas", "1015979048"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-27", 14, 120.6, 859080.0, "Producción Alas", "1015979110"], ["Hierros", "No Preparado", "Marno Schneider", "Gabriel Saucedo", "2026-07-27", 14, 120.6, 859080.0, "Producción Alas", "1015979289"], ["Hierros", "No Preparado", "Jorge Lopez", "Venta Normal", "2026-07-29", 13, 704.0, 5000000.0, "Producción Alas", "1015980067"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-27", 14, 30.15, 214545.0, "Producción Alas", "1015980321"], ["Hierros", "No Preparado", "Manuel Colman", "Venta Normal", "2026-07-27", 16, 67.2, 484550.0, "Producción Alas", "1015980775"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-27", 17, 42.72, 308364.0, "Producción Alas", "1015980913"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-27", 17, 410.0, 2954550.0, "Producción Alas", "1015981102"], ["Hierros", "No Preparado", "Erika Torres", "Gabriel Saucedo", "2026-07-31", 14, 150.9, 1071825.0, "Producción Alas", "1015981488"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-27", 17, 352.0, 2500000.0, "Producción Alas", "1015981709"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-27", 17, 184.0, 1368200.0, "Producción Alas", "1015981712"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-27", 17, 230.0, 1677250.0, "Producción Alas", "1015981712"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 14, 201.0, 1431800.0, "Producción Alas", "1015982254"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 14, 2010.0, 13888460.0, "Producción Alas", "1015982791"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 14, 1206.0, 8324346.0, "Producción Alas", "1015982791"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-28", 10, 616.0, 4545600.0, "Producción Alas", "1015982792"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-28", 10, 138.69, 986907.0, "Producción Alas", "1015982849"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-28", 10, 125.0, 914540.0, "Producción Alas", "1015982852"], ["Hierros", "No Preparado", "Raul Caballero", "Venta Normal", "2026-07-28", 11, 70.4, 500000.0, "Producción Alas", "1015983274"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-28", 11, 80.4, 572720.0, "Producción Alas", "1015983731"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-28", 11, 100.6, 714540.0, "Producción Alas", "1015983731"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-28", 11, 120.6, 858180.0, "Producción Alas", "1015983731"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-28", 11, 140.8, 1000000.0, "Producción Alas", "1015983731"], ["Hierros", "No Preparado", "Raul Caballero", "Venta Normal", "2026-07-28", 11, 60.3, 429540.0, "Producción Alas", "1015983734"], ["Hierros", "No Preparado", "Raul Caballero", "Venta Normal", "2026-07-28", 11, 50.3, 357270.0, "Producción Alas", "1015983734"], ["Hierros", "No Preparado", "Raul Caballero", "Venta Normal", "2026-07-28", 11, 60.3, 429090.0, "Producción Alas", "1015983734"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 97159.35, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 291478.05, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 194318.7, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 388637.4, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 388637.4, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 97159.35, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 82909.35, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 165818.7, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 165818.7, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 165818.7, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 165818.7, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 82909.35, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 267729.0, "Importados", "1015984942"], ["Ferretería", "Controlado", "Alas", "Gabriel Saucedo", "2026-07-28", 10, 0.0, 345458.0, "Importados", "1015984942"], ["Ferretería", "Controlado", "Manuel Colman", "Gonzalo Yegros", "2026-07-31", 16, 0.0, 325909.0, "Importados", "1015985041"], ["Hierros", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-30", 19, 46.1, 323640.0, "Producción Alas", "1015985097"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-29", 13, 503.0, 3572700.0, "Producción Alas", "1015986651"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-28", 15, 106.8, 770910.0, "Producción Alas", "1015986694"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-28", 14, 345.0, 2522700.0, "Producción Alas", "1015986742"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-28", 14, 624.0, 4309080.0, "Producción Alas", "1015986743"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-28", 14, 1876.5, 13050000.0, "Producción Alas", "1015986744"], ["Hierros", "No Preparado", "Victor Ortiz", "Venta Normal", "2026-07-28", 17, 410.0, 2954550.0, "Producción Alas", "1015986925"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-28", 14, 2220.0, 13055966.0, "Producción Alas", "1015987088"], ["Hierros", "No Preparado", "Juan Legal", "Samuel Cardozo", "2026-07-28", 15, 2105.0, 14909000.0, "Producción Alas", "1015987281"], ["Hierros", "No Preparado", "Juan Legal", "Samuel Cardozo", "2026-07-28", 15, 1890.0, 13273000.0, "Producción Alas", "1015987281"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-28", 15, 352.0, 2500000.0, "Producción Alas", "1015987377"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-28", 17, 184.0, 1368200.0, "Producción Alas", "1015987692"], ["Hierros", "Controlado", "Ronaldo Fernandez", "Venta Normal", "2026-07-28", 17, 410.0, 2872720.0, "Producción Alas", "1015987848"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-28", 17, 92.0, 670900.0, "Producción Alas", "1015988531"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-28", 17, 211.2, 1500000.0, "Producción Alas", "1015988593"], ["Hierros", "No Preparado", "Cristhian Martinez", "Venta Normal", "2026-07-29", 13, 312.5, 2286350.0, "Producción Alas", "1015988721"], ["Hierros", "Controlado", "Marno Schneider", "Venta Normal", "2026-07-29", 13, 922.0, 6472800.0, "Producción Alas", "1015988858"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-28", 18, 138.0, 1006350.0, "Producción Alas", "1015989085"], ["Hierros", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-28", 18, 138.0, 1006350.0, "Producción Alas", "1015989498"], ["Hierros", "Controlado", "Ebal Gonzalez", "Venta Normal", "2026-07-28", 18, 230.5, 1618200.0, "Producción Alas", "1015989501"], ["Ferretería", "Controlado", "Carlos Rojas", "Samuel Cardozo", "2026-07-28", 17, 0.0, 46464.5, "Importados", "1015989514"], ["Ferretería", "Controlado", "Carlos Rojas", "Samuel Cardozo", "2026-07-28", 17, 0.0, 100900.0, "Importados", "1015989514"], ["Ferretería", "Controlado", "Carlos Rojas", "Samuel Cardozo", "2026-07-28", 17, 0.0, 95400.0, "Importados", "1015989514"], ["Ferretería", "Controlado", "Carlos Rojas", "Samuel Cardozo", "2026-07-28", 17, 0.0, 47725.0, "Importados", "1015989514"], ["Ferretería", "Controlado", "Carlos Rojas", "Samuel Cardozo", "2026-07-28", 17, 0.0, 247864.5, "Importados", "1015989514"], ["Ferretería", "Controlado", "Carlos Rojas", "Samuel Cardozo", "2026-07-28", 17, 0.0, 283703.25, "Importados", "1015989514"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-29", 9, 220.8, 1641840.0, "Producción Alas", "1015989729"], ["Hierros", "No Preparado", "Juan Rodriguez", "Venta Normal", "2026-07-29", 9, 80.64, 581460.0, "Producción Alas", "1015989740"], ["Hierros", "No Preparado", "Jorge Lopez", "Venta Normal", "2026-07-29", 9, 60.3, 429540.0, "Producción Alas", "1015989936"], ["Hierros", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-29", 10, 33.6, 227454.0, "Producción Alas", "1015990429"], ["Hierros", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-29", 10, 78.36, 524724.0, "Producción Alas", "1015990429"], ["Hierros", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-29", 8, 63.2, 670455.0, "Importados", "1015990430"], ["Hierros", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-29", 8, 4.49, 209182.0, "Producción Alas", "1015990430"], ["Hierros", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-29", 8, 339.2, 1967275.0, "Producción Alas", "1015990430"], ["Hierros", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-29", 8, 67.84, 393455.0, "Producción Alas", "1015990430"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-29", 10, 503.0, 3572700.0, "Producción Alas", "1015990796"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-30", 11, 46.0, 335460.0, "Producción Alas", "1015990841"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-29", 10, 3720.0, 24709200.0, "Producción Alas", "1015990842"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-29", 10, 150.9, 1071810.0, "Producción Alas", "1015990950"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-29", 10, 150.9, 1071825.0, "Producción Alas", "1015990950"], ["Hierros", "Controlado", "Marno Schneider", "Venta Normal", "2026-07-31", 11, 230.5, 1618200.0, "Producción Alas", "1015990994"], ["Ferretería", "No Preparado", "Alas", "Yanina Caballero", "2026-07-29", 10, 0.0, 568182.0, "Importados", "1015991561"], ["Hierros", "Controlado", "Ronaldo Fernandez", "Venta Normal", "2026-07-31", 11, 115.25, 809100.0, "Producción Alas", "1015991597"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-29", 11, 241.6, 1716360.0, "Producción Alas", "1015991728"], ["Ferretería", "No Preparado", "Osvaldo Roman", "Carlos Barreto", "2026-07-29", 10, 0.0, 15816.0, "Importados", "1015991753"], ["Ferretería", "No Preparado", "Osvaldo Roman", "Carlos Barreto", "2026-07-29", 10, 0.0, 20730.0, "Importados", "1015991753"], ["Ferretería", "No Preparado", "Osvaldo Roman", "Carlos Barreto", "2026-07-29", 10, 0.0, 27819.0, "Importados", "1015991753"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-29", 11, 100.6, 714550.0, "Producción Alas", "1015991863"], ["Hierros", "No Preparado", "Victor Ortiz", "Venta Normal", "2026-07-29", 19, 780.0, 5618100.0, "Producción Alas", "1015992151"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-29", 11, 0.0, 395460.0, "Importados", "1015992291"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-30", 16, 977.0, 7000000.0, "Producción Alas", "1015992378"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-29", 15, 46.0, 335460.0, "Producción Alas", "1015992875"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-30", 16, 67.2, 484550.0, "Producción Alas", "1015992877"], ["Hierros", "No Preparado", "Alas", "Hernan Insaurralde", "2026-07-29", 12, 138.2, 969100.0, "Producción Alas", "1015993114"], ["Hierros", "No Preparado", "Alas", "Hernan Insaurralde", "2026-07-29", 12, 167.6, 1200000.0, "Producción Alas", "1015993114"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-29", 12, 0.0, 46635.5, "Importados", "1015993186"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-29", 12, 0.0, 89200.0, "Importados", "1015993186"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-29", 12, 0.0, 121600.0, "Importados", "1015993186"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-29", 12, 0.0, 89200.0, "Importados", "1015993186"], ["Ferretería", "No Preparado", "Jose Velazquez", "Maria Del Castillo", "2026-07-29", 14, 0.0, 111276.0, "Importados", "1015993344"], ["Ferretería", "No Preparado", "Jose Velazquez", "Maria Del Castillo", "2026-07-29", 14, 0.0, 34908.0, "Importados", "1015993344"], ["Hierros", "No Preparado", "Edgar Gimenez", "Venta Normal", "2026-07-29", 16, 211.2, 1500000.0, "Producción Alas", "1015993429"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-30", 16, 686.4, 4488000.0, "Producción Alas", "1015993432"], ["Ferretería", "No Preparado", "Alas", "Elizabeth Caceres", "2026-07-29", 13, 0.0, 123067.75, "Importados", "1015993486"], ["Hierros", "No Preparado", "Edgar Gimenez", "Venta Normal", "2026-07-29", 17, 281.6, 2000000.0, "Producción Alas", "1015993487"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-29", 13, 37.04, 230546.0, "Producción Alas", "1015993653"], ["Ferretería", "No Preparado", "Osvaldo Roman", "Carlos Barreto", "2026-07-29", 13, 0.0, 88090.65, "Importados", "1015993666"], ["Ferretería", "No Preparado", "Alas", "Hernan Insaurralde", "2026-07-29", 13, 0.0, 39273.0, "Importados", "1015993677"], ["Ferretería", "No Preparado", "Alas", "Hernan Insaurralde", "2026-07-29", 13, 0.0, 61364.0, "Importados", "1015993677"], ["Ferretería", "No Preparado", "Alas", "Hernan Insaurralde", "2026-07-29", 13, 0.0, 139227.0, "Importados", "1015993677"], ["Ferretería", "No Preparado", "Alas", "Hernan Insaurralde", "2026-07-29", 13, 0.0, 77273.0, "Importados", "1015993677"], ["Ferretería", "No Preparado", "Alas", "Hernan Insaurralde", "2026-07-29", 13, 0.0, 118182.0, "Importados", "1015993677"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-29", 16, 2830.0, 17239567.5, "Producción Alas", "1015993794"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-29", 14, 3513.5, 19673346.0, "Producción Alas", "1015993951"], ["Hierros", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-29", 17, 187.5, 1371810.0, "Producción Alas", "1015994552"], ["Hierros", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-29", 17, 300.0, 2192720.0, "Producción Alas", "1015994552"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-29", 15, 0.0, 777276.0, "Importados", "1015994553"], ["Hierros", "No Preparado", "Alas", "Venta Normal", "2026-07-29", 15, 21.8, 411680.0, "Importados", "1015994559"], ["Ferretería", "Controlado", "Alas", "Elizabeth Caceres", "2026-07-29", 15, 0.0, 444771.0, "Importados", "1015994919"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-29", 17, 50.3, 357270.0, "Producción Alas", "1015995248"], ["Hierros", "En control", "Angel Fleitas", "Venta Normal", "2026-07-31", 14, 391.8, 2518675.2, "Producción Alas", "1015995372"], ["Hierros", "En control", "Angel Fleitas", "Venta Normal", "2026-07-31", 14, 336.0, 2183558.4, "Producción Alas", "1015995372"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-29", 17, 563.2, 4000000.0, "Producción Alas", "1015995438"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-29", 17, 804.8, 5716400.0, "Producción Alas", "1015995438"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-29", 16, 806.4, 5419699.2, "Producción Alas", "1015995439"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-29", 16, 1188.0, 7802208.0, "Producción Alas", "1015995439"], ["Ferretería", "No Preparado", "Carlos Rojas", "Samuel Cardozo", "2026-07-29", 16, 0.0, 155453.25, "Importados", "1015995667"], ["Ferretería", "Controlado", "Lucio Florentin", "Alberto Bazan", "2026-07-29", 17, 0.0, 44600.0, "Importados", "1015995764"], ["Ferretería", "Controlado", "Lucio Florentin", "Alberto Bazan", "2026-07-29", 17, 0.0, 30000.0, "Importados", "1015995764"], ["Ferretería", "Controlado", "Lucio Florentin", "Alberto Bazan", "2026-07-29", 17, 0.0, 21000.0, "Importados", "1015995764"], ["Ferretería", "Controlado", "Lucio Florentin", "Alberto Bazan", "2026-07-29", 17, 0.0, 56364.0, "Importados", "1015995764"], ["Ferretería", "Controlado", "Lucio Florentin", "Alberto Bazan", "2026-07-29", 17, 0.0, 48780.0, "Importados", "1015995838"], ["Hierros", "No Preparado", "Alas", "Enmanuel Borjas", "2026-07-29", 16, 400.32, 2784000.0, "Producción Alas", "1015995952"], ["Ferretería", "Controlado", "Junior Lugo", "Venta Normal", "2026-07-31", 16, 0.0, 154546.0, "Importados", "1015996232"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-30", 16, 419.0, 3000000.0, "Producción Alas", "1015996528"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-30", 11, 843.0, 5846481.0, "Producción Alas", "1015996555"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-30", 18, 138.0, 1006350.0, "Producción Alas", "1015996576"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-30", 9, 180.9, 1287270.0, "Producción Alas", "1015996783"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-30", 9, 120.6, 859080.0, "Producción Alas", "1015996783"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-30", 9, 150.9, 1071810.0, "Producción Alas", "1015996783"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-30", 9, 211.2, 1500000.0, "Producción Alas", "1015996783"], ["Hierros", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-30", 9, 301.5, 2145450.0, "Producción Alas", "1015996791"], ["Hierros", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-30", 9, 80.4, 630000.0, "Producción Alas", "1015996791"], ["Hierros", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-30", 9, 211.2, 1500000.0, "Producción Alas", "1015996791"], ["Hierros", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-30", 9, 251.5, 1786350.0, "Producción Alas", "1015996791"], ["Hierros", "No Preparado", "Alas", "Venta Normal", "2026-07-30", 17, 1024.5, 6683305.5, "Producción Alas", "1015996835"], ["Hierros", "No Preparado", "Alas", "Venta Normal", "2026-07-30", 17, 1537.5, 10018611.0, "Producción Alas", "1015996835"], ["Hierros", "No Preparado", "Alas", "Venta Normal", "2026-07-30", 17, 1708.0, 11126148.0, "Producción Alas", "1015996839"], ["Hierros", "No Preparado", "Alas", "Venta Normal", "2026-07-30", 17, 1794.0, 11679916.5, "Producción Alas", "1015996839"], ["Hierros", "No Preparado", "Alas", "Venta Normal", "2026-07-30", 17, 1540.0, 10027074.0, "Producción Alas", "1015996839"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-30", 16, 180.9, 1287270.0, "Producción Alas", "1015996995"], ["Hierros", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-30", 9, 12.5, 92235.0, "Importados", "1015997662"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-30", 12, 201.0, 1367369.0, "Producción Alas", "1015997708"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-30", 12, 301.5, 2048904.75, "Producción Alas", "1015997708"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-30", 12, 352.0, 2387500.0, "Producción Alas", "1015997708"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-30", 12, 230.0, 1677250.0, "Producción Alas", "1015998137"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-30", 10, 301.5, 2145450.0, "Producción Alas", "1015998193"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-30", 10, 35.84, 390910.0, "Producción Alas", "1015998295"], ["Ferretería", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-30", 10, 0.0, 24546.0, "Importados", "1015998296"], ["Ferretería", "No Preparado", "Alas", "Hernan Insaurralde", "2026-07-30", 10, 0.0, 306588.75, "Importados", "1015998592"], ["Ferretería", "No Preparado", "Alas", "Enmanuel Borjas", "2026-07-30", 10, 0.0, 49091.0, "Importados", "1015998603"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-30", 11, 0.0, 291564.5, "Importados", "1015998793"], ["Ferretería", "Controlado", "Manuel Colman", "Gonzalo Yegros", "2026-07-30", 11, 0.0, 58180.0, "Importados", "1015998934"], ["Ferretería", "No Preparado", "Erika Torres", "Venta Normal", "2026-07-31", 16, 0.0, 2176362.0, "Importados", "1015999126"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-30", 12, 100.6, 714540.0, "Producción Alas", "1015999332"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-30", 12, 120.6, 858180.0, "Producción Alas", "1015999332"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-30", 12, 402.0, 2863600.0, "Producción Alas", "1015999334"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-30", 12, 150.9, 1071810.0, "Producción Alas", "1015999334"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-30", 12, 211.2, 1500000.0, "Producción Alas", "1015999334"], ["Hierros", "No Preparado", "Edgar Gimenez", "Venta Normal", "2026-07-30", 15, 150.75, 1072725.0, "Producción Alas", "1015999653"], ["Hierros", "No Preparado", "Edgar Gimenez", "Venta Normal", "2026-07-30", 15, 100.5, 715900.0, "Producción Alas", "1015999653"], ["Hierros", "No Preparado", "Juan Rodriguez", "Venta Normal", "2026-07-30", 15, 230.0, 1677250.0, "Producción Alas", "1015999790"], ["Hierros", "No Preparado", "Juan Rodriguez", "Venta Normal", "2026-07-30", 15, 336.0, 2422750.0, "Producción Alas", "1015999790"], ["Ferretería", "Controlado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 17, 0.0, 200000.0, "Importados", "1015999883"], ["Ferretería", "Controlado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 17, 0.0, 1554545.0, "Importados", "1015999883"], ["Ferretería", "Controlado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 17, 0.0, 103632.0, "Importados", "1015999883"], ["Ferretería", "Controlado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 17, 0.0, 53640.0, "Importados", "1015999883"], ["Ferretería", "Controlado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 17, 0.0, 686364.0, "Importados", "1015999883"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-30", 15, 82.5, 613177.5, "Producción Alas", "1015999904"], ["Ferretería", "No Preparado", "Edilson Encina", "Venta Normal", "2026-07-31", 16, 0.0, 454136.0, "Importados", "1015999966"], ["Hierros", "No Preparado", "Manuel Colman", "Venta Normal", "2026-07-30", 15, 120.6, 859080.0, "Producción Alas", "1016000026"], ["Hierros", "No Preparado", "Manuel Colman", "Venta Normal", "2026-07-30", 15, 180.9, 1287270.0, "Producción Alas", "1016000026"], ["Ferretería", "Controlado", "Manuel Colman", "Gonzalo Yegros", "2026-07-30", 14, 0.0, 40908.0, "Importados", "1016000374"], ["Hierros", "No Preparado", "Osvaldo Piñanez", "Venta Normal", "2026-07-30", 19, 6720.0, 44693700.0, "Producción Alas", "1016000713"], ["Hierros", "No Preparado", "Lucio Florentin", "Venta Normal", "2026-07-30", 15, 226.4, 1421820.0, "Producción Alas", "1016000716"], ["Hierros", "No Preparado", "Lucio Florentin", "Venta Normal", "2026-07-30", 15, 213.6, 1541820.0, "Producción Alas", "1016000716"], ["Ferretería", "No Preparado", "Lucio Florentin", "Venta Normal", "2026-07-30", 15, 0.0, 213274.0, "Importados", "1016000832"], ["Ferretería", "No Preparado", "Lucio Florentin", "Venta Normal", "2026-07-30", 15, 0.0, 136365.0, "Importados", "1016000832"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 16, 0.0, 927200.0, "Importados", "1016000897"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-30", 16, 120.6, 859080.0, "Producción Alas", "1016001162"], ["Hierros", "Controlado", "Roberto Resquin", "Enmanuel Borjas", "2026-07-30", 16, 44.4, 279272.0, "Producción Alas", "1016001747"], ["Hierros", "Controlado", "Roberto Resquin", "Enmanuel Borjas", "2026-07-30", 16, 47.64, 324546.0, "Producción Alas", "1016001747"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-30", 16, 402.0, 2863600.0, "Producción Alas", "1016001757"], ["Ferretería", "Controlado", "Roberto Resquin", "Enmanuel Borjas", "2026-07-30", 16, 0.0, 44600.0, "Importados", "1016001768"], ["Hierros", "No Preparado", "Erika Torres", "Samuel Cardozo", "2026-07-30", 17, 164.5, 2661296.75, "Producción Alas", "1016001835"], ["Ferretería", "Controlado", "Roberto Resquin", "Enmanuel Borjas", "2026-07-30", 16, 0.0, 45300.0, "Importados", "1016001850"], ["Ferretería", "Controlado", "Roberto Resquin", "Enmanuel Borjas", "2026-07-30", 16, 0.0, 58250.0, "Importados", "1016001850"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-31", 9, 70.4, 500000.0, "Producción Alas", "1016002075"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 9, 150.9, 1071825.0, "Producción Alas", "1016002128"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 9, 90.45, 643635.0, "Producción Alas", "1016002128"], ["Ferretería", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 16, 0.0, 185448.0, "Importados", "1016002131"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-30", 16, 0.0, 463600.0, "Importados", "1016002256"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-31", 16, 0.0, 772730.0, "Importados", "1016002263"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-31", 9, 4020.0, 28636000.0, "Producción Alas", "1016002341"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-31", 9, 1307.8, 9289020.0, "Producción Alas", "1016002341"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-31", 9, 1567.8, 11156340.0, "Producción Alas", "1016002341"], ["Hierros", "No Preparado", "Manuel Colman", "Venta Normal", "2026-07-31", 14, 180.9, 1287270.0, "Producción Alas", "1016002839"], ["Ferretería", "No Preparado", "Erika Torres", "Venta Normal", "2026-07-31", 16, 0.0, 231819.0, "Importados", "1016003127"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-31", 9, 138.3, 970920.0, "Producción Alas", "1016003374"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-31", 9, 172.8, 1213650.0, "Producción Alas", "1016003374"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-31", 9, 251.5, 1786350.0, "Producción Alas", "1016003376"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-31", 9, 301.5, 2145450.0, "Producción Alas", "1016003376"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-31", 9, 352.0, 2500000.0, "Producción Alas", "1016003376"], ["Ferretería", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 8, 0.0, 68175.0, "Importados", "1016003382"], ["Hierros", "No Preparado", "Alas", "Carlos Barreto", "2026-07-31", 8, 43.71, 460455.0, "Importados", "1016003451"], ["Hierros", "No Preparado", "Ronaldo Fernandez", "Venta Normal", "2026-07-31", 10, 301.8, 2143620.0, "Producción Alas", "1016003469"], ["Ferretería", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 8, 0.0, 68364.0, "Importados", "1016003503"], ["Ferretería", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 8, 0.0, 136362.0, "Importados", "1016003503"], ["Ferretería", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 8, 0.0, 136362.0, "Importados", "1016003503"], ["Ferretería", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 8, 0.0, 122730.0, "Importados", "1016003503"], ["Ferretería", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 8, 0.0, 613635.0, "Importados", "1016003503"], ["Ferretería", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 8, 0.0, 1118181.0, "Importados", "1016003503"], ["Hierros", "No Preparado", "Erika Torres", "Gabriel Saucedo", "2026-07-31", 10, 1006.0, 6931135.0, "Producción Alas", "1016003550"], ["Hierros", "No Preparado", "Erika Torres", "Gabriel Saucedo", "2026-07-31", 10, 704.0, 4850000.0, "Producción Alas", "1016003550"], ["Ferretería", "No Preparado", "Erika Torres", "Venta Normal", "2026-07-31", 9, 0.0, 40273.0, "Importados", "1016003558"], ["Ferretería", "En control", "Nilson Barrios", "Venta Normal", "2026-07-31", 17, 0.0, 940920.0, "Importados", "1016003574"], ["Ferretería", "En control", "Nilson Barrios", "Venta Normal", "2026-07-31", 17, 0.0, 845460.0, "Importados", "1016003574"], ["Hierros", "No Preparado", "Juan Jose Torres", "Gabriel Saucedo", "2026-07-31", 10, 138.0, 1006350.0, "Producción Alas", "1016003619"], ["Ferretería", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 9, 0.0, 1898184.0, "Importados", "1016003672"], ["Ferretería", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 9, 0.0, 1881816.0, "Importados", "1016003672"], ["Ferretería", "No Preparado", "Jonathan Dominguez", "Isaac Silva", "2026-07-31", 9, 0.0, 167270.0, "Importados", "1016003923"], ["Hierros", "No Preparado", "Jorge Lopez", "Milder Monge", "2026-07-31", 9, 252.0, 2272569.6, "Producción Alas", "1016003989"], ["Hierros", "No Preparado", "Jorge Lopez", "Milder Monge", "2026-07-31", 9, 378.0, 3408854.4, "Producción Alas", "1016003989"], ["Hierros", "No Preparado", "Jorge Lopez", "Milder Monge", "2026-07-31", 9, 141.75, 1278320.4, "Producción Alas", "1016003989"], ["Ferretería", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 9, 0.0, 1581820.0, "Importados", "1016004024"], ["Ferretería", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 9, 0.0, 1950000.0, "Importados", "1016004024"], ["Ferretería", "No Preparado", "Alas", "Carlos Barreto", "2026-07-31", 9, 0.0, 24273.0, "Importados", "1016004091"], ["Ferretería", "No Preparado", "Alas", "Carlos Barreto", "2026-07-31", 9, 0.0, 7818.0, "Importados", "1016004091"], ["Ferretería", "No Preparado", "Alas", "Carlos Barreto", "2026-07-31", 9, 0.0, 65636.0, "Importados", "1016004091"], ["Ferretería", "No Preparado", "Alas", "Carlos Barreto", "2026-07-31", 9, 0.0, 16910.0, "Importados", "1016004091"], ["Ferretería", "No Preparado", "Alas", "Carlos Barreto", "2026-07-31", 9, 0.0, 16455.0, "Importados", "1016004091"], ["Hierros", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 9, 71.4, 560000.0, "Importados", "1016004210"], ["Hierros", "No Preparado", "Julio Dolgoruco", "Venta Normal", "2026-07-31", 9, 222.96, 2359092.0, "Importados", "1016004389"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 603.0, 4290900.0, "Producción Alas", "1016004438"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 184.0, 1368200.0, "Producción Alas", "1016004438"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 134.4, 969100.0, "Producción Alas", "1016004438"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Venta Normal", "2026-07-31", 9, 0.0, 206908.0, "Importados", "1016004440"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Venta Normal", "2026-07-31", 9, 0.0, 40910.0, "Importados", "1016004440"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Venta Normal", "2026-07-31", 9, 0.0, 402275.0, "Importados", "1016004440"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Venta Normal", "2026-07-31", 9, 0.0, 254000.0, "Importados", "1016004440"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Venta Normal", "2026-07-31", 9, 0.0, 833456.0, "Importados", "1016004440"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Venta Normal", "2026-07-31", 9, 0.0, 101636.0, "Importados", "1016004440"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Venta Normal", "2026-07-31", 9, 0.0, 205636.0, "Importados", "1016004440"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-31", 15, 352.0, 2500000.0, "Producción Alas", "1016004442"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 15, 211.2, 1500000.0, "Producción Alas", "1016004489"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 15, 201.2, 1429080.0, "Producción Alas", "1016004489"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 15, 241.2, 1716360.0, "Producción Alas", "1016004489"], ["Ferretería", "No Preparado", "Alas", "Elizabeth Caceres", "2026-07-31", 9, 0.0, 744543.0, "Importados", "1016004529"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 120.6, 859080.0, "Producción Alas", "1016004553"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 201.2, 1429080.0, "Producción Alas", "1016004553"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 120.6, 858180.0, "Producción Alas", "1016004553"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 140.8, 1000000.0, "Producción Alas", "1016004553"], ["Hierros", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 10, 188.0, 1388615.0, "Producción Alas", "1016004638"], ["Hierros", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 10, 1689.6, 12479808.0, "Producción Alas", "1016004638"], ["Ferretería", "No Preparado", "Alas", "Gonzalo Yegros", "2026-07-31", 10, 0.0, 126825.0, "Importados", "1016004711"], ["Ferretería", "No Preparado", "Alas", "Gonzalo Yegros", "2026-07-31", 10, 0.0, 90910.0, "Importados", "1016004711"], ["Ferretería", "Controlado", "Edilson Encina", "Venta Normal", "2026-07-31", 16, 0.0, 1284336.0, "Importados", "1016004733"], ["Ferretería", "Controlado", "Edilson Encina", "Venta Normal", "2026-07-31", 16, 0.0, 210680.0, "Importados", "1016004733"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-31", 10, 0.0, 41727.0, "Importados", "1016004758"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 15, 67.2, 484550.0, "Producción Alas", "1016004862"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 683.0, 4647173.0, "Producción Alas", "1016004934"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 854.0, 5802346.0, "Producción Alas", "1016004934"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 1025.0, 6966346.0, "Producción Alas", "1016004934"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 1196.0, 8121519.0, "Producción Alas", "1016004934"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 1366.0, 9285519.0, "Producción Alas", "1016004934"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 1540.0, 10458346.0, "Producción Alas", "1016004934"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 1708.0, 11604692.0, "Producción Alas", "1016004934"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-31", 10, 0.0, 309092.0, "Importados", "1016005021"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-31", 10, 0.0, 33162.6, "Importados", "1016005021"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-31", 10, 0.0, 93271.95, "Importados", "1016005021"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-31", 10, 0.0, 45772.9, "Importados", "1016005021"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-31", 10, 0.0, 95343.9, "Importados", "1016005021"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-31", 10, 0.0, 177276.0, "Importados", "1016005021"], ["Ferretería", "Controlado", "Alas", "Hernan Insaurralde", "2026-07-31", 10, 0.0, 62529.0, "Importados", "1016005021"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-31", 15, 301.5, 2145450.0, "Producción Alas", "1016005192"], ["Ferretería", "Controlado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 16, 0.0, 444000.0, "Importados", "1016005193"], ["Hierros", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-31", 14, 264.6, 1858220.0, "Producción Alas", "1016005196"], ["Ferretería", "No Preparado", "Edilson Encina", "Venta Normal", "2026-07-31", 11, 0.0, 242000.0, "Importados", "1016005324"], ["Ferretería", "No Preparado", "Edilson Encina", "Venta Normal", "2026-07-31", 11, 0.0, 664000.0, "Importados", "1016005324"], ["Ferretería", "No Preparado", "Edilson Encina", "Venta Normal", "2026-07-31", 11, 0.0, 580500.0, "Importados", "1016005324"], ["Ferretería", "No Preparado", "Edilson Encina", "Venta Normal", "2026-07-31", 11, 0.0, 82250.0, "Importados", "1016005324"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 863600.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 69816.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 613650.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 968190.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 1727280.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 890910.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 209100.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 254500.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 744543.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 744543.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 126552.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 245400.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 343000.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 736362.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 170172.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 610908.0, "Importados", "1016005384"], ["Ferretería", "En control", "Benjamin Yahari", "Venta Normal", "2026-07-31", 11, 0.0, 583200.0, "Importados", "1016005384"], ["Hierros", "No Preparado", "Raul Caballero", "Venta Normal", "2026-07-31", 17, 161.0, 1143640.0, "Producción Alas", "1016005445"], ["Hierros", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 17, 181.6, 1289100.0, "Producción Alas", "1016005445"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-31", 12, 4140.0, 24535935.0, "Producción Alas", "1016005452"], ["Ferretería", "Controlado", "Fernando Peralta", "Venta Normal", "2026-07-31", 16, 0.0, 772730.0, "Importados", "1016005512"], ["Hierros", "Controlado", "Juan Jose Torres", "Venta Normal", "2026-07-31", 14, 470.0, 2990900.0, "Producción Alas", "1016005519"], ["Ferretería", "En control", "Erika Torres", "Venta Normal", "2026-07-31", 16, 0.0, 1813635.0, "Importados", "1016005546"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 171.8, 1798903.8, "Importados", "1016005599"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 126.4, 1300682.7, "Importados", "1016005599"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 50.7, 421362.0, "Importados", "1016005599"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 568.8, 1754611.4, "Importados", "1016005599"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 2648.1, 14584219.5, "Producción Alas", "1016005599"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 437.4, 2914771.5, "Importados", "1016005599"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 637.4, 4381362.0, "Importados", "1016005599"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 265.6, 1914543.0, "Importados", "1016005599"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 730.0, 3994322.5, "Producción Alas", "1016005599"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 94.0, 1114095.6, "Importados", "1016005599"], ["Hierros", "No Preparado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 11, 332.5, 3509654.0, "Importados", "1016005599"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 12, 0.0, 147273.0, "Importados", "1016005615"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 12, 0.0, 90910.0, "Importados", "1016005615"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 12, 0.0, 220000.0, "Importados", "1016005615"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 804.0, 5727200.0, "Producción Alas", "1016005687"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 300.0, 2192700.0, "Producción Alas", "1016005687"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 422.4, 3000000.0, "Producción Alas", "1016005687"], ["Ferretería", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 0.0, 454600.0, "Importados", "1016005737"], ["Ferretería", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 0.0, 327280.0, "Importados", "1016005737"], ["Ferretería", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 0.0, 420000.0, "Importados", "1016005737"], ["Ferretería", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 12, 0.0, 340910.0, "Importados", "1016005737"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 12, 0.0, 367056.25, "Importados", "1016005749"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 12, 0.0, 505659.35, "Importados", "1016005749"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 12, 0.0, 220909.0, "Importados", "1016005749"], ["Ferretería", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-31", 12, 0.0, 1545400.0, "Importados", "1016005791"], ["Ferretería", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-31", 12, 0.0, 363650.0, "Importados", "1016005791"], ["Ferretería", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-31", 12, 0.0, 200000.0, "Importados", "1016005791"], ["Ferretería", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-31", 12, 0.0, 163600.0, "Importados", "1016005791"], ["Ferretería", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-31", 12, 0.0, 122700.0, "Importados", "1016005791"], ["Ferretería", "No Preparado", "Ebal Gonzalez", "Venta Normal", "2026-07-31", 12, 0.0, 377250.0, "Importados", "1016005791"], ["Ferretería", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-31", 11, 0.0, 97159.35, "Importados", "1016005834"], ["Ferretería", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-31", 11, 0.0, 183091.6, "Importados", "1016005834"], ["Ferretería", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-31", 11, 0.0, 183091.6, "Importados", "1016005834"], ["Ferretería", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-31", 11, 0.0, 105795.8, "Importados", "1016005834"], ["Ferretería", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-31", 11, 0.0, 274637.4, "Importados", "1016005834"], ["Ferretería", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-31", 11, 0.0, 528979.0, "Importados", "1016005834"], ["Ferretería", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-31", 11, 0.0, 91545.8, "Importados", "1016005834"], ["Ferretería", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-31", 11, 0.0, 423183.2, "Importados", "1016005834"], ["Ferretería", "No Preparado", "Jose Velazquez", "Venta Normal", "2026-07-31", 11, 0.0, 105795.8, "Importados", "1016005834"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 13, 1011.0, 7145400.0, "Producción Alas", "1016005960"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 13, 1128.0, 8263500.0, "Producción Alas", "1016005960"], ["Hierros", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 13, 421.5, 3013650.0, "Producción Alas", "1016005960"], ["Hierros", "No Preparado", "Marno Schneider", "Gabriel Saucedo", "2026-07-31", 12, 201.0, 1431800.0, "Producción Alas", "1016005991"], ["Hierros", "No Preparado", "Marno Schneider", "Gabriel Saucedo", "2026-07-31", 12, 140.8, 1000000.0, "Producción Alas", "1016005991"], ["Ferretería", "No Preparado", "Marno Schneider", "Gabriel Saucedo", "2026-07-31", 12, 0.0, 1118181.0, "Importados", "1016006013"], ["Ferretería", "No Preparado", "Osvaldo Piñanez", "Alberto Bazan", "2026-07-31", 12, 0.0, 76455.0, "Importados", "1016006176"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-31", 15, 92.0, 670900.0, "Producción Alas", "1016006291"], ["Hierros", "No Preparado", "Juan Carlos Feltes", "Venta Normal", "2026-07-31", 15, 100.6, 714540.0, "Producción Alas", "1016006295"], ["Hierros", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 16, 503.0, 3572750.0, "Producción Alas", "1016006434"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 13, 0.0, 77727.1, "Importados", "1016006493"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 13, 0.0, 14250.0, "Importados", "1016006493"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 13, 0.0, 102772.9, "Importados", "1016006493"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 13, 0.0, 108818.7, "Importados", "1016006493"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 13, 0.0, 24182.25, "Importados", "1016006493"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 13, 0.0, 301840.65, "Importados", "1016006493"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 13, 0.0, 192590.65, "Importados", "1016006493"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 13, 0.0, 45975.0, "Importados", "1016006504"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 13, 0.0, 1110455.0, "Importados", "1016006504"], ["Ferretería", "No Preparado", "Carlos Rojas", "Venta Normal", "2026-07-31", 12, 0.0, 186542.0, "Importados", "1016006517"], ["Ferretería", "No Preparado", "Carlos Rojas", "Venta Normal", "2026-07-31", 12, 0.0, 455454.0, "Importados", "1016006517"], ["Ferretería", "No Preparado", "Carlos Rojas", "Venta Normal", "2026-07-31", 12, 0.0, 176364.0, "Importados", "1016006517"], ["Hierros", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 15, 3158.4, 18913789.44, "Producción Alas", "1016006784"], ["Hierros", "No Preparado", "Juan Jose Torres", "Venta Normal", "2026-07-31", 14, 576.0, 4045500.0, "Producción Alas", "1016006849"], ["Hierros", "No Preparado", "Carlos Rojas", "Venta Normal", "2026-07-31", 16, 448.0, 2881256.0, "Producción Alas", "1016006856"], ["Hierros", "No Preparado", "Carlos Rojas", "Venta Normal", "2026-07-31", 16, 336.0, 2228930.0, "Producción Alas", "1016006856"], ["Hierros", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 14, 33.0, 227270.0, "Importados", "1016007051"], ["Ferretería", "No Preparado", "Alas", "Yanina Caballero", "2026-07-31", 14, 0.0, 1915455.0, "Importados", "1016007176"], ["Hierros", "No Preparado", "Marno Schneider", "Gabriel Saucedo", "2026-07-31", 16, 32.04, 231273.0, "Producción Alas", "1016007229"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 16, 167.6, 1200000.0, "Producción Alas", "1016007259"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 318200.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 242730.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 362730.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 324540.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 234540.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 402270.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 290000.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 195450.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 92730.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 286350.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 116360.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 490910.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 409091.0, "Importados", "1016007261"], ["Ferretería", "No Preparado", "Fernando Peralta", "Venta Normal", "2026-07-31", 14, 0.0, 409091.0, "Importados", "1016007261"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 14, 0.0, 430920.0, "Importados", "1016007317"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 14, 0.0, 537270.0, "Importados", "1016007317"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 14, 0.0, 501810.0, "Importados", "1016007317"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 17, 241.5, 1715460.0, "Producción Alas", "1016007335"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 17, 352.0, 2500000.0, "Producción Alas", "1016007335"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 17, 251.5, 1786350.0, "Producción Alas", "1016007335"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 17, 201.2, 1429100.0, "Producción Alas", "1016007335"], ["Ferretería", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-31", 14, 0.0, 1172727.0, "Importados", "1016007390"], ["Ferretería", "No Preparado", "Roberto Resquin", "Venta Normal", "2026-07-31", 14, 0.0, 660000.0, "Importados", "1016007390"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-31", 17, 712.8, 4535033.4, "Producción Alas", "1016007456"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-31", 17, 585.0, 3917439.0, "Producción Alas", "1016007457"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-31", 17, 750.6, 4906800.0, "Producción Alas", "1016007463"], ["Hierros", "No Preparado", "Celia Ortiz", "Venta Normal", "2026-07-31", 17, 604.8, 4150683.0, "Producción Alas", "1016007464"], ["Ferretería", "No Preparado", "Diego Delgado", "Venta Normal", "2026-07-31", 15, 0.0, 2298750.0, "Importados", "1016007515"], ["Ferretería", "No Preparado", "Diego Delgado", "Venta Normal", "2026-07-31", 15, 0.0, 1400000.0, "Importados", "1016007515"], ["Ferretería", "No Preparado", "Edilson Encina", "Venta Normal", "2026-07-31", 15, 0.0, 1735935.0, "Importados", "1016007567"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 15, 0.0, 4750.0, "Importados", "1016007663"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 15, 0.0, 102772.9, "Importados", "1016007663"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 15, 0.0, 52682.25, "Importados", "1016007663"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 15, 0.0, 57000.0, "Importados", "1016007663"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 0.0, 50000.0, "Importados", "1016007780"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 0.0, 1800000.0, "Importados", "1016007780"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 0.0, 246816.0, "Importados", "1016007780"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 0.0, 57816.0, "Importados", "1016007780"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 0.0, 75276.0, "Importados", "1016007780"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 0.0, 67632.0, "Importados", "1016007780"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 17, 120.6, 859080.0, "Producción Alas", "1016007905"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 17, 301.5, 2145450.0, "Producción Alas", "1016007905"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 17, 352.0, 2500000.0, "Producción Alas", "1016007905"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 17, 181.6, 1289100.0, "Producción Alas", "1016007905"], ["Hierros", "No Preparado", "Jonathan Dominguez", "Venta Normal", "2026-07-31", 17, 36.8, 273640.0, "Producción Alas", "1016007905"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 15, 0.0, 1020813.0, "Importados", "1016008195"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 15, 0.0, 1878406.5, "Importados", "1016008195"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 15, 0.0, 375677.5, "Importados", "1016008195"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 15, 0.0, 906822.5, "Importados", "1016008195"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 15, 0.0, 274203.25, "Importados", "1016008195"], ["Ferretería", "No Preparado", "Nilson Barrios", "Venta Normal", "2026-07-31", 15, 0.0, 1145187.0, "Importados", "1016008195"], ["Ferretería", "No Preparado", "Edilson Encina", "Venta Normal", "2026-07-31", 16, 0.0, 50557.5, "Importados", "1016008276"], ["Ferretería", "Controlado", "Marno Schneider", "Venta Normal", "2026-07-31", 15, 0.0, 654540.0, "Importados", "1016008351"], ["Ferretería", "Controlado", "Marno Schneider", "Venta Normal", "2026-07-31", 15, 0.0, 254184.0, "Importados", "1016008351"], ["Ferretería", "Controlado", "Marno Schneider", "Venta Normal", "2026-07-31", 15, 0.0, 681800.0, "Importados", "1016008351"], ["Ferretería", "Controlado", "Marno Schneider", "Venta Normal", "2026-07-31", 15, 0.0, 1318200.0, "Importados", "1016008351"], ["Ferretería", "Controlado", "Marno Schneider", "Venta Normal", "2026-07-31", 15, 0.0, 481140.0, "Importados", "1016008351"], ["Hierros", "No Preparado", "Marno Schneider", "Venta Normal", "2026-07-31", 15, 301.5, 2145450.0, "Producción Alas", "1016008352"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 15, 0.0, 243982.8, "Importados", "1016008380"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 15, 0.0, 194535.0, "Importados", "1016008380"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 15, 0.0, 100000.0, "Importados", "1016008380"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 15, 0.0, 476172.0, "Importados", "1016008380"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 0.0, 142184.0, "Importados", "1016008398"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 0.0, 93455.0, "Importados", "1016008398"], ["Ferretería", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 0.0, 49140.65, "Importados", "1016008398"], ["Hierros", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 13.2, 99273.0, "Importados", "1016008419"], ["Hierros", "No Preparado", "Alas", "Samuel Cardozo", "2026-07-31", 15, 26.3, 277273.0, "Importados", "1016008419"], ["Ferretería", "No Preparado", "Edilson Encina", "Venta Normal", "2026-07-31", 15, 0.0, 4472720.0, "Importados", "1016008431"], ["Ferretería", "No Preparado", "Edilson Encina", "Venta Normal", "2026-07-31", 15, 0.0, 41840750.0, "Importados", "1016008431"], ["Ferretería", "No Preparado", "Edilson Encina", "Venta Normal", "2026-07-31", 15, 0.0, 17363600.0, "Importados", "1016008431"], ["Ferretería", "En control", "Junior Lugo", "Venta Normal", "2026-07-31", 15, 0.0, 227454.0, "Importados", "1016008433"], ["Ferretería", "No Preparado", "Alas", "Yanina Caballero", "2026-07-31", 15, 0.0, 1336364.0, "Importados", "1016008505"], ["Ferretería", "No Preparado", "Carlos Rojas", "Samuel Cardozo", "2026-07-31", 16, 0.0, 581800.0, "Importados", "1016008666"], ["Hierros", "Controlado", "Erika Torres", "Gabriel Saucedo", "2026-07-31", 16, 1410.0, 8703519.0, "Producción Alas", "1016008682"], ["Hierros", "Controlado", "Erika Torres", "Gabriel Saucedo", "2026-07-31", 16, 680.0, 3708067.5, "Producción Alas", "1016008682"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 16, 0.0, 279545.0, "Importados", "1016008706"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 16, 0.0, 1145440.0, "Importados", "1016008706"], ["Ferretería", "No Preparado", "Lucio Florentin", "Venta Normal", "2026-07-31", 16, 0.0, 16133.0, "Importados", "1016008708"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 16635.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 29092.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 39819.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 29092.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 53636.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 62544.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 160908.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 232000.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 227275.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 98730.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 88000.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 207276.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 139092.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 103635.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 28680.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 61818.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 89092.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 58182.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 28362.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 19365.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 107273.0, "Importados", "1016008750"], ["Ferretería", "En control", "Benjamin Yahari", "Maria Del Castillo", "2026-07-31", 16, 0.0, 66091.0, "Importados", "1016008750"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 194184.0, "Producción Alas", "1016008759"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 204550.0, "Importados", "1016008759"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 130500.0, "Importados", "1016008759"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 89460.0, "Importados", "1016008759"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 176724.0, "Importados", "1016008759"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 104250.0, "Importados", "1016008759"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 202920.0, "Importados", "1016008759"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 137727.0, "Importados", "1016008759"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 91818.0, "Importados", "1016008759"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 42546.0, "Importados", "1016008759"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 16, 0.0, 1145440.0, "Importados", "1016008759"], ["Hierros", "No Preparado", "Osvaldo Piñanez", "Venta Normal", "2026-07-31", 18, 161.04, 2615998.0, "Importados", "1016008760"], ["Hierros", "No Preparado", "Osvaldo Piñanez", "Venta Normal", "2026-07-31", 17, 134.4, 969100.0, "Producción Alas", "1016008760"], ["Hierros", "No Preparado", "Osvaldo Piñanez", "Venta Normal", "2026-07-31", 18, 448.0, 3131800.0, "Producción Alas", "1016008760"], ["Hierros", "No Preparado", "Osvaldo Piñanez", "Venta Normal", "2026-07-31", 18, 258.0, 1723640.0, "Producción Alas", "1016008760"], ["Hierros", "No Preparado", "Osvaldo Piñanez", "Venta Normal", "2026-07-31", 18, 290.4, 2086350.0, "Producción Alas", "1016008760"], ["Hierros", "No Preparado", "Osvaldo Piñanez", "Venta Normal", "2026-07-31", 18, 281.3, 1624090.0, "Producción Alas", "1016008760"], ["Ferretería", "No Preparado", "Raul Caballero", "Carlos Barreto", "2026-07-31", 16, 0.0, 218184.0, "Importados", "1016008859"], ["Ferretería", "No Preparado", "Raul Caballero", "Carlos Barreto", "2026-07-31", 16, 0.0, 293645.0, "Importados", "1016008859"], ["Ferretería", "No Preparado", "Raul Caballero", "Carlos Barreto", "2026-07-31", 16, 0.0, 79458.0, "Importados", "1016008859"], ["Ferretería", "No Preparado", "Raul Caballero", "Carlos Barreto", "2026-07-31", 16, 0.0, 82900.8, "Importados", "1016008859"], ["Ferretería", "No Preparado", "Alas", "Elizabeth Caceres", "2026-07-31", 16, 0.0, 539772.9, "Importados", "1016008860"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 501138.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 1002276.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 1002276.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 1002276.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 2004552.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 2004552.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 2004552.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 1002276.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 2004552.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 460228.5, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 460228.5, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 920457.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 1840914.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 2761371.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 1840914.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 1840914.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 1840914.0, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 471274.2, "Importados", "1016008897"], ["Ferretería", "No Preparado", "Juan Carlos Fernandez", "Venta Normal", "2026-07-31", 16, 0.0, 785457.0, "Importados", "1016008897"], ["Ferretería", "Controlado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 17, 0.0, 58710.0, "Importados", "1016008957"], ["Ferretería", "Controlado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 17, 0.0, 38694.45, "Importados", "1016008957"], ["Ferretería", "Controlado", "Edilson Encina", "Yanina Caballero", "2026-07-31", 17, 0.0, 127205.0, "Importados", "1016008957"], ["Ferretería", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 17, 0.0, 345400.0, "Importados", "1016009024"], ["Hierros", "Controlado", "Juan Jose Torres", "Gabriel Saucedo", "2026-07-31", 16, 140.0, 860000.0, "Producción Alas", "1016009038"], ["Hierros", "Controlado", "Juan Jose Torres", "Gabriel Saucedo", "2026-07-31", 16, 115.6, 745460.0, "Producción Alas", "1016009038"], ["Hierros", "Controlado", "Juan Jose Torres", "Gabriel Saucedo", "2026-07-31", 16, 70.0, 530900.0, "Producción Alas", "1016009038"], ["Hierros", "Controlado", "Jonathan Dominguez", "Isaac Silva", "2026-07-31", 16, 107.04, 764730.0, "Producción Alas", "1016009057"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 10182.0, "Importados", "1016009066"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 5975.0, "Importados", "1016009066"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 9941.0, "Importados", "1016009066"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 6544.0, "Importados", "1016009066"], ["Hierros", "Controlado", "Raul Caballero", "Venta Normal", "2026-07-31", 17, 40.0, 425460.0, "Producción Alas", "1016009088"], ["Hierros", "Controlado", "Juan Jose Torres", "Gabriel Saucedo", "2026-07-31", 16, 101.2, 632720.0, "Producción Alas", "1016009124"], ["Hierros", "Controlado", "Juan Jose Torres", "Gabriel Saucedo", "2026-07-31", 16, 60.0, 423640.0, "Producción Alas", "1016009124"], ["Hierros", "No Preparado", "Erika Torres", "Samuel Cardozo", "2026-07-31", 17, 65.7, 1204512.6, "Producción Alas", "1016009228"], ["Hierros", "Controlado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 170.0, 1227250.0, "Importados", "1016009241"], ["Hierros", "Controlado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 506.0, 3163600.0, "Producción Alas", "1016009241"], ["Hierros", "Controlado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 600.0, 4236400.0, "Producción Alas", "1016009241"], ["Hierros", "Controlado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 180.0, 1108908.0, "Producción Alas", "1016009241"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 352.0, 2500000.0, "Producción Alas", "1016009241"], ["Hierros", "Controlado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 301.5, 2145450.0, "Producción Alas", "1016009241"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 683.0, 4786350.0, "Producción Alas", "1016009241"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 598.0, 4186350.0, "Producción Alas", "1016009241"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 770.0, 5390900.0, "Producción Alas", "1016009241"], ["Hierros", "Controlado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 854.0, 5981800.0, "Producción Alas", "1016009241"], ["Hierros", "No Preparado", "Alas", "Isaac Silva", "2026-07-31", 16, 78.92, 721092.0, "Producción Alas", "1016009259"], ["Hierros", "No Preparado", "Angel Fleitas", "Venta Normal", "2026-07-31", 17, 1366.0, 9285519.0, "Producción Alas", "1016009321"], ["Hierros", "Controlado", "Ebal Gonzalez", "Venta Normal", "2026-07-31", 17, 200.0, 2127300.0, "Producción Alas", "1016009400"], ["Hierros", "No Preparado", "Alas", "Alberto Bazan", "2026-07-31", 17, 122.0, 2000000.0, "Importados", "1016009435"], ["Hierros", "No Preparado", "Alas", "Alberto Bazan", "2026-07-31", 17, 41.13, 273273.0, "Producción Alas", "1016009435"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 178363.8, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 101455.2, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 51548.4, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 92720.0, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 21600.0, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 77729.0, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 75135.5, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 39729.0, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 40161.25, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 155458.0, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Juan Carlos Feltes", "Carlos Barreto", "2026-07-31", 17, 0.0, 36825.0, "Importados", "1016009441"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 129545.0, "Importados", "1016009454"], ["Ferretería", "No Preparado", "Juan Jose Torres", "Gabriel Saucedo", "2026-07-31", 17, 0.0, 589080.0, "Importados", "1016009462"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 91092.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 29090.0, "Producción Alas", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 67000.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 45636.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 86364.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 30000.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 44546.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 25909.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 40362.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 28750.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 25000.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 23000.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 50730.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 40000.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 46362.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 47184.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 40908.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 480909.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 152724.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 49908.0, "Importados", "1016009472"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 136362.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 73092.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 91818.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 91818.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 91818.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 101092.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 101092.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 101092.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 51274.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 51274.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 51274.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 51274.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 51274.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 119636.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 16092.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 15000.0, "Importados", "1016009474"], ["Ferretería", "No Preparado", "Junior Lugo", "Venta Normal", "2026-07-31", 17, 0.0, 13635.0, "Importados", "1016009474"], ["Hierros", "Controlado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 922.0, 6472800.0, "Producción Alas", "1016009475"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 18, 576.0, 4045500.0, "Producción Alas", "1016009475"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 17, 201.0, 1431800.0, "Producción Alas", "1016009477"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 17, 461.0, 3231800.0, "Producción Alas", "1016009477"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 17, 403.5, 2827250.0, "Producción Alas", "1016009477"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 17, 288.0, 2022750.0, "Producción Alas", "1016009477"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 17, 345.5, 2422750.0, "Producción Alas", "1016009477"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 18, 352.0, 2500000.0, "Producción Alas", "1016009477"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 18, 230.5, 1618200.0, "Producción Alas", "1016009477"], ["Hierros", "No Preparado", "Cesar Arza", "Venta Normal", "2026-07-31", 18, 288.0, 2022750.0, "Producción Alas", "1016009477"], ["Hierros", "Controlado", "Fernando Peralta", "Venta Normal", "2026-07-31", 17, 60.0, 638190.0, "Producción Alas", "1016009536"], ["Hierros", "No Preparado", "Benjamin Yahari", "Venta Normal", "2026-07-31", 17, 1665.0, 10158519.0, "Producción Alas", "1016009537"], ["Hierros", "En control", "Fernando Peralta", "Venta Normal", "2026-07-31", 17, 40.0, 425460.0, "Producción Alas", "1016009539"], ["Hierros", "Controlado", "Erika Torres", "Venta Normal", "2026-07-31", 17, 74.0, 456365.0, "Producción Alas", "1016009540"], ["Ferretería", "Controlado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 2175000.0, "Importados", "1016009589"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 1625400.0, "Importados", "1016009625"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 1285480.0, "Importados", "1016009625"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 796380.0, "Importados", "1016009625"], ["Ferretería", "No Preparado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 1077300.0, "Importados", "1016009625"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 17, 0.0, 88090.65, "Importados", "1016009743"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 17, 0.0, 76950.0, "Importados", "1016009743"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 17, 0.0, 10363.55, "Importados", "1016009743"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 17, 0.0, 19432.25, "Importados", "1016009743"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 17, 0.0, 5441.22, "Importados", "1016009743"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 17, 0.0, 4750.0, "Importados", "1016009743"], ["Ferretería", "No Preparado", "Julio Dolgoruco", "Hernan Insaurralde", "2026-07-31", 17, 0.0, 44909.35, "Importados", "1016009743"], ["Ferretería", "Controlado", "Alas", "Venta Normal", "2026-07-31", 17, 0.0, 5440906.5, "Importados", "1016009976"]], "_stamp": 1785549349990}</script>
+<script>var SNAP = JSON.parse(document.getElementById("snapdata").textContent);</script>
+<script>
+/* ---------- estado + persistencia ---------- */
+const STORE_KEY='alas_tablero_fact_v2';
+let dataOrigin='archivo';   // 'archivo' | 'guardado' | 'actualizado'
+function loadInitial(){
+  try{const raw=localStorage.getItem(STORE_KEY);
+    if(raw){const o=JSON.parse(raw); if(o&&o.data&&(o.stamp||0)>=(SNAP._stamp||0)){dataOrigin='guardado';return o.data;}}}catch(e){}
+  return JSON.parse(JSON.stringify(SNAP));
+}
+function persistData(){ try{localStorage.setItem(STORE_KEY,JSON.stringify({stamp:D._stamp||Date.now(),data:D}));}catch(e){} }
+let D = loadInitial();
+let holidays = [];
+let hoyOverride = null;
+let SCOPE = 'tot';        // filtro global (Principal)
+let mesScope = 'tot';     // selector mes a mes
+let pedView = 'almacen';
+let fAlm = 'todos', fEt = 'todos';
+const charts = {};
+
+/* ---------- formato ---------- */
+const fmt = n => (Math.round(n)||0).toLocaleString('es-PY').replace(/,/g,'.');
+const fmtM = n => { const a=Math.abs(n); if(a>=1e9)return (n/1e9).toLocaleString('es-PY',{maximumFractionDigits:2})+' MM'; if(a>=1e6)return (n/1e6).toLocaleString('es-PY',{maximumFractionDigits:1})+' M'; return fmt(n); };
+const pct = (n,d)=> d? (n/d*100):0;
+const fp = v => (v>=0?'+':'')+v.toLocaleString('es-PY',{maximumFractionDigits:1})+'%';
+const chipCls = v => v>0.5?'up':(v<-0.5?'down':'flat');
+const arrow = v => v>0.5?'▲':(v<-0.5?'▼':'●');
+function toast(m,err){const t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(err?' err':'');setTimeout(()=>t.className='toast',3200);}
+
+/* ---------- días hábiles ---------- */
+function pad(n){return (n<10?'0':'')+n;}
+function isHol(y,m,d){const s=y+'-'+pad(m+1)+'-'+pad(d);return holidays.some(h=>h.date===s);}
+function bdaysMonth(y,m){
+  let tot=0, days=new Date(y,m+1,0).getDate(), fds=0, fer=0;
+  for(let d=1;d<=days;d++){const dt=new Date(y,m,d),w=dt.getDay();
+    if(w===0||w===6){fds++;continue;}
+    if(isHol(y,m,d)){fer++;continue;}
+    tot++;}
+  return {tot,days,fds,fer};
+}
+function bdaysElapsed(y,m,hoy){
+  let n=0,days=new Date(y,m+1,0).getDate();
+  for(let d=1;d<=days;d++){const dt=new Date(y,m,d),w=dt.getDay();
+    if(w===0||w===6)continue; if(isHol(y,m,d))continue;
+    if(dt<=hoy)n++;}
+  return n;
+}
+function bdaysYear(y){let n=0;const end=new Date(y,11,31);for(let dt=new Date(y,0,1);dt<=end;dt.setDate(dt.getDate()+1)){const w=dt.getDay();if(w!==0&&w!==6)n++;}return n;}
+function bdaysYearElapsed(y,hoy){let n=0;for(let dt=new Date(y,0,1);dt<=hoy;dt.setDate(dt.getDate()+1)){const w=dt.getDay();if(w!==0&&w!==6)n++;}return n;}
+function fmtHoy(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function dOf(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+
+function hoyDate(){
+  if(hoyOverride) return hoyOverride;
+  if(D.daily && D.daily.length){ return dOf(D.daily[D.daily.length-1][0]); }
+  return new Date(D.cur_year, D.cur_month-1, new Date(D.cur_year,D.cur_month,0).getDate());
+}
+
+/* ---------- scope por almacén ---------- */
+function scoped(sc){
+  if(sc==='fer') return {v26:D.v2026_fer,v25:D.v2025_fer,meta:D.meta_ldal,daily:D.daily_fer,prev:D.last_bd_prevyear_fer,label:'· Ferretería'};
+  if(sc==='hie') return {v26:D.v2026_hie,v25:D.v2025_hie,meta:D.meta_ldfa,daily:D.daily_hie,prev:D.last_bd_prevyear_hie,label:'· Hierros'};
+  return {v26:D.v2026,v25:D.v2025,meta:D.meta_tot,daily:D.daily,prev:D.last_bd_prevyear,label:''};
+}
+function lastBD(daily,hoy){
+  const bd=daily.filter(x=>{const d=dOf(x[0]);return d.getDay()!==0&&d.getDay()!==6&&d<=hoy;});
+  return bd.length? {val:bd[bd.length-1][1],date:bd[bd.length-1][0]} : {val:0,date:null};
+}
+
+/* ---------- KPIs ---------- */
+function kpis(sc){
+  const S=scoped(sc);
+  const mi=D.cur_month-1, y=D.cur_year, hoy=hoyDate();
+  const bm=bdaysMonth(y,mi);
+  const bd_tot=bm.tot, bd_el=Math.min(bdaysElapsed(y,mi,hoy),bd_tot), bd_rest=bd_tot-bd_el;
+  const fact=S.v26[mi], meta=S.meta[mi];
+  const proyMes = bd_el>0 ? fact/bd_el*bd_tot : fact;
+  const mesYoY = S.v25[mi];
+  const varYoY = pct(fact-mesYoY, mesYoY);
+  const lb=lastBD(S.daily,hoy);
+  const varDia = pct(lb.val-S.prev, S.prev);
+  const metaAnual = S.meta.reduce((a,b)=>a+b,0);
+  let ytd=0; for(let i=0;i<=mi;i++) ytd+=S.v26[i];
+  const yEl=bdaysYearElapsed(y,hoy), yTot=bdaysYear(y);
+  const proyAnio = yEl>0 ? ytd/yEl*yTot : ytd;
+  return {mi,y,bd_tot,bd_el,bd_rest,fact,meta,proyMes,mesYoY,varYoY,varDia,metaAnual,ytd,proyAnio,
+          daysMonth:bm.days,fds:bm.fds,fer:bm.fer,lastCur:lb.val,lastDate:lb.date,prev:S.prev,label:S.label};
+}
+
+/* ---------- gráficos base ---------- */
+function mk(id,cfg){ if(charts[id])charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
+const AZ='#1466B0', AZ2='#3B8FD4', GRAY='#B8C4D0', POS='#1B8A5A', NEG='#C0392B';
+Chart.defaults.font.family="'Segoe UI',system-ui,sans-serif";
+Chart.defaults.font.size=11; Chart.defaults.color='#5B6B7C';
+const gsTick={callback:v=>fmtM(v)};
+
+/* ---------- render PRINCIPAL ---------- */
+function renderPrincipal(){
+  const k=kpis(SCOPE);
+  document.getElementById('periodoTxt').textContent = D.meses[k.mi]+' '+k.y;
+  document.getElementById('hScope').textContent=k.label;
+  document.getElementById('dScope').textContent=k.label;
+  document.getElementById('pScope').textContent=k.label;
+  const av=pct(k.fact,k.meta);
+  mk('gauge',{type:'doughnut',data:{datasets:[{data:[Math.min(av,100),Math.max(0,100-av)],backgroundColor:['#fff','rgba(255,255,255,.22)'],borderWidth:0,circumference:360,cutout:'78%'}]},options:{plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{animateRotate:true}}});
+  document.getElementById('gPct').textContent=av.toFixed(1)+'%';
+  document.getElementById('hMeta').textContent='₲ '+fmt(k.meta);
+  document.getElementById('hBar').style.width=Math.min(av,100)+'%';
+  document.getElementById('hFact').textContent='Facturado ₲ '+fmt(k.fact);
+  document.getElementById('hFalta').textContent='Falta ₲ '+fmt(Math.max(0,k.meta-k.fact));
+  document.getElementById('kFact').textContent=fmt(k.fact);
+  document.getElementById('kMeta').textContent='₲ '+fmt(k.meta);
+  const falta=k.meta-k.fact;
+  const cf=document.getElementById('kFalta'); cf.textContent=(falta>0?'Falta ₲ '+fmt(falta):'Meta superada +₲ '+fmt(-falta)); cf.className='chip '+(falta>0?'flat':'up');
+  document.getElementById('kProy').textContent=fmt(k.proyMes);
+  const pp=document.getElementById('kProyPct'); const pv=pct(k.proyMes,k.meta); pp.textContent=arrow(pv-100)+' '+pv.toFixed(1)+'%'; pp.className='chip '+(pv>=100?'up':(pv>=90?'flat':'down'));
+  document.getElementById('kDia').textContent=fmt(k.lastCur);
+  document.getElementById('kDiaFecha').textContent='Último día hábil: '+(k.lastDate||'–');
+  const dv=document.getElementById('kDiaVar'); dv.textContent=arrow(k.varDia)+' '+fp(k.varDia); dv.className='chip '+chipCls(k.varDia);
+  document.getElementById('kDiaPrev').textContent=fmt(k.prev);
+  document.getElementById('kMes').textContent=fmt(k.fact);
+  document.getElementById('kMesPrevL').textContent=D.meses[k.mi]+' '+(k.y-1)+': ₲ '+fmt(k.mesYoY);
+  const mv=document.getElementById('kMesVar'); mv.textContent=arrow(k.varYoY)+' '+fp(k.varYoY); mv.className='chip '+chipCls(k.varYoY);
+  document.getElementById('kAnio').textContent=fmt(k.proyAnio);
+  const ap=document.getElementById('kAnioPct'); const av2=pct(k.proyAnio,k.metaAnual); ap.textContent=arrow(av2-100)+' '+av2.toFixed(1)+'%'; ap.className='chip '+(av2>=100?'up':(av2>=90?'flat':'down'));
+  document.getElementById('kBdEl').textContent=k.bd_el;
+  document.getElementById('kBdTot').textContent=k.bd_tot;
+  document.getElementById('kBdRest').textContent='Faltan '+k.bd_rest+' días hábiles';
+  // tabla diaria (verde >= 2.000 millones)
+  const S=scoped(SCOPE); const UMBRAL=2e9;
+  let h='<table><thead><tr><th>Día</th><th>Facturación ₲</th></tr></thead><tbody>';
+  let tt=0;
+  S.daily.forEach(([ds,v])=>{ tt+=v; const dd=dOf(ds); const wd=['Do','Lu','Ma','Mi','Ju','Vi','Sa'][dd.getDay()];
+    const green=v>=UMBRAL;
+    h+='<tr class="'+(green?'green':'')+'"><td>'+ds.slice(8)+'/'+ds.slice(5,7)+' · '+wd+'</td><td>'+fmt(v)+'</td></tr>';});
+  h+='<tr class="tot"><td>Total del mes</td><td>'+fmt(tt)+'</td></tr></tbody></table>';
+  document.getElementById('dailyTbl').innerHTML=h;
+  // facturado por almacén (negativos agrupados como Devoluciones)
+  const ab=document.getElementById('almBox'); ab.innerHTML='';
+  const entries=Object.entries(D.fact_almacen);
+  const pos=entries.filter(e=>e[1]>=0).sort((a,b)=>b[1]-a[1]);
+  const negSum=entries.filter(e=>e[1]<0).reduce((a,e)=>a+e[1],0);
+  const rows=pos.slice();
+  if(negSum<0) rows.push(['Devoluciones (depósitos)',negSum]);
+  const maxA=Math.max(...rows.map(e=>Math.abs(e[1])),1);
+  rows.forEach(([n,v])=>{ const w=Math.abs(v)/maxA*100;
+    ab.innerHTML+='<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span style="font-weight:600">'+n+'</span><span style="font-weight:700;color:'+(v<0?'var(--neg)':'var(--tinta)')+'">₲ '+fmt(v)+'</span></div><div class="bar" style="background:#EEF2F7;height:10px"><span style="width:'+w+'%;background:'+(v<0?'var(--neg)':'linear-gradient(90deg,#1466B0,#3B8FD4)')+'"></span></div></div>';});
+  const neta=entries.reduce((a,e)=>a+e[1],0);
+  ab.innerHTML+='<div style="border-top:1px solid #E2E8F0;margin-top:4px;padding-top:10px;font-size:12.5px">'+
+    '<div style="display:flex;justify-content:space-between"><span style="font-weight:700">Facturación neta</span><span style="font-weight:800">₲ '+fmt(neta)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:6px;color:var(--gris)"><span>Incluye NC/devol. facturadas (ZDEV·ZDCS·ZNCV)</span><span style="color:var(--neg);font-weight:600">₲ '+fmt(D.devoluciones||0)+'</span></div></div>';
+  // pedidos resumen (según almacén global)
+  const g=pedResumen(SCOPE);
+  document.getElementById('pgLin').textContent=fmt(g.lineas);
+  document.getElementById('pgPed').textContent=fmt(g.pedidos);
+  document.getElementById('pgTot').textContent=fmt(g.total);
+  document.getElementById('pgPeso').textContent=fmt(g.peso);
+}
+function pedResumen(sc){
+  let L=D.ped_lines;
+  if(sc==='fer') L=L.filter(l=>l[0]==='Ferretería');
+  else if(sc==='hie') L=L.filter(l=>l[0]==='Hierros');
+  let total=0,peso=0; const docs=new Set();
+  L.forEach(l=>{total+=l[7];peso+=l[6];docs.add(l[9]);});
+  return {lineas:L.length,pedidos:docs.size,total,peso};
+}
+
+/* ---------- render MES A MES ---------- */
+function renderMesAMes(){
+  const meses3=D.meses.map(m=>m.slice(0,3));
+  const S=scoped(mesScope);
+  const v25=S.v25, v26=S.v26.map((v,i)=> v||null);
+  mk('chTrend',{type:'line',data:{labels:meses3,datasets:[
+    {label:'2025',data:v25,borderColor:GRAY,backgroundColor:'transparent',borderWidth:2,tension:.35,pointRadius:2,borderDash:[5,4]},
+    {label:'2026',data:v26,borderColor:AZ,backgroundColor:'rgba(20,102,176,.08)',borderWidth:3,fill:true,tension:.35,pointRadius:3}
+  ]},options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.dataset.label+': ₲ '+fmt(c.raw)}}},scales:{y:{ticks:gsTick,grid:{color:'#EEF2F7'}},x:{grid:{display:false}}}}});
+  let a25=0,a26=0; const ac25=[],ac26=[];
+  for(let i=0;i<12;i++){a25+=v25[i]; ac25.push(a25); if(v26[i]!=null){a26+=v26[i]; ac26.push(a26);} else ac26.push(null);}
+  mk('chAcum',{type:'line',data:{labels:meses3,datasets:[
+    {label:'Acum. 2025',data:ac25,borderColor:GRAY,borderWidth:2,tension:.3,pointRadius:0,borderDash:[5,4]},
+    {label:'Acum. 2026',data:ac26,borderColor:AZ,backgroundColor:'rgba(20,102,176,.10)',fill:true,borderWidth:3,tension:.3,pointRadius:2}
+  ]},options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.dataset.label+': ₲ '+fmt(c.raw)}}},scales:{y:{ticks:gsTick,grid:{color:'#EEF2F7'}},x:{grid:{display:false}}}}});
+  const meta=S.meta;
+  const tb=document.querySelector('#tblMM tbody'); tb.innerHTML='';
+  a25=0;a26=0;
+  for(let i=0;i<12;i++){
+    const has=v26[i]!=null; a25+=v25[i]; if(has)a26+=v26[i];
+    const va=has?pct(a26-a25,a25):null;
+    const cu=has?pct(v26[i],meta[i]):null;
+    tb.innerHTML+='<tr><td>'+D.meses[i]+'</td>'+
+      '<td>'+fmt(a25)+'</td><td>'+(has?fmt(a26):'–')+'</td>'+
+      '<td class="'+(va>0?'pos':'neg')+'">'+(has?fp(va):'–')+'</td>'+
+      '<td class="mini">'+fmt(meta[i])+'</td>'+
+      '<td class="'+(cu>=100?'pos':(cu>=90?'':'neg'))+'">'+(has?cu.toFixed(0)+'%':'–')+'</td></tr>';
+  }
+  const totM=meta.reduce((a,b)=>a+b,0);
+  tb.innerHTML+='<tr class="tot"><td>TOTAL</td><td>'+fmt(a25)+'</td><td>'+fmt(a26)+'</td>'+
+    '<td class="'+(a26>a25?'pos':'neg')+'">'+fp(pct(a26-a25,a25))+'</td><td>'+fmt(totM)+'</td><td>'+(pct(a26,totM)).toFixed(0)+'%</td></tr>';
+}
+
+/* ---------- PEDIDOS ---------- */
+function pedFiltered(){
+  return D.ped_lines.filter(l=>(fAlm==='todos'||l[0]===fAlm)&&(fEt==='todos'||l[1]===fEt));
+}
+function grp(L,keyfn){const o={};L.forEach(l=>{const k=keyfn(l);if(k==null)return;(o[k]=o[k]||[0,0,0]);o[k][0]+=l[7];o[k][1]+=l[6];o[k][2]++;});return o;}
+function arrSort(o){return Object.entries(o).map(([k,v])=>[k,v[0],v[1],v[2]]).sort((a,b)=>b[1]-a[1]);}
+const pesoLbl=['0–50 kg','50–200 kg','200–500 kg','500–1.000 kg','1.000–5.000 kg','+5.000 kg'];
+const pesoEdges=[0,50,200,500,1000,5000,1e12];
+function pesoBucket(pe){let bi=pesoEdges.findIndex((e,i)=>pe>=e&&pe<pesoEdges[i+1]);return bi<0?pesoLbl.length-1:bi;}
+
+const esExt = l => (l[3]||'').trim().toLowerCase()==='venta normal';
+const pedDef={
+  almacen:{title:'Distribución por almacén',cols:['Almacén','Monto ₲','Peso (kg)','Líneas'],bar:false,rows:L=>arrSort(grp(L,l=>l[0]))},
+  vext:{title:'Top vendedores externos',cols:['Vendedor externo','Monto ₲','Peso (kg)','Líneas'],bar:false,rows:L=>arrSort(grp(L.filter(esExt),l=>l[2])).slice(0,15)},
+  vint:{title:'Vendedor interno / call center',cols:['Vendedor interno','Monto ₲','Peso (kg)','Líneas'],bar:false,rows:L=>arrSort(grp(L.filter(l=>!esExt(l)&&l[3]!=='Sin asignar'),l=>l[3])).slice(0,15)},
+  prod:{title:'Producción / Importados',cols:['Origen','Monto ₲','Peso (kg)','Líneas'],bar:false,rows:L=>arrSort(grp(L,l=>l[8]))},
+  fecha:{title:'Por fecha de autorización',cols:['Fecha','Monto ₲','Peso (kg)','Líneas'],bar:true,rows:L=>Object.entries(grp(L,l=>l[4]||'Sin fecha')).map(([k,v])=>[k,v[0],v[1],v[2]]).sort((a,b)=>a[0]<b[0]?-1:1)},
+  hora:{title:'Por hora de creación del pedido',cols:['Hora','Monto ₲','','Líneas'],bar:true,rows:L=>{const o=grp(L,l=>l[5]>=0?l[5]:null);return Object.entries(o).map(([k,v])=>[String(k).padStart(2,'0')+':00',v[0],null,v[2]]).sort((a,b)=>a[0]<b[0]?-1:1);}},
+  peso:{title:'Por rango de peso',cols:['Rango','Monto ₲','Peso (kg)','Líneas'],bar:false,rows:L=>{const b={};pesoLbl.forEach(l=>b[l]=[0,0,0]);L.forEach(l=>{const bi=pesoBucket(l[6]);b[pesoLbl[bi]][0]+=l[7];b[pesoLbl[bi]][1]+=l[6];b[pesoLbl[bi]][2]++;});return pesoLbl.map(l=>[l,b[l][0],b[l][1],b[l][2]]);}},
+  etapa:{title:'Por etapa del pedido',cols:['Etapa','Monto ₲','Peso (kg)','Líneas'],bar:false,rows:L=>arrSort(grp(L,l=>l[1]))}
+};
+function renderPedidos(){
+  const L=pedFiltered();
+  let total=0,peso=0;const docs=new Set();
+  L.forEach(l=>{total+=l[7];peso+=l[6];docs.add(l[9]);});
+  document.getElementById('p2Lin').textContent=fmt(L.length);
+  document.getElementById('p2Ped').textContent=fmt(docs.size);
+  document.getElementById('p2Tot').textContent=fmt(total);
+  document.getElementById('p2Peso').textContent=fmt(peso);
+  const cfg=pedDef[pedView], rows=cfg.rows(L);
+  document.getElementById('pedChTitle').textContent=cfg.title;
+  document.getElementById('pedTblTitle').textContent='Detalle · '+cfg.title.toLowerCase();
+  const labels=rows.map(r=>r[0]), vals=rows.map(r=>r[1]);
+  if(cfg.bar){
+    mk('chPed',{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:AZ,borderRadius:3}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₲ '+fmt(c.raw)}}},scales:{y:{ticks:gsTick,grid:{color:'#EEF2F7'}},x:{grid:{display:false},ticks:{maxRotation:60,minRotation:0,autoSkip:true,maxTicksLimit:16}}}}});
+  }else{
+    const pal=['#1466B0','#E8833A','#2BA84A','#C0392B','#8E5FBF','#0FA3A3','#D64C8B','#8C9440','#E0B33A','#4A90D9','#B5651D','#3FA796','#9B4DCA','#DE6449','#6C7A89','#0B4F8A'];
+    mk('chPed',{type:'doughnut',data:{labels,datasets:[{data:vals.map(v=>Math.abs(v)),backgroundColor:pal,borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'right',labels:{boxWidth:11,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': ₲ '+fmt(c.raw)}}},cutout:'55%'}});
+  }
+  let hh='<table><thead><tr>'+cfg.cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';
+  let tt=0,tp=0,tl=0;
+  rows.forEach(r=>{ tt+=r[1]||0; tp+=r[2]||0; tl+=r[3]||0;
+    hh+='<tr><td>'+r[0]+'</td><td>'+fmt(r[1])+'</td><td>'+(r[2]==null?'':fmt(r[2]))+'</td><td>'+fmt(r[3])+'</td></tr>';});
+  hh+='<tr class="tot"><td>TOTAL</td><td>'+fmt(tt)+'</td><td>'+(cfg.cols[2]?fmt(tp):'')+'</td><td>'+fmt(tl)+'</td></tr>';
+  hh+='</tbody></table>';
+  document.getElementById('pedTblBox').innerHTML=hh;
+}
+function fillPedFilters(){
+  const alms=[...new Set(D.ped_lines.map(l=>l[0]))];
+  const ets=[...new Set(D.ped_lines.map(l=>l[1]))];
+  const fa=document.getElementById('fAlm'), fe=document.getElementById('fEt');
+  fa.innerHTML='<option value="todos">Todos los almacenes</option>'+alms.map(a=>'<option value="'+a+'">'+a+'</option>').join('');
+  fe.innerHTML='<option value="todos">Todas las etapas</option>'+ets.map(e=>'<option value="'+e+'">'+e+'</option>').join('');
+  fa.value=fAlm; fe.value=fEt;
+}
+
+/* ---------- CONFIG ---------- */
+function renderConfig(){
+  const k=kpis('tot');
+  document.getElementById('cfMes').textContent=D.meses[k.mi]+' '+k.y;
+  document.getElementById('cfDias').textContent=k.daysMonth;
+  document.getElementById('cfFds').textContent=k.fds+' días';
+  document.getElementById('cfFer').textContent=k.fer+' días';
+  document.getElementById('cfHab').textContent=k.bd_tot+' días';
+  document.getElementById('cfTrans').textContent=k.bd_el+' días';
+  document.getElementById('cfFalt').textContent=k.bd_rest+' días';
+  const list=document.getElementById('ferList');
+  list.innerHTML = holidays.length? holidays.map((h,i)=>'<span class="tag">'+h.date+(h.name?' · '+h.name:'')+' <button onclick="delFer('+i+')">×</button></span>').join('') : '<span class="mini">Sin feriados cargados.</span>';
+  document.getElementById('hoyInput').value = fmtHoy(hoyDate());
+}
+function addFer(){
+  const d=document.getElementById('ferDate').value; if(!d){toast('Elegí una fecha',true);return;}
+  const n=document.getElementById('ferName').value.trim();
+  if(holidays.some(h=>h.date===d)){toast('Ese feriado ya está cargado',true);return;}
+  holidays.push({date:d,name:n}); document.getElementById('ferDate').value='';document.getElementById('ferName').value='';
+  toast('Feriado agregado'); renderAll();
+}
+function delFer(i){holidays.splice(i,1);toast('Feriado eliminado');renderAll();}
+function setHoy(){const v=document.getElementById('hoyInput').value;if(!v){toast('Elegí una fecha',true);return;}hoyOverride=dOf(v);toast('Fecha de referencia aplicada');renderAll();}
+function resetHoy(){hoyOverride=null;toast('Volviendo a la última fecha con datos');renderAll();}
+
+/* ---------- render maestro ---------- */
+function renderAll(){renderPrincipal();renderMesAMes();fillPedFilters();renderPedidos();renderConfig();}
+
+/* ---------- wiring ---------- */
+document.querySelectorAll('#scopeSeg button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#scopeSeg button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); SCOPE=b.dataset.s; renderPrincipal();
+});
+document.querySelectorAll('#mmScope .pill').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#mmScope .pill').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); mesScope=b.dataset.s; renderMesAMes();
+});
+document.querySelectorAll('#pedPills .pill').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#pedPills .pill').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); pedView=b.dataset.v; renderPedidos();
+});
+document.getElementById('fAlm').addEventListener('change',e=>{fAlm=e.target.value;renderPedidos();});
+document.getElementById('fEt').addEventListener('change',e=>{fEt=e.target.value;renderPedidos();});
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on'); document.getElementById(t.dataset.p).classList.add('on');
+});
+
+/* ---------- parsing de la base (SheetJS) ---------- */
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const XALM={LDAL:'Ferretería',LDFA:'Hierros',LDDV:'Almacén LDDV',LFTD:'Tienda Fábrica'};
+const PALM={LDAL:'Ferretería',LDFA:'Hierros',LFTD:'Tienda Fábrica',LDDV:'Devoluciones'};
+function num(v){ if(typeof v==='number')return v; if(typeof v==='string'){const s=v.replace(/PYG/gi,'').replace(/\./g,'').replace(/\s/g,'').replace(/,/g,'.');const n=parseFloat(s);return isNaN(n)?0:n;} return 0; }
+function asDate(v){ if(v instanceof Date)return v; if(typeof v==='string'){const m=v.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/); if(m){let y=+m[3];if(y<100)y+=2000;return new Date(y,+m[2]-1,+m[1]);} const d=new Date(v); if(!isNaN(d))return d;} if(typeof v==='number'){return new Date(Math.round((v-25569)*86400*1000));} return null; }
+function hourOf(v){ if(v instanceof Date)return v.getHours(); if(typeof v==='string'){const m=v.match(/(\d{1,2}):/);if(m)return +m[1];} if(typeof v==='number'&&v<1)return Math.floor(v*24); return -1; }
+const key=(o,name)=>{const k=Object.keys(o).find(x=>x.trim().toLowerCase()===name.trim().toLowerCase());return k?o[k]:undefined;};
+
+function parseWB(wb){
+  const d=JSON.parse(JSON.stringify(SNAP));
+  const S=n=>wb.Sheets[wb.SheetNames.find(x=>x.trim().toLowerCase()===n.toLowerCase())];
+  // META
+  const ms=S('Presupuesto de ventas (Meta)');
+  if(ms){const a=XLSX.utils.sheet_to_json(ms,{header:1});
+    const mt=[],ml=[],mf=[]; for(let i=0;i<12;i++){const r=a[2+i]||[];ml.push(num(r[1]));mf.push(num(r[2]));mt.push(num(r[3])||num(r[1])+num(r[2]));}
+    d.meta_tot=mt;d.meta_ldal=ml;d.meta_ldfa=mf;}
+  // HISTORICO (con almacén)
+  const hs=S('Facturacion historico');
+  const v25=Array(12).fill(0),v26=Array(12).fill(0),v25f=Array(12).fill(0),v26f=Array(12).fill(0),v25h=Array(12).fill(0),v26h=Array(12).fill(0);
+  let hrows=[];
+  if(hs){hrows=XLSX.utils.sheet_to_json(hs);
+    hrows.forEach(r=>{const dt=asDate(key(r,'Fecha de facturacion'));if(!dt)return;const mo=num(key(r,'Monto'));const y=dt.getFullYear(),m=dt.getMonth();
+      const code=(key(r,'Almacen_codigo')||'').toString().trim();
+      const g=code==='Alas'?'fer':(code==='Alas Dep. Fabric'?'hie':null);
+      if(y===2025){v25[m]+=mo; if(g==='fer')v25f[m]+=mo; else if(g==='hie')v25h[m]+=mo;}
+      else if(y===2026){v26[m]+=mo; if(g==='fer')v26f[m]+=mo; else if(g==='hie')v26h[m]+=mo;}});
+    d.v2025=v25;d.v2026=v26;d.v2025_fer=v25f;d.v2026_fer=v26f;d.v2025_hie=v25h;d.v2026_hie=v26h;}
+  // X MONTO
+  const xs=S('x monto de fc fecha');
+  if(xs){const rows=XLSX.utils.sheet_to_json(xs);
+    const daily={},dailyf={},dailyh={},alm={}; let curM=null,curY=null;const mc={};
+    let dev=0,bruta=0;const DEVCF=['ZDEV','ZDCS','ZNCV'],DEVCD=['DG','DI','DK'];
+    rows.forEach(r=>{const dt=asDate(key(r,'Fecha de documento'));if(!dt)return;mc[dt.getMonth()]=(mc[dt.getMonth()]||0)+1;});
+    curM=+Object.entries(mc).sort((a,b)=>b[1]-a[1])[0][0];
+    rows.forEach(r=>{const dt=asDate(key(r,'Fecha de documento'));if(!dt||dt.getMonth()!==curM)return;curY=dt.getFullYear();
+      const mo=num(key(r,'Monto Gs')); const ds=fmtHoy(dt); const a=key(r,'Almacen');
+      daily[ds]=(daily[ds]||0)+mo;
+      if(a==='LDAL')dailyf[ds]=(dailyf[ds]||0)+mo; else if(a==='LDFA')dailyh[ds]=(dailyh[ds]||0)+mo;
+      const cf=(key(r,'Clase Factura')||'').toString().trim().toUpperCase();
+      const cd=(key(r,'Clase de documento')||'').toString().trim().toUpperCase();
+      if(DEVCF.includes(cf)||DEVCD.includes(cd))dev+=mo;else bruta+=mo;
+      const an=XALM[a]||a||'Otros'; alm[an]=(alm[an]||0)+mo;});
+    d.cur_month=curM+1; d.cur_year=curY;
+    const srt=o=>Object.entries(o).sort((a,b)=>a[0]<b[0]?-1:1);
+    d.daily=srt(daily); d.daily_fer=srt(dailyf); d.daily_hie=srt(dailyh);
+    d.fact_almacen=alm; d.devoluciones=dev; d.fact_bruta=bruta;
+    d.v2026[curM]=d.daily.reduce((a,x)=>a+x[1],0);
+    d.v2026_fer[curM]=d.daily_fer.reduce((a,x)=>a+x[1],0);
+    d.v2026_hie[curM]=d.daily_hie.reduce((a,x)=>a+x[1],0);
+    const lastb=(lst)=>{const b=lst.filter(x=>{const w=dOf(x[0]).getDay();return w!==0&&w!==6;});return b.length?b[b.length-1]:null;};
+    const lb=lastb(d.daily); if(lb){d.last_bd_cur=lb[1];d.last_bd_date=lb[0];}
+    const lbf=lastb(d.daily_fer); d.last_bd_cur_fer=lbf?lbf[1]:0;
+    const lbh=lastb(d.daily_hie); d.last_bd_cur_hie=lbh?lbh[1]:0;
+    // año anterior mismo mes, último día hábil, por grupo
+    const pd={tot:{},fer:{},hie:{}};
+    hrows.forEach(r=>{const dt=asDate(key(r,'Fecha de facturacion'));if(!dt)return;
+      if(dt.getFullYear()===curY-1&&dt.getMonth()===curM){const ds=fmtHoy(dt);const mo=num(key(r,'Monto'));
+        const code=(key(r,'Almacen_codigo')||'').toString().trim();
+        pd.tot[ds]=(pd.tot[ds]||0)+mo;
+        if(code==='Alas')pd.fer[ds]=(pd.fer[ds]||0)+mo; else if(code==='Alas Dep. Fabric')pd.hie[ds]=(pd.hie[ds]||0)+mo;}});
+    const lastPrev=o=>{const b=Object.keys(o).sort().filter(ds=>{const w=dOf(ds).getDay();return w!==0&&w!==6;});return b.length?o[b[b.length-1]]:0;};
+    d.last_bd_prevyear=lastPrev(pd.tot); d.last_bd_prevyear_fer=lastPrev(pd.fer); d.last_bd_prevyear_hie=lastPrev(pd.hie);
+  }
+  // PEDIDOS -> ped_lines
+  const ps=S('BASE PEDIDOS PEND. DE FACTURAR');
+  if(ps){const rows=XLSX.utils.sheet_to_json(ps).filter(r=>key(r,'Doc.vtas.')!=null&&key(r,'Doc.vtas.')!=='');
+    const lines=[];
+    rows.forEach(r=>{
+      const doc=String(key(r,'Doc.vtas.'));
+      const fe=asDate(key(r,'Fecha Entrega')); const fes=fe?fmtHoy(fe):'';
+      const alm=PALM[key(r,'Almacén')]||'Sin asignar';
+      const hh=hourOf(key(r,'Hora Creac. De Ped.'));
+      const total=num(key(r,'Total')), peso=num(key(r,'Peso'));
+      const vext=(key(r,'Nombre Ext')||'Sin asignar').toString();
+      const vint=(key(r,'Nombre Int')||'Sin asignar').toString();
+      const et=(key(r,'Etapa del pedido')||'Sin etapa').toString().trim();
+      const mp=(key(r,'Material de produccion')||'').toString().trim().toUpperCase();
+      const prod=mp==='ALAS'?'Producción Alas':(mp==='IMPORTADO'?'Importados':'Sin clasificar');
+      lines.push([alm,et,vext,vint,fes,hh,peso,total,prod,doc]);
+    });
+    d.ped_lines=lines;
+  }
+  d._stamp=Date.now();
+  return d;
+}
+
+document.getElementById('file').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{ try{
+    const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array',cellDates:true});
+    D=parseWB(wb); hoyOverride=null; SCOPE='tot'; mesScope='tot'; fAlm='todos'; fEt='todos';
+    dataOrigin='actualizado'; persistData();
+    document.querySelectorAll('#scopeSeg button').forEach(x=>x.classList.toggle('on',x.dataset.s==='tot'));
+    document.querySelectorAll('#mmScope .pill').forEach(x=>x.classList.toggle('on',x.dataset.s==='tot'));
+    renderAll(); updateEstado();
+    toast('Base actualizada y guardada · '+MESES[D.cur_month-1]+' '+D.cur_year);
+  }catch(err){console.error(err);toast('No se pudo leer el archivo. Verificá que sea la planilla correcta.',true);} };
+  r.readAsArrayBuffer(f); e.target.value='';
+});
+
+/* ---------- guardar / descargar / estado ---------- */
+function updateEstado(){
+  const el=document.getElementById('estado'); if(!el)return;
+  let txt;
+  if(dataOrigin==='actualizado') txt='● Base actualizada (guardada en este navegador)';
+  else if(dataOrigin==='guardado') txt='● Datos guardados en este navegador';
+  else txt='● Datos incrustados en el archivo';
+  if(D._stamp){const d=new Date(D._stamp);txt+=' · '+pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes());}
+  el.textContent=txt;
+}
+function descargarTablero(){
+  try{
+    const clone=document.documentElement.cloneNode(true);
+    const sd=clone.querySelector('#snapdata');
+    if(sd) sd.textContent=JSON.stringify(D).replace(/</g,'\\u003c');
+    // limpio tablas dinámicas para que el archivo quede liviano (se regeneran al abrir)
+    ['dailyTbl','almBox','pedTblBox','ferList'].forEach(id=>{const e=clone.querySelector('#'+id);if(e)e.innerHTML='';});
+    const tb=clone.querySelector('#tblMM tbody'); if(tb)tb.innerHTML='';
+    const html='<!DOCTYPE html>\n'+clone.outerHTML;
+    const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='Tablero_Facturacion_Diaria_Alas.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    toast('Tablero descargado con los datos actuales');
+  }catch(err){console.error(err);toast('No se pudo generar la descarga',true);}
+}
+function restablecer(){
+  try{localStorage.removeItem(STORE_KEY);}catch(e){}
+  const sd=document.getElementById('snapdata');
+  try{ D = sd? JSON.parse(sd.textContent) : JSON.parse(JSON.stringify(SNAP)); }
+  catch(e){ D = JSON.parse(JSON.stringify(SNAP)); }
+  dataOrigin='archivo'; hoyOverride=null; SCOPE='tot'; mesScope='tot'; fAlm='todos'; fEt='todos';
+  document.querySelectorAll('#scopeSeg button').forEach(x=>x.classList.toggle('on',x.dataset.s==='tot'));
+  document.querySelectorAll('#mmScope .pill').forEach(x=>x.classList.toggle('on',x.dataset.s==='tot'));
+  renderAll(); updateEstado(); toast('Restablecido a los datos del archivo');
+}
+
+/* ---------- init ---------- */
+renderAll(); updateEstado();
+
+</script>
+</body>
+</html>
