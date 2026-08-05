@@ -35,8 +35,8 @@
     upload: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>',
     empty: '<svg fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-6"/></svg>',
     grid: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>',
-    tool: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>',
-    bars: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="3.2" rx="1.6"/><rect x="3" y="10.4" width="18" height="3.2" rx="1.6"/><rect x="3" y="15.8" width="18" height="3.2" rx="1.6"/></svg>'
+    deposito: '<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9.5l7-4 7 4V21"/><path d="M9 21v-6h6v6"/><path d="M9 11.5h6"/></svg>',
+    fabrica: '<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 21V11l5 3V11l5 3V8l5 3v10"/><path d="M8 21v-4h3v4"/></svg>'
   };
 
   /* ── Rol / permisos (gate real = SSO) ── */
@@ -230,7 +230,7 @@
   /* ── Filtro de segmento (Almacén) para la toolbar ── */
   function scopeBarHtml() {
     function b(s, ico, lbl) { return '<button class="scopebtn' + (SCOPE === s ? ' on' : '') + '" data-s="' + s + '">' + ico + lbl + '</button>'; }
-    return '<div class="scopebar" id="scopeSeg">' + b('tot', IC.grid, 'Total') + b('fer', IC.tool, 'Ferretería') + b('hie', IC.bars, 'Hierros') + '</div>';
+    return '<div class="scopebar" id="scopeSeg">' + b('tot', IC.grid, 'Total') + b('fer', IC.deposito, 'Ferretería') + b('hie', IC.fabrica, 'Hierros') + '</div>';
   }
 
   /* ── Navegador de mes ── */
