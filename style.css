@@ -206,6 +206,22 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 @media(min-width:1560px){
   #stage{padding-left:max(28px,calc((100% - 1480px)/2));padding-right:max(28px,calc((100% - 1480px)/2))}
 }
+/* Notebook (1280–1366): mantiene 4 columnas pero achica fuentes/espacios */
+@media(max-width:1440px){
+  #stage{padding:20px 22px}
+  .tbd .grid{gap:14px}
+  .tbd .card{padding:18px 18px}
+  .tbd .big{font-size:22px}
+  .tbd .med{font-size:17px}
+  .tbd .hero .med{font-size:26px}
+  .tbd .hero .gauge{width:132px;height:132px}
+  .tbd .hero .gauge .pc .v{font-size:30px}
+  .tbd .hero .gauge .pc .l{font-size:10px}
+  .tbd .hero .bar{height:14px}
+  .tbd .hero .barwrap .lbls{font-size:13px}
+  .tbd .chartbox{height:260px}
+  .tbd .gaugewrap{gap:16px}
+}
 /* Laptop chico / tablet grande */
 @media(max-width:1080px){
   #stage{padding:20px 20px}
