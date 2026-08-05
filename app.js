@@ -198,13 +198,13 @@
   /* ── MARKUP de las 4 secciones (diseño del prototipo) ── */
   var SECTIONS_HTML =
     '<section class="page on" id="principal">' +
-    '<div class="grid g4" style="margin-bottom:18px">' +
+    '<div class="grid g2" style="margin-bottom:18px">' +
     '<div class="card hero"><h3>Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;font-weight:700">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="bar"><span id="hBar" style="width:0%"></span></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
+    '<div class="card accent"><h3>Facturación del día · último día hábil</h3><div class="big"><span class="u">₲</span><span id="kDia">–</span></div><div class="sub2" id="kDiaFecha">–</div><div style="margin-top:9px"><span class="chip" id="kDiaVar">–</span> <span class="mini">vs mismo día hábil año ant. (₲ <span id="kDiaPrev">–</span>)</span></div></div>' +
+    '</div>' +
+    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-bottom:18px">' +
     '<div class="card"><h3>Facturado acumulado</h3><div class="big"><span class="u">₲</span><span id="kFact">–</span></div><div class="sub2">Meta: <b id="kMeta">–</b></div><div style="margin-top:9px"><span class="chip flat" id="kFalta">–</span></div></div>' +
     '<div class="card"><h3>Proyección fin de mes</h3><div class="big"><span class="u">₲</span><span id="kProy">–</span></div><div class="sub2">Ritmo diario × días hábiles del mes</div><div style="margin-top:9px"><span class="chip" id="kProyPct">–</span> <span class="mini">vs meta</span></div></div>' +
-    '</div>' +
-    '<div class="grid g4" style="margin-bottom:16px">' +
-    '<div class="card accent"><h3>Facturación del día · último día hábil</h3><div class="big"><span class="u">₲</span><span id="kDia">–</span></div><div class="sub2" id="kDiaFecha">–</div><div style="margin-top:9px"><span class="chip" id="kDiaVar">–</span> <span class="mini">vs mismo día hábil año ant. (₲ <span id="kDiaPrev">–</span>)</span></div></div>' +
     '<div class="card"><h3>Mes actual vs mismo mes año pasado</h3><div class="med"><span class="u" style="font-size:12px;color:var(--gris-2)">₲</span> <span id="kMes">–</span></div><div class="sub2" id="kMesPrevL">–</div><div style="margin-top:9px"><span class="chip" id="kMesVar">–</span></div></div>' +
     '<div class="card"><h3>Proyección fin de año</h3><div class="med"><span class="u" style="font-size:12px;color:var(--gris-2)">₲</span> <span id="kAnio">–</span></div><div class="sub2">Acum. año + ritmo meses restantes</div><div style="margin-top:9px"><span class="chip" id="kAnioPct">–</span> <span class="mini">de meta anual</span></div></div>' +
     '<div class="card"><h3>Días hábiles del mes</h3><div class="big"><span id="kBdEl">–</span><span class="u" style="font-size:16px"> / </span><span id="kBdTot">–</span></div><div class="sub2">Transcurridos / totales (L-V, sin feriados)</div><div style="margin-top:9px"><span class="chip flat" id="kBdRest">–</span></div></div>' +

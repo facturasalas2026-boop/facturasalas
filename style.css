@@ -142,7 +142,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px}
 .tbd .chip.up{background:var(--pos-bg);color:var(--pos)}.tbd .chip.down{background:var(--neg-bg);color:var(--neg)}
 .tbd .chip.flat{background:#eef1f5;color:var(--gris)}
-.tbd .hero{grid-column:span 2;background:linear-gradient(135deg,#0B4F8A,#1466B0);color:#fff;border:none}
+.tbd .hero{background:linear-gradient(135deg,#0B4F8A,#1466B0);color:#fff;border:none}
 .tbd .hero h3{color:rgba(255,255,255,.75)}
 .tbd .gaugewrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .tbd .gauge{position:relative;width:150px;height:150px;flex:none}
