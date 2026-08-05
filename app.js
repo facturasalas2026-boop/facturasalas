@@ -348,11 +348,7 @@
 
   /* ── Barra de acciones (estado + actualizar) reutilizable ── */
   function actionsHtml() {
-    var estado = dataOrigin === 'actualizado' ? 'Base actualizada' : (dataOrigin === 'guardado' ? 'Datos guardados (local)' : 'Datos en la nube');
-    if (updatedInfo && updatedInfo.updated_at) { var dt = new Date(updatedInfo.updated_at); estado += ' · ' + pad(dt.getDate()) + '/' + pad(dt.getMonth() + 1) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()); }
-    var h = '<span class="estado-chip ' + (dataOrigin === 'guardado' ? 'warn' : '') + '"><span class="dot"></span>' + esc(estado) + '</span>';
-    if (isAdmin()) h += '<button class="btn btn--primary btn--sm" id="btnActualizar">' + IC.upload + ' Actualizar base</button>';
-    return h;
+    return isAdmin() ? '<button class="btn btn--primary btn--hero" id="btnActualizar">' + IC.upload + ' Actualizar base</button>' : '';
   }
   function wireActions(scope) {
     var b = q('#btnActualizar', scope);
@@ -367,11 +363,9 @@
       '<div class="view-hd"><div class="hd-titlewrap"><h2>Tablero de Facturación Diaria</h2><span class="sub">Sin datos cargados todavía</span></div><span class="spacer"></span>' + actionsHtml() + '</div>' +
       '<div class="empty">' + IC.empty +
       '<h3>Todavía no hay una base cargada</h3>' +
-      '<p>' + (isAdmin() ? 'Subí la planilla SAP (Excel) para generar el tablero. Se publicará para todo el equipo.' : 'Pedile a un administrador que cargue la base de facturación.') + '</p>' +
-      (isAdmin() ? '<button class="btn btn--primary" id="btnActualizar2">' + IC.upload + ' Subir base (Excel)</button>' : '') +
+      '<p>' + (isAdmin() ? 'Usá el botón <b>Actualizar base</b> (arriba a la derecha) para subir la planilla SAP. Se publicará para todo el equipo.' : 'Pedile a un administrador que cargue la base de facturación.') + '</p>' +
       '</div>';
     wireActions(q('#stage'));
-    var b2 = q('#btnActualizar2'); if (b2) b2.addEventListener('click', function () { q('#fileBase').click(); });
   }
 
   /* ============================================================

@@ -81,6 +81,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .btn--danger-solid{background:var(--alas-danger);border-color:var(--alas-danger);color:#fff}
 .btn--danger-solid:hover{filter:brightness(1.06);color:#fff}
 .btn.is-disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+.btn--hero{height:46px;padding:0 22px;font-size:14.5px;border-radius:12px;box-shadow:0 8px 22px rgba(11,95,141,.32);letter-spacing:.1px}
+.btn--hero svg{width:19px;height:19px}
+.btn--hero:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 12px 28px rgba(11,95,141,.4)}
 
 /* ── Header de vista ── */
 .view-hd{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
