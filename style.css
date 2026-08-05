@@ -104,6 +104,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .upd-chip{display:inline-flex;align-items:center;gap:5px;height:38px;padding:0 12px;border-radius:10px;background:var(--gray-100);border:1px solid var(--gray-200);color:var(--alas-text-3);font-size:11.5px;font-weight:700;white-space:nowrap}
 .upd-chip svg{width:13px;height:13px;flex:none;opacity:.85}
 .upd-chip b{color:var(--alas-text-2);font-weight:800}
+.refresh-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--gray-200);background:var(--gray-100);color:var(--alas-text-2);cursor:pointer;transition:background .16s var(--ease),color .16s var(--ease),border-color .16s var(--ease),box-shadow .16s var(--ease)}
+.refresh-btn:hover{background:#fff;color:var(--alas-brand);border-color:var(--azul-3);box-shadow:0 3px 10px rgba(11,79,138,.12)}
+.refresh-btn svg{width:17px;height:17px}
+.refresh-btn.is-busy{pointer-events:none;color:var(--alas-brand);border-color:var(--azul-3)}
 
 /* ── Estado vacío ── */
 .empty{margin:auto;padding:60px 20px;text-align:center;color:var(--alas-text-3)}

@@ -35,6 +35,7 @@
     upload: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>',
     empty: '<svg fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-6"/></svg>',
     grid: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>',
+    refresh: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>',
     deposito: '<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9.5l7-4 7 4V21"/><path d="M9 21v-6h6v6"/><path d="M9 11.5h6"/></svg>',
     fabrica: '<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 21V11l5 3V11l5 3V8l5 3v10"/><path d="M8 21v-4h3v4"/></svg>'
   };
@@ -246,6 +247,27 @@
     if (p) p.addEventListener('click', function () { if (idx > 0) gotoMonth(months[idx - 1]); });
     if (n) n.addEventListener('click', function () { if (idx < months.length - 1) gotoMonth(months[idx + 1]); });
   }
+  /* ── Refrescar datos desde la nube (con spin GSAP) ── */
+  function refreshData() {
+    if (!(window.TableroDB && TableroDB.ready)) { toast('Sin conexión para refrescar', true); return; }
+    if (!D) { boot(); return; }
+    var btn = q('#btnRefresh'), icon = btn ? btn.querySelector('svg') : null, spin = null;
+    if (btn) btn.classList.add('is-busy');
+    if (window.gsap && icon) { gsap.set(icon, { transformOrigin: '50% 50%' }); spin = gsap.to(icon, { rotation: '+=360', duration: .8, ease: 'none', repeat: -1 }); }
+    var minD = new Promise(function (r) { setTimeout(r, 700); });
+    Promise.all([TableroDB.pullFeriados(), TableroDB.pullSnapshotFor(D.cur_year, D.cur_month), TableroDB.listMonths(), minD])
+      .then(function (res) {
+        holidays = (res[0] || []).map(function (r) { return { date: r.fecha, name: r.descripcion || '' }; });
+        availableMonths = res[2] || [];
+        var row = res[1];
+        if (row && row.snapshot) { D = row.snapshot; dataOrigin = 'nube'; updatedInfo = { updated_at: row.updated_at, updated_by: row.updated_by }; }
+        if (spin) spin.kill();
+        renderShell();
+        toast('Datos actualizados');
+      })
+      .catch(function (e) { console.error(e); if (spin) spin.kill(); if (btn) btn.classList.remove('is-busy'); toast('No se pudo refrescar', true); });
+  }
+
   /* ── Chip de última actualización (última carga del Excel) ── */
   function updChipHtml() {
     if (!updatedInfo || !updatedInfo.updated_at) return '';
@@ -297,7 +319,9 @@
       '<div class="tbd-toolbar"><div class="tbd-title"><h2 id="tbdTitle"></h2><span class="sub" id="tbdSub"></span></div>' +
       '<div id="scopeSlot"' + (scopeApplies ? '' : ' style="display:none"') + '>' + scopeBarHtml() + '</div>' +
       '<span class="spacer"></span>' +
-      monthNavHtml() + updChipHtml() +
+      monthNavHtml() +
+      '<button class="refresh-btn" id="btnRefresh" type="button" title="Refrescar datos" aria-label="Refrescar datos">' + IC.refresh + '</button>' +
+      updChipHtml() +
       (isAdmin() ? '<button class="btn btn--primary btn--hero" id="btnActualizar">' + IC.upload + ' Actualizar base</button>' : '') +
       '</div><div class="tbd">' + SECTIONS_HTML + '</div>';
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === currentView); });
@@ -314,6 +338,7 @@
   function wireShell() {
     wireMonthNav(q('#stage'));
     var ba = q('#btnActualizar'); if (ba) ba.addEventListener('click', function () { q('#fileBase').click(); });
+    var rb = q('#btnRefresh'); if (rb) rb.addEventListener('click', refreshData);
     qa('#scopeSeg .scopebtn').forEach(function (b) { b.addEventListener('click', function () { if (SCOPE === b.dataset.s) return; SCOPE = b.dataset.s; qa('#scopeSeg .scopebtn').forEach(function (x) { x.classList.toggle('on', x === b); }); popScope(b); renderPage(currentView); }); });
     qa('#pedPills .pill').forEach(function (b) { b.addEventListener('click', function () { if (pedView === b.dataset.v) return; pedView = b.dataset.v; qa('#pedPills .pill').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); renderPedidos(); }); });
     var fa = q('#fAlm'), fe = q('#fEt');
