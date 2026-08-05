@@ -251,8 +251,8 @@
     if (!updatedInfo || !updatedInfo.updated_at) return '';
     var d = new Date(updatedInfo.updated_at);
     if (isNaN(d)) return '';
-    var s = pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-    return '<span class="upd-chip" title="Última carga del Excel' + (updatedInfo.updated_by ? ' · ' + esc(updatedInfo.updated_by) : '') + '"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>' + s + '</span>';
+    var s = pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    return '<span class="upd-chip" title="Última carga del Excel' + (updatedInfo.updated_by ? ' · ' + esc(updatedInfo.updated_by) : '') + '"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span>Última actualización</span> <b>' + s + '</b></span>';
   }
 
   function gotoMonth(m) {
