@@ -33,7 +33,10 @@
 
   var IC = {
     upload: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>',
-    empty: '<svg fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-6"/></svg>'
+    empty: '<svg fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-6"/></svg>',
+    grid: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>',
+    tool: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>',
+    bars: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="3.2" rx="1.6"/><rect x="3" y="10.4" width="18" height="3.2" rx="1.6"/><rect x="3" y="15.8" width="18" height="3.2" rx="1.6"/></svg>'
   };
 
   /* ── Rol / permisos (gate real = SSO) ── */
@@ -186,7 +189,7 @@
   /* ── MARKUP de las 4 secciones (diseño del prototipo) ── */
   var SECTIONS_HTML =
     '<section class="page on" id="principal">' +
-    '<div class="pill-row" id="scopeSeg" style="margin-bottom:14px"><span class="mini" style="align-self:center;margin-right:4px;font-weight:600">Almacén:</span><button class="pill on" data-s="tot">Total</button><button class="pill" data-s="fer">Ferretería</button><button class="pill" data-s="hie">Hierros</button></div>' +
+    '<div class="scopebar" id="scopeSeg"><button class="scopebtn on" data-s="tot">' + IC.grid + 'Total</button><button class="scopebtn" data-s="fer">' + IC.tool + 'Ferretería</button><button class="scopebtn" data-s="hie">' + IC.bars + 'Hierros</button></div>' +
     '<div class="grid g4" style="margin-bottom:16px">' +
     '<div class="card hero"><h3>Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.5px;font-size:10px">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="bar"><span id="hBar" style="width:0%"></span></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
     '<div class="card"><h3>Facturado acumulado</h3><div class="big"><span class="u">₲</span><span id="kFact">–</span></div><div class="sub2">Meta: <b id="kMeta">–</b></div><div style="margin-top:9px"><span class="chip flat" id="kFalta">–</span></div></div>' +
@@ -206,7 +209,7 @@
     '</section>' +
 
     '<section class="page" id="mesames">' +
-    '<div class="pill-row" id="mmScope" style="margin-bottom:6px"><span class="mini" style="align-self:center;margin-right:4px;font-weight:600">Almacén:</span><button class="pill on" data-s="tot">Total</button><button class="pill" data-s="fer">Ferretería</button><button class="pill" data-s="hie">Hierros</button></div>' +
+    '<div class="scopebar" id="mmScope"><button class="scopebtn on" data-s="tot">' + IC.grid + 'Total</button><button class="scopebtn" data-s="fer">' + IC.tool + 'Ferretería</button><button class="scopebtn" data-s="hie">' + IC.bars + 'Hierros</button></div>' +
     '<div class="grid g2" style="margin-bottom:16px"><div class="card"><h3>Facturación mensual · 2026 vs 2025</h3><div class="chartbox"><canvas id="chTrend"></canvas></div></div><div class="card"><h3>Acumulado del año · 2026 vs 2025</h3><div class="chartbox"><canvas id="chAcum"></canvas></div></div></div>' +
     '<div class="card"><h3>Facturación mes a mes · acumulado vs año pasado</h3><div style="overflow-x:auto"><table id="tblMM"><thead><tr><th>Mes</th><th>Acum. 2025</th><th>Acum. 2026</th><th>Var. acum. %</th><th>Meta 2026 (mes)</th><th>Cumpl. mes</th></tr></thead><tbody></tbody></table></div></div>' +
     '</section>' +
@@ -251,6 +254,7 @@
 
   /* ── SHELL / render ── */
   function setNav(v) { qa('[data-nav]').forEach(function (b) { var on = b.dataset.nav === v, was = b.classList.contains('is-active'); b.classList.toggle('is-active', on); if (on && !was && window.gsap) { var ic = b.querySelector('.nav-btn__ico'); if (ic) gsap.fromTo(ic, { scale: .7 }, { scale: 1, duration: .4, ease: 'back.out(2.2)', clearProps: 'transform' }); } }); }
+  function popScope(b) { if (!window.gsap) return; var ic = b.querySelector('svg'); gsap.fromTo(b, { scale: .92 }, { scale: 1, duration: .4, ease: 'back.out(2.4)', clearProps: 'transform' }); if (ic) gsap.fromTo(ic, { rotate: -18, scale: .7 }, { rotate: 0, scale: 1, duration: .5, ease: 'back.out(2.6)', clearProps: 'transform' }); }
 
   function renderEmpty() {
     killCharts();
@@ -273,14 +277,21 @@
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === currentView); });
     wireShell();
     renderPage(currentView);
-    if (window.gsap) gsap.from('#stage .tbd-toolbar', { opacity: 0, y: -8, duration: .35, ease: 'power2.out', clearProps: 'all' });
+    if (window.gsap) {
+      gsap.from('#stage .tbd-toolbar', { opacity: 0, y: -8, duration: .35, ease: 'power2.out', clearProps: 'all' });
+      var sb = q('#stage .page.on .scopebar');
+      if (sb) gsap.from(sb.querySelectorAll('.scopebtn'), { opacity: 0, y: -10, scale: .9, duration: .42, stagger: .07, ease: 'back.out(1.8)', clearProps: 'all', delay: .06 });
+    }
   }
 
   function wireShell() {
     wireMonthNav(q('#stage'));
     var ba = q('#btnActualizar'); if (ba) ba.addEventListener('click', function () { q('#fileBase').click(); });
-    qa('#scopeSeg .pill').forEach(function (b) { b.addEventListener('click', function () { if (SCOPE === b.dataset.s) return; SCOPE = b.dataset.s; qa('#scopeSeg .pill').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); renderPrincipal(); }); });
-    qa('#mmScope .pill').forEach(function (b) { b.addEventListener('click', function () { if (mesScope === b.dataset.s) return; mesScope = b.dataset.s; qa('#mmScope .pill').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); renderMesAMes(); }); });
+    qa('#scopeSeg .scopebtn').forEach(function (b) { b.addEventListener('click', function () { if (SCOPE === b.dataset.s) return; SCOPE = b.dataset.s; qa('#scopeSeg .scopebtn').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); popScope(b); renderPrincipal(); }); });
+    qa('#mmScope .scopebtn').forEach(function (b) { b.addEventListener('click', function () { if (mesScope === b.dataset.s) return; mesScope = b.dataset.s; qa('#mmScope .scopebtn').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); popScope(b); renderMesAMes(); }); });
+    // sincroniza el estado activo con las variables actuales
+    qa('#scopeSeg .scopebtn').forEach(function (b) { b.classList.toggle('on', b.dataset.s === SCOPE); });
+    qa('#mmScope .scopebtn').forEach(function (b) { b.classList.toggle('on', b.dataset.s === mesScope); });
     qa('#pedPills .pill').forEach(function (b) { b.addEventListener('click', function () { if (pedView === b.dataset.v) return; pedView = b.dataset.v; qa('#pedPills .pill').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); renderPedidos(); }); });
     var fa = q('#fAlm'), fe = q('#fEt');
     if (fa) fa.addEventListener('change', function (e) { fAlm = e.target.value; renderPedidos(); });
