@@ -256,6 +256,17 @@
     }).catch(function () { toast('No se pudo cargar el mes', true); });
   }
 
+  /* ── Título/subtítulo por vista ── */
+  function toolbarInfo(v) {
+    var per = MESES[D.cur_month - 1] + ' ' + D.cur_year;
+    var lastDay = (D.daily && D.daily.length) ? (' · datos al ' + D.daily[D.daily.length - 1][0].slice(8) + '/' + D.daily[D.daily.length - 1][0].slice(5, 7)) : '';
+    if (v === 'mesames') return { t: 'Mes a mes & tendencias', s: 'Comparativa 2026 vs 2025 · metas' };
+    if (v === 'pedidos') return { t: 'Pedidos pendientes', s: 'Agrupá y filtrá lo pendiente de facturar' };
+    if (v === 'config') return { t: 'Días hábiles & feriados', s: 'Cálculo del mes · ' + per };
+    return { t: 'Facturación diaria', s: per + lastDay };
+  }
+  function setToolbarTitle(v) { var info = toolbarInfo(v); T('tbdTitle', info.t); T('tbdSub', info.s); }
+
   /* ── SHELL / render ── */
   function setNav(v) { qa('[data-nav]').forEach(function (b) { var on = b.dataset.nav === v, was = b.classList.contains('is-active'); b.classList.toggle('is-active', on); if (on && !was && window.gsap) { var ic = b.querySelector('.nav-btn__ico'); if (ic) gsap.fromTo(ic, { scale: .7 }, { scale: 1, duration: .4, ease: 'back.out(2.2)', clearProps: 'transform' }); } }); }
   function popScope(b) { if (!window.gsap) return; var ic = b.querySelector('svg'); gsap.fromTo(b, { scale: .92 }, { scale: 1, duration: .4, ease: 'back.out(2.4)', clearProps: 'transform' }); if (ic) gsap.fromTo(ic, { rotate: -18, scale: .7 }, { rotate: 0, scale: 1, duration: .5, ease: 'back.out(2.6)', clearProps: 'transform' }); }
@@ -272,16 +283,16 @@
   function renderShell() {
     if (!D) { renderEmpty(); return; }
     killCharts();
-    var lastDay = (D.daily && D.daily.length) ? (' · datos al ' + D.daily[D.daily.length - 1][0].slice(8) + '/' + D.daily[D.daily.length - 1][0].slice(5, 7)) : '';
     var scopeApplies = currentView === 'principal' || currentView === 'mesames';
     q('#stage').innerHTML =
-      '<div class="tbd-toolbar"><div class="tbd-title"><h2>Facturación diaria</h2><span class="sub">' + esc(MESES[D.cur_month - 1] + ' ' + D.cur_year) + lastDay + '</span></div>' +
+      '<div class="tbd-toolbar"><div class="tbd-title"><h2 id="tbdTitle"></h2><span class="sub" id="tbdSub"></span></div>' +
       '<div id="scopeSlot"' + (scopeApplies ? '' : ' style="display:none"') + '>' + scopeBarHtml() + '</div>' +
       '<span class="spacer"></span>' +
       monthNavHtml() +
       (isAdmin() ? '<button class="btn btn--primary btn--hero" id="btnActualizar">' + IC.upload + ' Actualizar base</button>' : '') +
       '</div><div class="tbd">' + SECTIONS_HTML + '</div>';
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === currentView); });
+    setToolbarTitle(currentView);
     wireShell();
     renderPage(currentView);
     if (window.gsap) {
@@ -310,6 +321,7 @@
     if (!D) return;
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === v); });
     var ss = q('#scopeSlot'); if (ss) ss.style.display = (v === 'principal' || v === 'mesames') ? '' : 'none';
+    setToolbarTitle(v);
     renderPage(v);
     var pg = q('#stage #' + v); if (window.gsap && pg) gsap.from(pg.children, { opacity: 0, y: 10, duration: .34, stagger: .04, ease: 'power2.out', clearProps: 'all' });
   }
