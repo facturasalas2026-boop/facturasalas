@@ -96,6 +96,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd-title{display:flex;flex-direction:column}
 .tbd-title h2{font-family:'Sora',sans-serif;font-size:21px;font-weight:800;color:var(--alas-text-1);margin:0;letter-spacing:-.3px}
 .tbd-title .sub{font-size:12.5px;font-weight:600;color:var(--alas-text-3);margin-top:2px}
+.tbd-title .sub:empty{display:none}
 .mnav{display:inline-flex;align-items:center;gap:3px;background:var(--gray-100);border:1px solid var(--gray-200);border-radius:10px;padding:3px}
 .mnav__btn{width:30px;height:30px;border:none;background:transparent;border-radius:7px;color:var(--alas-text-2);font-size:18px;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--fast)}
 .mnav__btn:hover:not(:disabled){background:#fff;color:var(--alas-brand);box-shadow:0 2px 6px rgba(15,23,42,.08)}

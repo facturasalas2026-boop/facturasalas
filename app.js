@@ -290,11 +290,10 @@
   /* ── Título/subtítulo por vista ── */
   function toolbarInfo(v) {
     var per = MESES[D.cur_month - 1] + ' ' + D.cur_year;
-    var lastDay = (D.daily && D.daily.length) ? (' · datos al ' + D.daily[D.daily.length - 1][0].slice(8) + '/' + D.daily[D.daily.length - 1][0].slice(5, 7)) : '';
     if (v === 'mesames') return { t: 'Mes a mes & tendencias', s: 'Comparativa 2026 vs 2025 · metas' };
     if (v === 'pedidos') return { t: 'Pedidos pendientes', s: 'Agrupá y filtrá lo pendiente de facturar' };
     if (v === 'config') return { t: 'Días hábiles & feriados', s: 'Cálculo del mes · ' + per };
-    return { t: 'Facturación diaria', s: per + lastDay };
+    return { t: 'Facturación diaria', s: '' };
   }
   function setToolbarTitle(v) { var info = toolbarInfo(v); T('tbdTitle', info.t); T('tbdSub', info.s); }
 
