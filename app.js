@@ -15,6 +15,14 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function T(id, txt) { var e = document.getElementById(id); if (e) e.textContent = txt; }
   function H(id, html) { var e = document.getElementById(id); if (e) e.innerHTML = html; }
+  // Conteo animado (GSAP) con formateo por frame; mata el tween previo del elemento
+  function animCount(el, to, fmtFn, dur) {
+    if (!el) return; to = to || 0;
+    if (!window.gsap) { el.textContent = fmtFn(to); return; }
+    if (el._ct) el._ct.kill();
+    var o = { v: 0 };
+    el._ct = gsap.to(o, { v: to, duration: dur || .9, ease: 'power2.out', onUpdate: function () { el.textContent = fmtFn(o.v); }, onComplete: function () { el.textContent = fmtFn(to); } });
+  }
   var MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
   var fmt = function (n) { return (Math.round(n) || 0).toLocaleString('es-PY').replace(/,/g, '.'); };
@@ -366,9 +374,14 @@
     T('hScope', k.label); T('dScope', k.label); T('pScope', k.label);
     var av = pct(k.fact, k.meta);
     mk('gauge', { type: 'doughnut', data: { datasets: [{ data: [Math.min(av, 100), Math.max(0, 100 - av)], backgroundColor: ['#fff', 'rgba(255,255,255,.22)'], borderWidth: 0, circumference: 360, cutout: '78%' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { animateRotate: true } } });
-    T('gPct', av.toFixed(1) + '%'); T('hMeta', '₲ ' + fmt(k.meta));
-    var hb = q('#hBar'); if (hb) hb.style.width = Math.min(av, 100) + '%';
-    T('hFact', 'Facturado ₲ ' + fmt(k.fact)); T('hFalta', 'Falta ₲ ' + fmt(Math.max(0, k.meta - k.fact)));
+    // Meta mensual · avance — animado con GSAP
+    if (window.gsap) gsap.fromTo('#principal .hero .gauge', { scale: .88, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.6)', clearProps: 'all' });
+    animCount(q('#gPct'), av, function (v) { return v.toFixed(1) + '%'; }, 1);
+    animCount(q('#hMeta'), k.meta, function (v) { return '₲ ' + fmt(v); }, 1.1);
+    var hb = q('#hBar');
+    if (hb) { if (window.gsap) { hb.style.transition = 'none'; gsap.fromTo(hb, { width: '0%' }, { width: Math.min(av, 100) + '%', duration: 1.1, ease: 'power2.out' }); } else hb.style.width = Math.min(av, 100) + '%'; }
+    animCount(q('#hFact'), k.fact, function (v) { return 'Facturado ₲ ' + fmt(v); }, 1.1);
+    animCount(q('#hFalta'), Math.max(0, k.meta - k.fact), function (v) { return 'Falta ₲ ' + fmt(v); }, 1.1);
     T('kFact', fmt(k.fact)); T('kMeta', '₲ ' + fmt(k.meta));
     var falta = k.meta - k.fact, cf = q('#kFalta'); if (cf) { cf.textContent = falta > 0 ? 'Falta ₲ ' + fmt(falta) : 'Meta superada +₲ ' + fmt(-falta); cf.className = 'chip ' + (falta > 0 ? 'flat' : 'up'); }
     T('kProy', fmt(k.proyMes)); var pp = q('#kProyPct'), pv = pct(k.proyMes, k.meta); if (pp) { pp.textContent = arrow(pv - 100) + ' ' + pv.toFixed(1) + '%'; pp.className = 'chip ' + (pv >= 100 ? 'up' : pv >= 90 ? 'flat' : 'down'); }
