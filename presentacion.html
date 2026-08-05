@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tablero de Facturación Diaria — ALAS</title>
+<meta name="description" content="Tablero de Facturación Diaria de ALAS: control de meta, proyecciones y pedidos pendientes, en tiempo real y para todo el equipo." />
+
+<!-- Tipografías profesionales (Google Fonts) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   TABLERO DE FACTURACIÓN DIARIA · página de presentación
+   Paleta e identidad ALAS. Layout responsive + GSAP.
+   ============================================================ */
+
+/* ---------- Tokens de diseño ---------- */
+:root{
+  --azul:#0B5F8D; --azul-2:#1466B0; --azul-3:#3B8FD4; --azul-tenue:#EAF2FA;
+  --tinta:#132437; --gris:#5B6B7C; --gris-2:#8A99A8; --linea:#E4EBF2;
+  --bg:#F4F7FB; --bg-2:#EAF1F8; --panel:#FFFFFF;
+  --pos:#1B8A5A; --pos-bg:#E5F5EC;
+  --sombra-sm:0 1px 2px rgba(19,36,55,.06), 0 6px 20px rgba(19,36,55,.06);
+  --sombra-md:0 12px 34px rgba(19,36,55,.10);
+  --radio:18px; --radio-sm:12px;
+  --maxw:1180px;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+
+/* ---------- Reset ligero ---------- */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--bg); color:var(--tinta);
+  -webkit-font-smoothing:antialiased; line-height:1.6;
+  overflow-x:hidden;
+}
+h1,h2,h3,.brand{font-family:'Sora',sans-serif;line-height:1.15;letter-spacing:-.02em}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.container{width:100%;max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+/* ---------- Tipografía / jerarquía ---------- */
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--azul-2);background:var(--azul-tenue);
+  padding:7px 14px;border-radius:999px;margin-bottom:20px;
+}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--azul-2);display:inline-block}
+h1{font-size:clamp(2.1rem,5.2vw,3.6rem);font-weight:800}
+h2{font-size:clamp(1.7rem,3.6vw,2.5rem);font-weight:800}
+h3{font-size:1.18rem;font-weight:700}
+.lead{font-size:clamp(1.05rem,1.6vw,1.22rem);color:var(--gris);max-width:56ch}
+.muted{color:var(--gris)}
+
+/* ---------- Botones (micro-interacciones) ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  font-family:'Inter',sans-serif;font-weight:700;font-size:.98rem;
+  padding:14px 26px;border-radius:14px;border:1.5px solid transparent;
+  cursor:pointer;transition:box-shadow .25s var(--ease),background .2s var(--ease),color .2s var(--ease);
+  will-change:transform;
+}
+.btn svg{width:18px;height:18px}
+.btn--primary{background:linear-gradient(135deg,var(--azul),var(--azul-2));color:#fff;box-shadow:0 10px 24px rgba(11,95,141,.28)}
+.btn--primary:hover{box-shadow:0 16px 34px rgba(11,95,141,.4)}
+.btn--ghost{background:#fff;color:var(--azul);border-color:var(--linea)}
+.btn--ghost:hover{border-color:var(--azul-3);color:var(--azul-2)}
+
+/* ---------- Header / navegación ---------- */
+.nav{
+  position:fixed;inset:0 0 auto 0;z-index:50;
+  display:flex;align-items:center;
+  background:rgba(255,255,255,.72);backdrop-filter:blur(14px);
+  border-bottom:1px solid transparent;transition:border-color .3s,box-shadow .3s,background .3s;
+}
+.nav.scrolled{border-color:var(--linea);box-shadow:0 6px 24px rgba(19,36,55,.06);background:rgba(255,255,255,.9)}
+.nav .container{display:flex;align-items:center;justify-content:space-between;height:72px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:1.05rem;color:var(--azul)}
+.brand .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--azul),var(--azul-2));display:grid;place-items:center;color:#fff;box-shadow:0 4px 12px rgba(11,95,141,.3)}
+.brand .logo svg{width:22px;height:22px}
+.brand small{display:block;font-family:'Inter';font-size:10.5px;font-weight:600;color:var(--gris-2);letter-spacing:.02em;text-transform:uppercase}
+.nav-links{display:flex;align-items:center;gap:30px}
+.nav-links a{position:relative;font-weight:600;font-size:.95rem;color:var(--gris);transition:color .2s}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:-6px;width:100%;height:2px;background:var(--azul-2);border-radius:2px;transform:scaleX(0);transform-origin:left;transition:transform .28s var(--ease)}
+.nav-links a:hover{color:var(--tinta)}
+.nav-links a:hover::after{transform:scaleX(1)}
+.nav-cta{display:flex;align-items:center;gap:14px}
+.nav-toggle{display:none;background:none;border:none;cursor:pointer;color:var(--tinta)}
+
+/* ---------- Secciones genéricas (espaciado generoso) ---------- */
+section{padding:104px 0}
+.section-head{max-width:640px;margin-bottom:56px}
+.section-head.center{margin-left:auto;margin-right:auto;text-align:center}
+.alt{background:linear-gradient(180deg,var(--bg-2),var(--bg))}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--linea),transparent)}
+
+/* ---------- HERO ---------- */
+.hero{position:relative;padding:150px 0 90px;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:
+    radial-gradient(60% 55% at 78% 18%, rgba(59,143,212,.16), transparent 60%),
+    radial-gradient(50% 50% at 12% 88%, rgba(11,95,141,.10), transparent 60%),
+    linear-gradient(180deg,#fff, var(--bg));
+}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.hero h1 span{color:var(--azul-2)}
+.hero .lead{margin:22px 0 34px}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+.hero-note{margin-top:22px;font-size:.9rem;color:var(--gris-2);display:flex;align-items:center;gap:8px}
+.hero-note svg{width:16px;height:16px;color:var(--pos)}
+
+/* ---------- Mock del tablero (visual del hero) ---------- */
+.mock{position:relative;background:var(--panel);border:1px solid var(--linea);border-radius:22px;padding:20px;box-shadow:var(--sombra-md)}
+.mock-bar{display:flex;gap:6px;margin-bottom:16px}
+.mock-bar i{width:11px;height:11px;border-radius:50%;background:var(--linea)}
+.mock-hero{background:linear-gradient(135deg,var(--azul),var(--azul-2));border-radius:14px;padding:18px;color:#fff;display:flex;align-items:center;gap:18px;margin-bottom:14px}
+.mock-gauge{position:relative;width:82px;height:82px;flex:none}
+.mock-gauge svg{transform:rotate(-90deg)}
+.mock-gauge .pct{position:absolute;inset:0;display:grid;place-items:center;font-family:'Sora';font-weight:800;font-size:1.1rem}
+.mock-hero .mh-meta{font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.06em}
+.mock-hero .mh-val{font-family:'Sora';font-weight:800;font-size:1.35rem;margin:2px 0 8px}
+.mock-hero .mh-bar{height:8px;border-radius:6px;background:rgba(255,255,255,.25);overflow:hidden}
+.mock-hero .mh-bar span{display:block;height:100%;width:72%;background:#fff;border-radius:6px}
+.mock-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.mk{background:var(--bg);border:1px solid var(--linea);border-radius:11px;padding:11px 12px}
+.mk .l{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--gris-2);font-weight:700}
+.mk .v{font-family:'Sora';font-weight:800;font-size:1rem;margin-top:3px}
+.mk .v.pos{color:var(--pos)}
+.mock-chart{display:flex;align-items:flex-end;gap:9px;height:82px;padding:6px 4px 0}
+.mock-chart span{flex:1;background:linear-gradient(180deg,var(--azul-3),var(--azul));border-radius:5px 5px 3px 3px;transform-origin:bottom}
+.badge-float{position:absolute;background:#fff;border:1px solid var(--linea);border-radius:12px;box-shadow:var(--sombra-md);padding:11px 14px;display:flex;align-items:center;gap:10px;font-size:.82rem;font-weight:600}
+.badge-float svg{width:26px;height:26px;flex:none}
+.badge-float.b1{top:-22px;right:-14px}
+.badge-float.b2{bottom:-20px;left:-18px}
+
+/* ---------- SOBRE / QUÉ ES ---------- */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.about-points{display:grid;gap:16px;margin-top:26px}
+.point{display:flex;gap:14px;align-items:flex-start}
+.point .ico{width:42px;height:42px;flex:none;border-radius:12px;background:var(--azul-tenue);color:var(--azul-2);display:grid;place-items:center}
+.point .ico svg{width:22px;height:22px}
+.point h3{font-size:1.02rem;margin-bottom:3px}
+.point p{font-size:.94rem;color:var(--gris)}
+
+/* ---------- FUNCIONES (cards) ---------- */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.card{
+  background:var(--panel);border:1px solid var(--linea);border-radius:var(--radio);
+  padding:30px 26px;box-shadow:var(--sombra-sm);
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s;
+  will-change:transform;
+}
+.card:hover{transform:translateY(-6px);box-shadow:var(--sombra-md);border-color:var(--azul-3)}
+.card .ci{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;margin-bottom:18px;
+  background:linear-gradient(135deg,var(--azul-tenue),#dbeafe);color:var(--azul);}
+.card .ci svg{width:26px;height:26px}
+.card h3{margin-bottom:9px}
+.card p{font-size:.95rem;color:var(--gris)}
+
+/* ---------- CÓMO FUNCIONA (pasos) ---------- */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;position:relative}
+.step{background:var(--panel);border:1px solid var(--linea);border-radius:var(--radio);padding:30px 26px;box-shadow:var(--sombra-sm);position:relative}
+.step .num{font-family:'Sora';font-weight:800;font-size:1.05rem;width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--azul),var(--azul-2));color:#fff;display:grid;place-items:center;margin-bottom:18px;box-shadow:0 8px 18px rgba(11,95,141,.3)}
+.step h3{margin-bottom:8px}
+.step p{font-size:.94rem;color:var(--gris)}
+
+/* ---------- MÉTRICAS (counters) ---------- */
+.stats{background:linear-gradient(135deg,var(--azul),var(--azul-2));color:#fff}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;text-align:center}
+.stat .n{font-family:'Sora';font-weight:800;font-size:clamp(2.2rem,4vw,3rem);line-height:1}
+.stat .n .u{font-size:1.4rem;opacity:.85}
+.stat .l{font-size:.9rem;opacity:.86;margin-top:8px;font-weight:500}
+
+/* ---------- CTA / CONTACTO ---------- */
+.cta-box{
+  background:var(--panel);border:1px solid var(--linea);border-radius:26px;
+  padding:60px 48px;text-align:center;box-shadow:var(--sombra-md);position:relative;overflow:hidden;
+}
+.cta-box::before{content:"";position:absolute;inset:0;z-index:0;
+  background:radial-gradient(60% 80% at 50% -10%, rgba(59,143,212,.14), transparent 60%)}
+.cta-box>*{position:relative;z-index:1}
+.cta-box .lead{margin:16px auto 30px}
+.cta-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.contact-row{display:flex;gap:34px;justify-content:center;flex-wrap:wrap;margin-top:40px;color:var(--gris)}
+.contact-row a{display:flex;align-items:center;gap:9px;font-weight:600;font-size:.95rem;transition:color .2s}
+.contact-row a:hover{color:var(--azul-2)}
+.contact-row svg{width:18px;height:18px;color:var(--azul-2)}
+
+/* ---------- Footer ---------- */
+footer{background:var(--tinta);color:#cdd8e4;padding:56px 0 34px}
+.foot-grid{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;flex-wrap:wrap;margin-bottom:34px}
+footer .brand{color:#fff}
+footer .brand .logo{background:rgba(255,255,255,.14)}
+footer .brand small{color:rgba(255,255,255,.55)}
+.foot-links{display:flex;gap:28px;flex-wrap:wrap}
+.foot-links a{color:#aebccb;font-size:.92rem;transition:color .2s}
+.foot-links a:hover{color:#fff}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:22px;font-size:.85rem;color:#8195a8;text-align:center}
+
+/* ---------- Responsive ---------- */
+@media (max-width:920px){
+  .hero-grid,.about-grid{grid-template-columns:1fr;gap:44px}
+  .hero .lead{margin-inline:auto}
+  .cards,.steps{grid-template-columns:1fr 1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:34px}
+}
+@media (max-width:640px){
+  section{padding:76px 0}
+  .hero{padding:120px 0 60px}
+  .nav-links{display:none}
+  .nav-toggle{display:inline-flex}
+  .cards,.steps,.stats-grid{grid-template-columns:1fr}
+  .cta-box{padding:44px 24px}
+}
+
+/* Respeta usuarios que prefieren menos movimiento */
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER / NAV ============ -->
+<header class="nav" id="nav">
+  <div class="container">
+    <a class="brand" href="#top">
+      <span class="logo"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3.5-4 3 2.4L21 6"/></svg></span>
+      <span>ALAS<small>Facturación Diaria</small></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#que-es">Qué es</a>
+      <a href="#funciones">Funciones</a>
+      <a href="#como">Cómo funciona</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn--primary" href="#contacto">Ver el tablero
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <button class="nav-toggle" aria-label="Menú"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow" data-hero><i></i> Ecosistema Logístico ALAS</span>
+        <h1 data-hero>Tu facturación diaria, <span>clara y en tiempo real</span></h1>
+        <p class="lead" data-hero>Controlá la meta del mes, proyectá el cierre y seguí los pedidos pendientes de facturar — todo en un solo tablero, actualizado con un clic y visible para todo el equipo.</p>
+        <div class="hero-actions" data-hero>
+          <a class="btn btn--primary" href="#funciones">Conocé las funciones
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn--ghost" href="#como">Cómo funciona</a>
+        </div>
+        <div class="hero-note" data-hero>
+          <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+          Sin planillas dispersas · una sola fuente de verdad
+        </div>
+      </div>
+
+      <!-- Mock visual del tablero -->
+      <div class="mock" id="mock" data-hero-mock>
+        <div class="mock-bar"><i></i><i></i><i></i></div>
+        <div class="mock-hero">
+          <div class="mock-gauge">
+            <svg width="82" height="82" viewBox="0 0 82 82">
+              <circle cx="41" cy="41" r="34" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="8"/>
+              <circle id="mockArc" cx="41" cy="41" r="34" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+            </svg>
+            <div class="pct">96%</div>
+          </div>
+          <div style="flex:1">
+            <div class="mh-meta">Meta del mes</div>
+            <div class="mh-val">₲ 44.871 M</div>
+            <div class="mh-bar"><span></span></div>
+          </div>
+        </div>
+        <div class="mock-kpis">
+          <div class="mk"><div class="l">Proyección</div><div class="v">₲ 46,1 MM</div></div>
+          <div class="mk"><div class="l">Día hábil</div><div class="v pos">▲ 4,2%</div></div>
+          <div class="mk"><div class="l">Pedidos</div><div class="v">460</div></div>
+        </div>
+        <div class="mock-chart">
+          <span style="height:46%"></span><span style="height:62%"></span><span style="height:38%"></span>
+          <span style="height:74%"></span><span style="height:55%"></span><span style="height:82%"></span>
+          <span style="height:48%"></span><span style="height:68%"></span><span style="height:90%"></span>
+        </div>
+
+        <div class="badge-float b1" data-badge>
+          <svg viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="20" fill="#E5F5EC"/><path d="M15 22l5 5 10-11" stroke="#1B8A5A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Base actualizada
+        </div>
+        <div class="badge-float b2" data-badge>
+          <svg viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="20" fill="#EAF2FA"/><path d="M22 13v9l6 3" stroke="#1466B0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          En tiempo real
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ QUÉ ES / SOBRE ============ -->
+  <section class="alt" id="que-es">
+    <div class="container about-grid">
+      <div class="reveal">
+        <span class="eyebrow"><i></i> El módulo</span>
+        <h2>Una sola pantalla para toda tu facturación</h2>
+        <p class="lead" style="margin-top:18px">El Tablero de Facturación Diaria procesa tu planilla de SAP y la transforma en indicadores accionables: cuánto vas del mes, cómo venís contra la meta y el año pasado, y qué pedidos siguen pendientes de facturar.</p>
+        <div class="about-points">
+          <div class="point reveal">
+            <span class="ico"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-6"/></svg></span>
+            <div><h3>Meta y proyecciones</h3><p>Avance del mes, proyección de cierre por ritmo diario y proyección anual, siempre a la vista.</p></div>
+          </div>
+          <div class="point reveal">
+            <span class="ico"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v16"/></svg></span>
+            <div><h3>Dos líneas de negocio</h3><p>Ferretería y Hierros por separado o consolidadas, con un control de segmento centralizado.</p></div>
+          </div>
+          <div class="point reveal">
+            <span class="ico"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+            <div><h3>Siempre al día</h3><p>Detección de cambios en cada carga: sabés qué días son nuevos y evitás datos repetidos.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <!-- Panel decorativo de resumen -->
+        <div class="mock" style="box-shadow:var(--sombra-md)">
+          <div class="mock-kpis" style="grid-template-columns:1fr 1fr">
+            <div class="mk"><div class="l">Facturado del mes</div><div class="v">₲ 38.167 M</div></div>
+            <div class="mk"><div class="l">vs año pasado</div><div class="v pos">▲ 0,4%</div></div>
+            <div class="mk"><div class="l">Días hábiles</div><div class="v">18 / 23</div></div>
+            <div class="mk"><div class="l">Devoluciones</div><div class="v">₲ -1,3 MM</div></div>
+          </div>
+          <div class="mock-chart" style="height:120px">
+            <span style="height:40%"></span><span style="height:55%"></span><span style="height:35%"></span>
+            <span style="height:70%"></span><span style="height:52%"></span><span style="height:80%"></span>
+            <span style="height:60%"></span><span style="height:88%"></span><span style="height:66%"></span>
+            <span style="height:95%"></span><span style="height:72%"></span><span style="height:84%"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FUNCIONES ============ -->
+  <section id="funciones">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="eyebrow"><i></i> Funciones</span>
+        <h2>Todo lo que necesitás para decidir</h2>
+        <p class="lead" style="margin:16px auto 0">Cuatro vistas conectadas que cubren el día a día, la tendencia y lo que falta cobrar.</p>
+      </div>
+      <div class="cards">
+        <article class="card reveal">
+          <div class="ci"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9h-9z"/><path d="M12 3v9l6.5 6.5"/></svg></div>
+          <h3>Meta y avance</h3>
+          <p>Gauge de cumplimiento, facturado acumulado, cuánto falta y proyección de cierre de mes por ritmo diario.</p>
+        </article>
+        <article class="card reveal">
+          <div class="ci"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 16l3-4 3 2 4-6"/></svg></div>
+          <h3>Facturación diaria</h3>
+          <p>Día a día del mes en curso, con los días fuertes destacados y comparativa contra el mismo día hábil del año anterior.</p>
+        </article>
+        <article class="card reveal">
+          <div class="ci"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 13l4-5 3 3 4-7"/></svg></div>
+          <h3>Mes a mes &amp; tendencias</h3>
+          <p>2026 vs 2025, acumulado del año y cumplimiento de meta por mes, filtrable por línea de negocio.</p>
+        </article>
+        <article class="card reveal">
+          <div class="ci"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg></div>
+          <h3>Pedidos pendientes</h3>
+          <p>Todo lo que falta facturar, agrupable por almacén, vendedor, origen, fecha, hora, peso o etapa del pedido.</p>
+        </article>
+        <article class="card reveal">
+          <div class="ci"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></svg></div>
+          <h3>Días hábiles &amp; feriados</h3>
+          <p>Cálculo de días hábiles con feriados manuales compartidos que recalculan las proyecciones para todos.</p>
+        </article>
+        <article class="card reveal">
+          <div class="ci"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div>
+          <h3>Actualización inteligente</h3>
+          <p>Subís la planilla y un indicador de 0 a 100% publica la base para el equipo, informando exactamente qué cambió.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CÓMO FUNCIONA ============ -->
+  <section class="alt" id="como">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="eyebrow"><i></i> Cómo funciona</span>
+        <h2>De la planilla al tablero, en tres pasos</h2>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <div class="num">1</div>
+          <h3>Subís la planilla SAP</h3>
+          <p>Un administrador carga el Excel exportado de SAP. El módulo lo procesa en el navegador, sin instalar nada.</p>
+        </div>
+        <div class="step reveal">
+          <div class="num">2</div>
+          <h3>Se publica en la nube</h3>
+          <p>Los indicadores se calculan y se guardan como una sola base compartida, con detección de cambios respecto a la carga anterior.</p>
+        </div>
+        <div class="step reveal">
+          <div class="num">3</div>
+          <h3>Todo el equipo lo ve</h3>
+          <p>Cualquiera abre el tablero y ve exactamente lo mismo, siempre actualizado, con navegación por mes y por línea de negocio.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MÉTRICAS ============ -->
+  <section class="stats" id="metricas">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat"><div class="n"><span data-count="4">0</span></div><div class="l">Vistas conectadas</div></div>
+        <div class="stat"><div class="n"><span data-count="2">0</span></div><div class="l">Líneas de negocio</div></div>
+        <div class="stat"><div class="n"><span data-count="100">0</span><span class="u">%</span></div><div class="l">Fuente única de datos</div></div>
+        <div class="stat"><div class="n"><span data-count="1">0</span></div><div class="l">Clic para actualizar</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA / CONTACTO ============ -->
+  <section id="contacto">
+    <div class="container">
+      <div class="cta-box reveal">
+        <span class="eyebrow"><i></i> Empezá hoy</span>
+        <h2>Poné tu facturación bajo control</h2>
+        <p class="lead">Sumá el Tablero de Facturación Diaria al ecosistema ALAS y dejá atrás las planillas sueltas.</p>
+        <div class="cta-actions">
+          <a class="btn btn--primary" href="#top">Abrir el tablero
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn--ghost" href="#funciones">Ver funciones</a>
+        </div>
+        <div class="contact-row">
+          <a href="mailto:logistica@alas.com"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg> logistica@alas.com</a>
+          <a href="#top"><svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-6"/></svg> Ecosistema ALAS</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <a class="brand" href="#top">
+        <span class="logo"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3.5-4 3 2.4L21 6"/></svg></span>
+        <span>ALAS<small>Facturación Diaria</small></span>
+      </a>
+      <nav class="foot-links">
+        <a href="#que-es">Qué es</a>
+        <a href="#funciones">Funciones</a>
+        <a href="#como">Cómo funciona</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+    </div>
+    <div class="foot-bottom">© <span id="year"></span> ALAS · Sistema Logístico — Tablero de Facturación Diaria. Datos en guaraníes (₲).</div>
+  </div>
+</footer>
+
+<!-- ============ GSAP (CDN) ============ -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script>
+/* ============================================================
+   Animaciones — GSAP + ScrollTrigger
+   ============================================================ */
+document.getElementById('year').textContent = new Date().getFullYear();
+
+if (window.gsap) {
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ---------- 1) HERO: timeline de entrada al cargar ---------- */
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  tl.from('[data-hero]', { y: 26, opacity: 0, duration: .7, stagger: .12 })
+    .from('[data-hero-mock]', { y: 40, opacity: 0, scale: .96, duration: .9 }, '-=.6')
+    .from('[data-badge]', { scale: .5, opacity: 0, duration: .6, stagger: .15, ease: 'back.out(2)' }, '-=.4');
+
+  /* Arco del gauge del mock + barras del mini-chart */
+  gsap.to('#mockArc', { strokeDashoffset: 8.5, duration: 1.4, ease: 'power2.out', delay: .5 });
+  gsap.from('.hero .mock-chart span', { scaleY: 0, transformOrigin: 'bottom', duration: .8, stagger: .06, ease: 'power2.out', delay: .7 });
+
+  /* Flotación sutil e infinita del mock y sus badges */
+  gsap.to('#mock', { y: -12, duration: 3.2, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+  gsap.to('.badge-float.b1', { y: 10, duration: 2.6, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+  gsap.to('.badge-float.b2', { y: -10, duration: 3, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+
+  /* ---------- 2) Header: fondo al hacer scroll ---------- */
+  ScrollTrigger.create({
+    start: 'top -60',
+    onUpdate: self => document.getElementById('nav').classList.toggle('scrolled', self.scroll() > 60)
+  });
+
+  /* ---------- 3) Reveal de secciones/elementos al hacer scroll ---------- */
+  gsap.utils.toArray('.reveal').forEach(elm => {
+    gsap.from(elm, {
+      y: 40, opacity: 0, duration: .8, ease: 'power3.out',
+      scrollTrigger: { trigger: elm, start: 'top 84%', toggleActions: 'play none none none' }
+    });
+  });
+
+  /* ---------- 4) Cards de funciones: stagger al entrar ---------- */
+  gsap.from('.cards .card', {
+    y: 50, opacity: 0, duration: .7, ease: 'power3.out', stagger: .12,
+    scrollTrigger: { trigger: '.cards', start: 'top 80%' }
+  });
+
+  /* ---------- 5) Pasos "cómo funciona": stagger ---------- */
+  gsap.from('.steps .step', {
+    y: 40, opacity: 0, scale: .97, duration: .65, ease: 'back.out(1.4)', stagger: .16,
+    scrollTrigger: { trigger: '.steps', start: 'top 82%' }
+  });
+
+  /* ---------- 6) Contadores animados (métricas) ---------- */
+  gsap.utils.toArray('[data-count]').forEach(node => {
+    const end = +node.dataset.count;
+    ScrollTrigger.create({
+      trigger: node, start: 'top 88%', once: true,
+      onEnter: () => gsap.to({ v: 0 }, {
+        v: end, duration: 1.6, ease: 'power2.out',
+        onUpdate: function () { node.textContent = Math.round(this.targets()[0].v); }
+      })
+    });
+  });
+
+  /* ---------- 7) Micro-interacciones: botones (hover) ---------- */
+  gsap.utils.toArray('.btn').forEach(btn => {
+    btn.addEventListener('mouseenter', () => gsap.to(btn, { y: -3, scale: 1.03, duration: .25, ease: 'power2.out' }));
+    btn.addEventListener('mouseleave', () => gsap.to(btn, { y: 0, scale: 1, duration: .3, ease: 'power2.out' }));
+  });
+
+  /* ---------- 8) Cards: leve inclinación del icono al hover ---------- */
+  gsap.utils.toArray('.card').forEach(card => {
+    const ic = card.querySelector('.ci');
+    card.addEventListener('mouseenter', () => gsap.to(ic, { rotate: -8, scale: 1.08, duration: .3, ease: 'back.out(2)' }));
+    card.addEventListener('mouseleave', () => gsap.to(ic, { rotate: 0, scale: 1, duration: .3, ease: 'power2.out' }));
+  });
+}
+</script>
+</body>
+</html>
