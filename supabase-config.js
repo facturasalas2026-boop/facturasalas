@@ -1,7 +1,7 @@
-/* supabase-config.js — Control de Facturas
-   PROYECTO DEDICADO (autocontenido: transportadoras/camiones viven en este mismo
-   proyecto, sembrados por schema.sql). La anon key es pública por diseño
-   (RLS + login SSO del ecosistema). NUNCA usar la service_role key acá. */
+/* supabase-config.js — Tablero de Facturación Diaria · ALAS
+   Proyecto Supabase DEDICADO: peusrhpqatobkjwwgmub
+   La anon key es pública por diseño (RLS + gate por SSO ALAS).
+   NUNCA usar la service_role acá ni en ningún archivo del cliente. */
 (function () {
   window.SUPABASE_CONFIG = Object.freeze({
     url: 'https://peusrhpqatobkjwwgmub.supabase.co',
