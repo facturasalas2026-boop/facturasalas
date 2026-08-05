@@ -1,6 +1,8 @@
 # Datos reales del negocio — NO subir
 *.xlsx
 *.xls
+# Prototipo de referencia con snapshot real embebido (NO subir)
+Tablero_Facturacion_Diaria_Alas.html
 
 # Dependencias / sistema
 node_modules/
