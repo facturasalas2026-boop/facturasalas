@@ -323,7 +323,7 @@
     var ss = q('#scopeSlot'); if (ss) ss.style.display = (v === 'principal' || v === 'mesames') ? '' : 'none';
     setToolbarTitle(v);
     renderPage(v);
-    var pg = q('#stage #' + v); if (window.gsap && pg) gsap.from(pg.children, { opacity: 0, y: 10, duration: .34, stagger: .04, ease: 'power2.out', clearProps: 'all' });
+    var pg = q('#stage #' + v); if (window.gsap && pg) gsap.from(pg.children, { opacity: 0, y: 10, duration: .34, stagger: .04, ease: 'power2.out', clearProps: 'transform,opacity' });
   }
   function renderPage(v) { if (v === 'principal') renderPrincipal(); else if (v === 'mesames') renderMesAMes(); else if (v === 'pedidos') renderPedidos(); else if (v === 'config') renderConfig(); }
 
