@@ -130,15 +130,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .grid{display:grid;gap:18px}
 .tbd .g4{grid-template-columns:repeat(4,1fr)}.tbd .g3{grid-template-columns:repeat(3,1fr)}.tbd .g2{grid-template-columns:repeat(2,1fr)}
 .tbd .card{background:var(--panel);border:1px solid var(--linea);border-radius:15px;padding:22px 24px;box-shadow:var(--sombra)}
-.tbd .card.accent{position:relative;overflow:hidden;border-color:transparent;padding-left:26px;
-  background:linear-gradient(150deg,#eaf4fd 0%,#ffffff 58%);
-  box-shadow:0 0 0 1.5px var(--azul-3),0 12px 30px rgba(11,79,138,.16);
-  transition:transform .28s var(--ease),box-shadow .28s var(--ease)}
-.tbd .card.accent::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--azul),var(--azul-3))}
-.tbd .card.accent:hover{transform:translateY(-3px);box-shadow:0 0 0 1.5px var(--azul-2),0 18px 40px rgba(11,79,138,.24)}
+.tbd .card.accent{position:relative;overflow:hidden;border-color:var(--linea);padding-top:26px;box-shadow:0 2px 5px rgba(19,36,55,.05),0 12px 28px rgba(19,36,55,.09)}
+.tbd .card.accent::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--azul),var(--azul-3))}
 .tbd .card.accent h3{color:var(--azul-2)}
-.tbd .card.accent .big{color:var(--azul);font-size:30px}
-.tbd .card.accent .sub2{color:var(--gris)}
+.tbd .card.accent .big{color:var(--azul);font-size:28px}
 .tbd .card h3{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--gris-2);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
 .tbd .big{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.05;font-family:'Sora',sans-serif}
 .tbd .big .u{font-size:14px;font-weight:600;color:var(--gris-2);margin-right:3px}
@@ -218,6 +213,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
   .tbd .grid{gap:14px}
   .tbd .card{padding:18px 18px}
   .tbd .big{font-size:22px}
+  .tbd .card.accent .big{font-size:24px}
   .tbd .med{font-size:17px}
   .tbd .hero .med{font-size:26px}
   .tbd .hero .gauge{width:132px;height:132px}

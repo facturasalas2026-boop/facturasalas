@@ -389,8 +389,7 @@
     animCount(q('#kDia'), k.lastCur, function (v) { return fmt(v); }, 1.1);
     T('kDiaFecha', 'Último día hábil: ' + (k.lastDate || '–'));
     animCount(q('#kDiaPrev'), k.prev, function (v) { return fmt(v); }, 1.1);
-    var dv = q('#kDiaVar'); if (dv) { dv.textContent = arrow(k.varDia) + ' ' + fp(k.varDia); dv.className = 'chip ' + chipCls(k.varDia); if (window.gsap) gsap.fromTo(dv, { scale: .5, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2.2)', delay: .4, clearProps: 'all' }); }
-    if (window.gsap) { var acc = q('#principal .card.accent'); if (acc) { gsap.set(acc, { transition: 'none' }); gsap.fromTo(acc, { scale: .97, y: 10, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: .6, ease: 'back.out(1.5)', onComplete: function () { gsap.set(acc, { clearProps: 'transition,transform,opacity' }); } }); } }
+    var dv = q('#kDiaVar'); if (dv) { dv.textContent = arrow(k.varDia) + ' ' + fp(k.varDia); dv.className = 'chip ' + chipCls(k.varDia); }
     T('kMes', fmt(k.fact)); T('kMesPrevL', D.meses[k.mi] + ' ' + (k.y - 1) + ': ₲ ' + fmt(k.mesYoY));
     var mv = q('#kMesVar'); if (mv) { mv.textContent = arrow(k.varYoY) + ' ' + fp(k.varYoY); mv.className = 'chip ' + chipCls(k.varYoY); }
     T('kAnio', fmt(k.proyAnio)); var ap = q('#kAnioPct'), av2 = pct(k.proyAnio, k.metaAnual); if (ap) { ap.textContent = arrow(av2 - 100) + ' ' + av2.toFixed(1) + '%'; ap.className = 'chip ' + (av2 >= 100 ? 'up' : av2 >= 90 ? 'flat' : 'down'); }
