@@ -246,6 +246,15 @@
     if (p) p.addEventListener('click', function () { if (idx > 0) gotoMonth(months[idx - 1]); });
     if (n) n.addEventListener('click', function () { if (idx < months.length - 1) gotoMonth(months[idx + 1]); });
   }
+  /* ── Chip de última actualización (última carga del Excel) ── */
+  function updChipHtml() {
+    if (!updatedInfo || !updatedInfo.updated_at) return '';
+    var d = new Date(updatedInfo.updated_at);
+    if (isNaN(d)) return '';
+    var s = pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    return '<span class="upd-chip" title="Última carga del Excel' + (updatedInfo.updated_by ? ' · ' + esc(updatedInfo.updated_by) : '') + '"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>' + s + '</span>';
+  }
+
   function gotoMonth(m) {
     if (!m || (m.anio === D.cur_year && m.mes === D.cur_month)) return;
     if (!(window.TableroDB && TableroDB.ready)) { toast('Sin conexión para cambiar de mes', true); return; }
@@ -288,7 +297,7 @@
       '<div class="tbd-toolbar"><div class="tbd-title"><h2 id="tbdTitle"></h2><span class="sub" id="tbdSub"></span></div>' +
       '<div id="scopeSlot"' + (scopeApplies ? '' : ' style="display:none"') + '>' + scopeBarHtml() + '</div>' +
       '<span class="spacer"></span>' +
-      monthNavHtml() +
+      monthNavHtml() + updChipHtml() +
       (isAdmin() ? '<button class="btn btn--primary btn--hero" id="btnActualizar">' + IC.upload + ' Actualizar base</button>' : '') +
       '</div><div class="tbd">' + SECTIONS_HTML + '</div>';
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === currentView); });
