@@ -114,9 +114,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .page{display:none}
 .tbd .page.on{display:block;animation:tbdFade .28s var(--ease)}
 @keyframes tbdFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.tbd .grid{display:grid;gap:16px}
+.tbd .grid{display:grid;gap:18px}
 .tbd .g4{grid-template-columns:repeat(4,1fr)}.tbd .g3{grid-template-columns:repeat(3,1fr)}.tbd .g2{grid-template-columns:repeat(2,1fr)}
-.tbd .card{background:var(--panel);border:1px solid var(--linea);border-radius:14px;padding:18px 20px;box-shadow:var(--sombra)}
+.tbd .card{background:var(--panel);border:1px solid var(--linea);border-radius:15px;padding:22px 24px;box-shadow:var(--sombra)}
 .tbd .card.accent{border-color:var(--azul-3);box-shadow:0 0 0 2px var(--azul-tenue),var(--sombra)}
 .tbd .card.accent h3{color:var(--azul-2)}
 .tbd .card.accent .big{color:var(--azul)}
@@ -152,12 +152,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd tr.green:hover td{background:#d6efe0}
 .tbd .mini{font-size:11.5px;color:var(--gris)}
 .tbd .pos{color:var(--pos)}.tbd .neg{color:var(--neg)}
-/* control de segmento (Almacén) centrado y destacado */
-.tbd .scopebar{display:flex;justify-content:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
-.tbd .scopebtn{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 20px;border:1.5px solid var(--linea);background:#fff;color:var(--gris);border-radius:12px;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;transition:background .16s var(--ease),color .16s var(--ease),border-color .16s var(--ease),box-shadow .16s var(--ease),transform .16s var(--ease);box-shadow:0 1px 2px rgba(19,36,55,.05)}
-.tbd .scopebtn svg{width:18px;height:18px;flex:none}
-.tbd .scopebtn:hover:not(.on){border-color:var(--azul-3);color:var(--azul-2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(11,79,138,.12)}
-.tbd .scopebtn.on{background:linear-gradient(135deg,var(--azul),var(--azul-2));border-color:transparent;color:#fff;box-shadow:0 8px 20px rgba(11,79,138,.34)}
+/* control de segmento (Almacén) — vive en la toolbar */
+.scopebar{display:inline-flex;gap:8px;flex-wrap:wrap}
+.scopebtn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border:1.5px solid var(--linea);background:#fff;color:var(--gris);border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background .16s var(--ease),color .16s var(--ease),border-color .16s var(--ease),box-shadow .16s var(--ease),transform .16s var(--ease);box-shadow:0 1px 2px rgba(19,36,55,.05)}
+.scopebtn svg{width:17px;height:17px;flex:none}
+.scopebtn:hover:not(.on){border-color:var(--azul-3);color:var(--azul-2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(11,79,138,.12)}
+.scopebtn.on{background:linear-gradient(135deg,var(--azul),var(--azul-2));border-color:transparent;color:#fff;box-shadow:0 8px 20px rgba(11,79,138,.34)}
 .tbd .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
 .tbd .pill{border:1px solid var(--linea);background:var(--panel);color:var(--gris);border-radius:20px;padding:7px 15px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit}
 .tbd .pill.on{background:var(--azul);color:#fff;border-color:var(--azul)}

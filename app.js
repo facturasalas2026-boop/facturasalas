@@ -67,7 +67,7 @@
   /* ── ESTADO ── */
   var LS_KEY = 'alas_tablero_fact_v3';
   var D = null, holidays = [], hoyOverride = null;
-  var SCOPE = 'tot', mesScope = 'tot', pedView = 'almacen', fAlm = 'todos', fEt = 'todos';
+  var SCOPE = 'tot', pedView = 'almacen', fAlm = 'todos', fEt = 'todos';
   var dataOrigin = 'nube', updatedInfo = null, charts = {}, currentView = 'principal';
   var availableMonths = [];
 
@@ -189,8 +189,7 @@
   /* ── MARKUP de las 4 secciones (diseño del prototipo) ── */
   var SECTIONS_HTML =
     '<section class="page on" id="principal">' +
-    '<div class="scopebar" id="scopeSeg"><button class="scopebtn on" data-s="tot">' + IC.grid + 'Total</button><button class="scopebtn" data-s="fer">' + IC.tool + 'Ferretería</button><button class="scopebtn" data-s="hie">' + IC.bars + 'Hierros</button></div>' +
-    '<div class="grid g4" style="margin-bottom:16px">' +
+    '<div class="grid g4" style="margin-bottom:18px">' +
     '<div class="card hero"><h3>Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.5px;font-size:10px">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="bar"><span id="hBar" style="width:0%"></span></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
     '<div class="card"><h3>Facturado acumulado</h3><div class="big"><span class="u">₲</span><span id="kFact">–</span></div><div class="sub2">Meta: <b id="kMeta">–</b></div><div style="margin-top:9px"><span class="chip flat" id="kFalta">–</span></div></div>' +
     '<div class="card"><h3>Proyección fin de mes</h3><div class="big"><span class="u">₲</span><span id="kProy">–</span></div><div class="sub2">Ritmo diario × días hábiles del mes</div><div style="margin-top:9px"><span class="chip" id="kProyPct">–</span> <span class="mini">vs meta</span></div></div>' +
@@ -209,7 +208,6 @@
     '</section>' +
 
     '<section class="page" id="mesames">' +
-    '<div class="scopebar" id="mmScope"><button class="scopebtn on" data-s="tot">' + IC.grid + 'Total</button><button class="scopebtn" data-s="fer">' + IC.tool + 'Ferretería</button><button class="scopebtn" data-s="hie">' + IC.bars + 'Hierros</button></div>' +
     '<div class="grid g2" style="margin-bottom:16px"><div class="card"><h3>Facturación mensual · 2026 vs 2025</h3><div class="chartbox"><canvas id="chTrend"></canvas></div></div><div class="card"><h3>Acumulado del año · 2026 vs 2025</h3><div class="chartbox"><canvas id="chAcum"></canvas></div></div></div>' +
     '<div class="card"><h3>Facturación mes a mes · acumulado vs año pasado</h3><div style="overflow-x:auto"><table id="tblMM"><thead><tr><th>Mes</th><th>Acum. 2025</th><th>Acum. 2026</th><th>Var. acum. %</th><th>Meta 2026 (mes)</th><th>Cumpl. mes</th></tr></thead><tbody></tbody></table></div></div>' +
     '</section>' +
@@ -228,6 +226,12 @@
     '</div>' +
     '<div class="card"><h3>Fecha de referencia ("hoy")</h3><div class="holiday-in" style="margin-bottom:0"><div class="fld"><label>Simular fecha (para proyecciones)</label><input type="date" id="hoyInput"></div><button class="btn" id="btnHoy" style="background:var(--azul-tenue);color:var(--azul)">Aplicar</button><button class="btn" id="btnHoyReset" style="background:#eef1f5;color:var(--gris)">Volver a la última fecha con datos</button></div></div>' +
     '</section>';
+
+  /* ── Filtro de segmento (Almacén) para la toolbar ── */
+  function scopeBarHtml() {
+    function b(s, ico, lbl) { return '<button class="scopebtn' + (SCOPE === s ? ' on' : '') + '" data-s="' + s + '">' + ico + lbl + '</button>'; }
+    return '<div class="scopebar" id="scopeSeg">' + b('tot', IC.grid, 'Total') + b('fer', IC.tool, 'Ferretería') + b('hie', IC.bars, 'Hierros') + '</div>';
+  }
 
   /* ── Navegador de mes ── */
   function monthsList() { return availableMonths.length ? availableMonths : [{ anio: D.cur_year, mes: D.cur_month }]; }
@@ -269,9 +273,12 @@
     if (!D) { renderEmpty(); return; }
     killCharts();
     var lastDay = (D.daily && D.daily.length) ? (' · datos al ' + D.daily[D.daily.length - 1][0].slice(8) + '/' + D.daily[D.daily.length - 1][0].slice(5, 7)) : '';
+    var scopeApplies = currentView === 'principal' || currentView === 'mesames';
     q('#stage').innerHTML =
       '<div class="tbd-toolbar"><div class="tbd-title"><h2>Facturación diaria</h2><span class="sub">' + esc(MESES[D.cur_month - 1] + ' ' + D.cur_year) + lastDay + '</span></div>' +
-      monthNavHtml() + '<span class="spacer"></span>' +
+      '<div id="scopeSlot"' + (scopeApplies ? '' : ' style="display:none"') + '>' + scopeBarHtml() + '</div>' +
+      '<span class="spacer"></span>' +
+      monthNavHtml() +
       (isAdmin() ? '<button class="btn btn--primary btn--hero" id="btnActualizar">' + IC.upload + ' Actualizar base</button>' : '') +
       '</div><div class="tbd">' + SECTIONS_HTML + '</div>';
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === currentView); });
@@ -279,19 +286,15 @@
     renderPage(currentView);
     if (window.gsap) {
       gsap.from('#stage .tbd-toolbar', { opacity: 0, y: -8, duration: .35, ease: 'power2.out', clearProps: 'all' });
-      var sb = q('#stage .page.on .scopebar');
-      if (sb) gsap.from(sb.querySelectorAll('.scopebtn'), { opacity: 0, y: -10, scale: .9, duration: .42, stagger: .07, ease: 'back.out(1.8)', clearProps: 'all', delay: .06 });
+      var sb = q('#scopeSlot');
+      if (sb && sb.style.display !== 'none') gsap.from(sb.querySelectorAll('.scopebtn'), { opacity: 0, y: -10, scale: .9, duration: .42, stagger: .07, ease: 'back.out(1.8)', clearProps: 'all', delay: .08 });
     }
   }
 
   function wireShell() {
     wireMonthNav(q('#stage'));
     var ba = q('#btnActualizar'); if (ba) ba.addEventListener('click', function () { q('#fileBase').click(); });
-    qa('#scopeSeg .scopebtn').forEach(function (b) { b.addEventListener('click', function () { if (SCOPE === b.dataset.s) return; SCOPE = b.dataset.s; qa('#scopeSeg .scopebtn').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); popScope(b); renderPrincipal(); }); });
-    qa('#mmScope .scopebtn').forEach(function (b) { b.addEventListener('click', function () { if (mesScope === b.dataset.s) return; mesScope = b.dataset.s; qa('#mmScope .scopebtn').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); popScope(b); renderMesAMes(); }); });
-    // sincroniza el estado activo con las variables actuales
-    qa('#scopeSeg .scopebtn').forEach(function (b) { b.classList.toggle('on', b.dataset.s === SCOPE); });
-    qa('#mmScope .scopebtn').forEach(function (b) { b.classList.toggle('on', b.dataset.s === mesScope); });
+    qa('#scopeSeg .scopebtn').forEach(function (b) { b.addEventListener('click', function () { if (SCOPE === b.dataset.s) return; SCOPE = b.dataset.s; qa('#scopeSeg .scopebtn').forEach(function (x) { x.classList.toggle('on', x === b); }); popScope(b); renderPage(currentView); }); });
     qa('#pedPills .pill').forEach(function (b) { b.addEventListener('click', function () { if (pedView === b.dataset.v) return; pedView = b.dataset.v; qa('#pedPills .pill').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); renderPedidos(); }); });
     var fa = q('#fAlm'), fe = q('#fEt');
     if (fa) fa.addEventListener('change', function (e) { fAlm = e.target.value; renderPedidos(); });
@@ -306,6 +309,7 @@
     currentView = v; setNav(v);
     if (!D) return;
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === v); });
+    var ss = q('#scopeSlot'); if (ss) ss.style.display = (v === 'principal' || v === 'mesames') ? '' : 'none';
     renderPage(v);
     var pg = q('#stage #' + v); if (window.gsap && pg) gsap.from(pg.children, { opacity: 0, y: 10, duration: .34, stagger: .04, ease: 'power2.out', clearProps: 'all' });
   }
@@ -350,7 +354,7 @@
 
   /* ── RENDER: MES A MES ── */
   function renderMesAMes() {
-    var meses3 = D.meses.map(function (m) { return m.slice(0, 3); }), S = scoped(mesScope);
+    var meses3 = D.meses.map(function (m) { return m.slice(0, 3); }), S = scoped(SCOPE);
     var v25 = S.v25, v26 = S.v26.map(function (v) { return v || null; });
     mk('chTrend', { type: 'line', data: { labels: meses3, datasets: [{ label: '2025', data: v25, borderColor: GRAY, backgroundColor: 'transparent', borderWidth: 2, tension: .35, pointRadius: 2, borderDash: [5, 4] }, { label: '2026', data: v26, borderColor: AZ, backgroundColor: 'rgba(20,102,176,.08)', borderWidth: 3, fill: true, tension: .35, pointRadius: 3 }] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ₲ ' + fmt(c.raw); } } } }, scales: { y: { ticks: gsTick, grid: { color: '#EEF2F7' } }, x: { grid: { display: false } } } } });
     var a25 = 0, a26 = 0, ac25 = [], ac26 = [];
