@@ -429,7 +429,7 @@
     animCount(q('#kBdEl'), k.bd_el, function (v) { return Math.round(v); }, .8); animCount(q('#kBdTot'), k.bd_tot, function (v) { return Math.round(v); }, .8); var br = q('#kBdRest'); if (br) { br.textContent = 'Faltan ' + k.bd_rest + ' días hábiles'; br.className = 'chip flat'; }
     // tabla diaria
     var UMBRAL = 2e9, h = '<table><thead><tr><th>Día</th><th>Facturación ₲</th></tr></thead><tbody>', tt = 0;
-    S.daily.forEach(function (x) { var ds = x[0], v = x[1]; tt += v; var wd = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'][dOf(ds).getDay()]; h += '<tr class="' + (v >= UMBRAL ? 'green' : '') + '"><td>' + ds.slice(8) + '/' + ds.slice(5, 7) + ' · ' + wd + '</td><td>' + fmt(v) + '</td></tr>'; });
+    S.daily.forEach(function (x) { var ds = x[0], v = x[1]; tt += v; var wd = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][dOf(ds).getDay()]; h += '<tr class="' + (v >= UMBRAL ? 'green' : '') + '"><td>' + ds.slice(8) + '/' + ds.slice(5, 7) + ' · ' + wd + '</td><td>' + fmt(v) + '</td></tr>'; });
     h += '<tr class="tot"><td>Total del mes</td><td>' + fmt(tt) + '</td></tr></tbody></table>';
     H('dailyTbl', h);
     if (window.gsap) gsap.from(qa('#dailyTbl tbody tr'), { opacity: 0, x: -8, duration: .3, stagger: .025, ease: 'power2.out', clearProps: 'all' });
