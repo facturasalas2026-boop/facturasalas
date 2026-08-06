@@ -324,8 +324,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
   .tbd .big{font-size:22px}
   .tbd .med{font-size:18px}
   .tbd .hero .med{font-size:24px}
-  .tbd .hero .gauge{width:130px;height:130px}
-  .tbd .gaugewrap{justify-content:center;gap:16px}
+  .tbd .hero .gauge{width:132px;height:132px}
+  .tbd .gaugewrap{flex-direction:column;align-items:center;text-align:center;gap:14px}
+  .tbd .barwrap{width:100%;flex:none;min-width:0}
+  .tbd .barwrap .lbls{font-size:12.5px}
   .tbd .chartbox{height:240px}
   .tbd .pedfilters{flex-direction:column;align-items:stretch}
   .tbd .pedfilters .fld select{min-width:0;width:100%}
