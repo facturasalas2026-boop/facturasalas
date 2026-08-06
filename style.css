@@ -163,7 +163,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 /* Estado "sin registros de hoy" */
 .tbd .card.accent .acc-pending{display:none}
 .tbd .card.accent.is-pending{justify-content:flex-start}
-.tbd .card.accent.is-pending .acc-num,.tbd .card.accent.is-pending .acc-obj,.tbd .card.accent.is-pending .acc-foot{display:none}
+.tbd .card.accent.is-pending .acc-num,.tbd .card.accent.is-pending .acc-obj,.tbd .card.accent.is-pending .acc-foot,.tbd .card.accent.is-pending .acc-sub{display:none}
 .tbd .card.accent.is-pending .acc-pending{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:11px;padding:12px 0}
 .tbd .acc-pending-ic{width:56px;height:56px;border-radius:16px;background:var(--azul-tenue);color:var(--azul-2);display:grid;place-items:center;flex:none}
 .tbd .acc-pending-ic svg{width:28px;height:28px}
