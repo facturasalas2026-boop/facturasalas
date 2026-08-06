@@ -132,9 +132,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .card{background:var(--panel);border:1px solid var(--linea);border-radius:15px;padding:22px 24px;box-shadow:var(--sombra)}
 .tbd .card.accent{position:relative;overflow:hidden;border-color:var(--linea);padding:30px 26px 26px;box-shadow:0 2px 5px rgba(19,36,55,.05),0 12px 28px rgba(19,36,55,.09);display:flex;flex-direction:column;justify-content:center;gap:2px}
 .tbd .card.accent::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--azul),var(--azul-3))}
-.tbd .card.accent h3{color:var(--azul-2);margin-bottom:14px}
-.tbd .card.accent .big{color:var(--azul);font-size:clamp(30px,3vw,44px);line-height:1.03;margin:2px 0}
-.tbd .card.accent .sub2{font-size:13px;margin-top:12px}
+.tbd .card.accent h3{color:var(--azul-2);margin-bottom:12px}
+.tbd .card.accent .big{color:var(--azul);font-size:clamp(28px,2.4vw,34px);line-height:1.03;margin:2px 0}
+.tbd .card.accent .sub2{font-size:14px;color:var(--gris);font-weight:500;margin-top:16px}
+.tbd .card.accent .chip{font-size:13px;padding:5px 13px;font-weight:800}
+.tbd .card.accent .mini{font-size:12.5px}
 .tbd .card h3{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--gris-2);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
 .tbd .big{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.05;font-family:'Sora',sans-serif}
 .tbd .big .u{font-size:14px;font-weight:600;color:var(--gris-2);margin-right:3px}
