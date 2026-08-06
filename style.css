@@ -321,7 +321,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
   .tbd .grid{gap:14px}
   .tbd .g4,.tbd .g3,.tbd .g2{grid-template-columns:1fr}
   .tbd .card{padding:18px}
-  .tbd .big{font-size:22px}
+  .tbd .big{font-size:19px}
   .tbd .med{font-size:18px}
   .tbd .hero .med{font-size:24px}
   .tbd .hero .gauge{width:132px;height:132px}
