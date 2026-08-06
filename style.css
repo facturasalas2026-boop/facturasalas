@@ -301,20 +301,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
   .main{margin-left:0}
   #stage{padding:14px 12px 92px}
 
-  /* Toolbar apilada */
-  .tbd-toolbar{gap:10px}
+  /* Toolbar: título + fecha + mes arriba; filtros abajo */
+  .tbd-toolbar{gap:8px 10px}
   .tbd-toolbar .spacer{display:none}
-  .tbd-title{flex:1 1 100%;order:-1}
-  .tbd-title h2{font-size:19px}
+  .tbd-title{flex:0 1 auto;order:0;margin-right:auto}
+  .tbd-title h2{font-size:18px}
   .tbd-title .sub{font-size:11.5px}
-  #scopeSlot{order:-1;margin-top:0}
+  #scopeSlot{order:2;margin-top:6px}
   .scopebar{flex:1 1 100%}
   .scopebar .scopebtn{flex:1;justify-content:center;height:38px;padding:0 6px;font-size:12px}
   .scopebtn svg{width:16px;height:16px}
-  .upd-chip{height:36px;padding:0 10px}
+  .upd-chip{height:34px;padding:0 9px}
   .upd-chip span{display:none}
-  .mnav{flex:1}.mnav__cur{flex:1;min-width:0;font-size:12.5px}
-  .refresh-btn{width:36px;height:36px}
+  .mnav{flex:0 1 auto}.mnav__cur{min-width:92px;font-size:12.5px}
+  .refresh-btn{width:34px;height:34px}
   .btn--hero{display:none}
 
   /* Cards / números */
