@@ -130,13 +130,26 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .grid{display:grid;gap:18px}
 .tbd .g4{grid-template-columns:repeat(4,1fr)}.tbd .g3{grid-template-columns:repeat(3,1fr)}.tbd .g2{grid-template-columns:repeat(2,1fr)}
 .tbd .card{background:var(--panel);border:1px solid var(--linea);border-radius:15px;padding:22px 24px;box-shadow:var(--sombra)}
-.tbd .card.accent{position:relative;overflow:hidden;border-color:var(--linea);padding:30px 26px 26px;box-shadow:0 2px 5px rgba(19,36,55,.05),0 12px 28px rgba(19,36,55,.09);display:flex;flex-direction:column;justify-content:center;gap:2px}
+.tbd .card.accent{position:relative;overflow:hidden;border-color:var(--linea);padding:28px 26px;min-height:200px;
+  box-shadow:0 2px 5px rgba(19,36,55,.05),0 14px 32px rgba(19,36,55,.10);
+  display:flex;flex-direction:column;justify-content:space-between;gap:16px}
 .tbd .card.accent::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--azul),var(--azul-3))}
-.tbd .card.accent h3{color:var(--azul-2);margin-bottom:12px}
-.tbd .card.accent .big{color:var(--azul);font-size:clamp(28px,2.4vw,34px);line-height:1.03;margin:2px 0}
-.tbd .card.accent .sub2{font-size:14px;color:var(--gris);font-weight:500;margin-top:16px}
-.tbd .card.accent .chip{font-size:13px;padding:5px 13px;font-weight:800}
-.tbd .card.accent .mini{font-size:12.5px}
+.tbd .acc-top{display:flex;align-items:center;gap:13px}
+.tbd .acc-ico{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--azul-tenue),#dbeafe);color:var(--azul-2);display:grid;place-items:center;flex:none;box-shadow:inset 0 0 0 1px rgba(20,102,176,.12)}
+.tbd .acc-ico svg{width:24px;height:24px}
+.tbd .acc-topx{display:flex;flex-direction:column;gap:3px;min-width:0}
+.tbd .acc-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--gris-2);font-weight:800}
+.tbd .acc-sub{font-size:12.5px;color:var(--gris);font-weight:600}
+.tbd .acc-num{font-family:'Sora',sans-serif;font-weight:800;color:var(--azul);font-size:clamp(28px,2.5vw,36px);letter-spacing:-.6px;line-height:1;overflow-wrap:anywhere}
+.tbd .acc-num .u{font-size:.48em;color:var(--gris-2);font-weight:700;margin-right:4px;vertical-align:.16em}
+.tbd .acc-foot{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.tbd .acc-trend{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:800;padding:7px 14px;border-radius:11px;flex:none}
+.tbd .acc-trend svg{width:15px;height:15px}
+.tbd .acc-trend.up{background:var(--pos-bg);color:var(--pos)}
+.tbd .acc-trend.down{background:var(--neg-bg);color:var(--neg)}
+.tbd .acc-trend.flat{background:#eef1f5;color:var(--gris)}
+.tbd .acc-vs{font-size:12.5px;color:var(--gris);line-height:1.45}
+.tbd .acc-vs b{color:var(--tinta);font-weight:800}
 .tbd .card h3{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--gris-2);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
 .tbd .big{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.05;font-family:'Sora',sans-serif}
 .tbd .big .u{font-size:14px;font-weight:600;color:var(--gris-2);margin-right:3px}

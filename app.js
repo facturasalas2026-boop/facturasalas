@@ -31,6 +31,11 @@
   var fp = function (v) { return (v >= 0 ? '+' : '') + v.toLocaleString('es-PY', { maximumFractionDigits: 1 }) + '%'; };
   var chipCls = function (v) { return v > 0.5 ? 'up' : (v < -0.5 ? 'down' : 'flat'); };
   var arrow = function (v) { return v > 0.5 ? '▲' : (v < -0.5 ? '▼' : '●'); };
+  function trendArrow(cls) {
+    if (cls === 'up') return '<svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>';
+    if (cls === 'down') return '<svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>';
+    return '<svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" stroke-linecap="round"><path d="M5 12h14"/></svg>';
+  }
 
   function toast(msg, err) {
     var t = el('<div class="toast ' + (err ? 'toast--err' : '') + '">' + esc(msg) + '</div>');
@@ -200,7 +205,11 @@
     '<section class="page on" id="principal">' +
     '<div class="grid g2" style="margin-bottom:18px">' +
     '<div class="card hero"><h3>Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;font-weight:700">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="bar"><span id="hBar" style="width:0%"></span></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
-    '<div class="card accent"><h3>Facturación del día · último día hábil</h3><div class="big"><span class="u">₲</span><span id="kDia">–</span></div><div class="sub2" id="kDiaFecha">–</div><div style="margin-top:9px"><span class="chip" id="kDiaVar">–</span> <span class="mini">vs mismo día hábil año ant. (₲ <span id="kDiaPrev">–</span>)</span></div></div>' +
+    '<div class="card accent" id="cardDia">' +
+    '<div class="acc-top"><span class="acc-ico"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></svg></span><div class="acc-topx"><span class="acc-lbl">Facturación del día</span><span class="acc-sub" id="kDiaFecha">—</span></div></div>' +
+    '<div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
+    '<div class="acc-foot"><span class="acc-trend flat" id="kDiaVar">—</span><span class="acc-vs">vs mismo día hábil del año anterior<br><b>₲ <span id="kDiaPrev">–</span></b></span></div>' +
+    '</div>' +
     '</div>' +
     '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-bottom:18px">' +
     '<div class="card"><h3>Facturado acumulado</h3><div class="big"><span class="u">₲</span><span id="kFact">–</span></div><div class="sub2">Meta: <b id="kMeta">–</b></div><div style="margin-top:9px"><span class="chip flat" id="kFalta">–</span></div></div>' +
@@ -387,9 +396,10 @@
     T('kProy', fmt(k.proyMes)); var pp = q('#kProyPct'), pv = pct(k.proyMes, k.meta); if (pp) { pp.textContent = arrow(pv - 100) + ' ' + pv.toFixed(1) + '%'; pp.className = 'chip ' + (pv >= 100 ? 'up' : pv >= 90 ? 'flat' : 'down'); }
     // KPI destacado: Facturación del día (count-up + pop del chip + entrada de la card)
     animCount(q('#kDia'), k.lastCur, function (v) { return fmt(v); }, 1.1);
-    T('kDiaFecha', 'Último día hábil: ' + (k.lastDate || '–'));
+    T('kDiaFecha', 'Último día hábil · ' + (k.lastDate ? k.lastDate.split('-').reverse().join('/') : '—'));
     animCount(q('#kDiaPrev'), k.prev, function (v) { return fmt(v); }, 1.1);
-    var dv = q('#kDiaVar'); if (dv) { dv.textContent = arrow(k.varDia) + ' ' + fp(k.varDia); dv.className = 'chip ' + chipCls(k.varDia); }
+    var dv = q('#kDiaVar'); if (dv) { var _cls = chipCls(k.varDia); dv.className = 'acc-trend ' + _cls; dv.innerHTML = trendArrow(_cls) + fp(k.varDia); if (window.gsap) gsap.fromTo(dv, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)', delay: .4, clearProps: 'all' }); }
+    if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.acc-top'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-foot'), { y: 10, opacity: 0, duration: .5, delay: .22, ease: 'power2.out', clearProps: 'all' }); } }
     T('kMes', fmt(k.fact)); T('kMesPrevL', D.meses[k.mi] + ' ' + (k.y - 1) + ': ₲ ' + fmt(k.mesYoY));
     var mv = q('#kMesVar'); if (mv) { mv.textContent = arrow(k.varYoY) + ' ' + fp(k.varYoY); mv.className = 'chip ' + chipCls(k.varYoY); }
     T('kAnio', fmt(k.proyAnio)); var ap = q('#kAnioPct'), av2 = pct(k.proyAnio, k.metaAnual); if (ap) { ap.textContent = arrow(av2 - 100) + ' ' + av2.toFixed(1) + '%'; ap.className = 'chip ' + (av2 >= 100 ? 'up' : av2 >= 90 ? 'flat' : 'down'); }
