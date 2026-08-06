@@ -389,12 +389,12 @@
     animCount(q('#gPct'), av, function (v) { return v.toFixed(1) + '%'; }, 1);
     animCount(q('#hMeta'), k.meta, function (v) { return '₲ ' + fmt(v); }, 1.1);
     var hb = q('#hBar');
-    if (hb) { if (window.gsap) { hb.style.transition = 'none'; gsap.fromTo(hb, { width: '0%' }, { width: Math.min(av, 100) + '%', duration: 1.1, ease: 'power2.out' }); } else hb.style.width = Math.min(av, 100) + '%'; }
+    if (hb) { if (window.gsap) { hb.style.transition = 'none'; gsap.fromTo(hb, { width: '0%' }, { width: Math.min(av, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else hb.style.width = Math.min(av, 100) + '%'; }
     animCount(q('#hFact'), k.fact, function (v) { return 'Facturado ₲ ' + fmt(v); }, 1.1);
     animCount(q('#hFalta'), Math.max(0, k.meta - k.fact), function (v) { return 'Falta ₲ ' + fmt(v); }, 1.1);
-    T('kFact', fmt(k.fact)); T('kMeta', '₲ ' + fmt(k.meta));
+    animCount(q('#kFact'), k.fact, function (v) { return fmt(v); }, 1); animCount(q('#kMeta'), k.meta, function (v) { return '₲ ' + fmt(v); }, 1);
     var falta = k.meta - k.fact, cf = q('#kFalta'); if (cf) { cf.textContent = falta > 0 ? 'Falta ₲ ' + fmt(falta) : 'Meta superada +₲ ' + fmt(-falta); cf.className = 'chip ' + (falta > 0 ? 'flat' : 'up'); }
-    T('kProy', fmt(k.proyMes)); var pp = q('#kProyPct'), pv = pct(k.proyMes, k.meta); if (pp) { pp.textContent = arrow(pv - 100) + ' ' + pv.toFixed(1) + '%'; pp.className = 'chip ' + (pv >= 100 ? 'up' : pv >= 90 ? 'flat' : 'down'); }
+    animCount(q('#kProy'), k.proyMes, function (v) { return fmt(v); }, 1); var pp = q('#kProyPct'), pv = pct(k.proyMes, k.meta); if (pp) { pp.textContent = arrow(pv - 100) + ' ' + pv.toFixed(1) + '%'; pp.className = 'chip ' + (pv >= 100 ? 'up' : pv >= 90 ? 'flat' : 'down'); }
     // KPI destacado: Facturación del día (count-up + pop del chip + entrada de la card)
     animCount(q('#kDia'), k.lastCur, function (v) { return fmt(v); }, 1.1);
     T('kDiaFecha', 'Último día hábil · ' + (k.lastDate ? k.lastDate.split('-').reverse().join('/') : '—'));
@@ -403,18 +403,19 @@
     var dailyObj = k.bd_tot ? k.meta / k.bd_tot : 0, pctObj = pct(k.lastCur, dailyObj);
     animCount(q('#kDiaObjPct'), pctObj, function (v) { return Math.round(v) + '%'; }, 1.1);
     animCount(q('#kDiaObj'), dailyObj, function (v) { return fmt(v); }, 1.1);
-    var ob = q('#kDiaObjBar'); if (ob) { if (ob.parentNode) ob.parentNode.classList.toggle('over', pctObj >= 100); if (window.gsap) { ob.style.transition = 'none'; gsap.fromTo(ob, { width: '0%' }, { width: Math.min(pctObj, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .15 }); } else ob.style.width = Math.min(pctObj, 100) + '%'; }
+    var ob = q('#kDiaObjBar'); if (ob) { if (ob.parentNode) ob.parentNode.classList.toggle('over', pctObj >= 100); if (window.gsap) { ob.style.transition = 'none'; gsap.fromTo(ob, { width: '0%' }, { width: Math.min(pctObj, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else ob.style.width = Math.min(pctObj, 100) + '%'; }
     var dv = q('#kDiaVar'); if (dv) { var _cls = chipCls(k.varDia); dv.className = 'acc-trend ' + _cls; dv.innerHTML = trendArrow(_cls) + fp(k.varDia); if (window.gsap) gsap.fromTo(dv, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)', delay: .4, clearProps: 'all' }); }
     if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.acc-top'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-foot'), { y: 10, opacity: 0, duration: .5, delay: .22, ease: 'power2.out', clearProps: 'all' }); } }
-    T('kMes', fmt(k.fact)); T('kMesPrevL', D.meses[k.mi] + ' ' + (k.y - 1) + ': ₲ ' + fmt(k.mesYoY));
+    animCount(q('#kMes'), k.fact, function (v) { return fmt(v); }, 1); T('kMesPrevL', D.meses[k.mi] + ' ' + (k.y - 1) + ': ₲ ' + fmt(k.mesYoY));
     var mv = q('#kMesVar'); if (mv) { mv.textContent = arrow(k.varYoY) + ' ' + fp(k.varYoY); mv.className = 'chip ' + chipCls(k.varYoY); }
-    T('kAnio', fmt(k.proyAnio)); var ap = q('#kAnioPct'), av2 = pct(k.proyAnio, k.metaAnual); if (ap) { ap.textContent = arrow(av2 - 100) + ' ' + av2.toFixed(1) + '%'; ap.className = 'chip ' + (av2 >= 100 ? 'up' : av2 >= 90 ? 'flat' : 'down'); }
-    T('kBdEl', k.bd_el); T('kBdTot', k.bd_tot); var br = q('#kBdRest'); if (br) { br.textContent = 'Faltan ' + k.bd_rest + ' días hábiles'; br.className = 'chip flat'; }
+    animCount(q('#kAnio'), k.proyAnio, function (v) { return fmt(v); }, 1); var ap = q('#kAnioPct'), av2 = pct(k.proyAnio, k.metaAnual); if (ap) { ap.textContent = arrow(av2 - 100) + ' ' + av2.toFixed(1) + '%'; ap.className = 'chip ' + (av2 >= 100 ? 'up' : av2 >= 90 ? 'flat' : 'down'); }
+    animCount(q('#kBdEl'), k.bd_el, function (v) { return Math.round(v); }, .8); animCount(q('#kBdTot'), k.bd_tot, function (v) { return Math.round(v); }, .8); var br = q('#kBdRest'); if (br) { br.textContent = 'Faltan ' + k.bd_rest + ' días hábiles'; br.className = 'chip flat'; }
     // tabla diaria
     var UMBRAL = 2e9, h = '<table><thead><tr><th>Día</th><th>Facturación ₲</th></tr></thead><tbody>', tt = 0;
     S.daily.forEach(function (x) { var ds = x[0], v = x[1]; tt += v; var wd = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'][dOf(ds).getDay()]; h += '<tr class="' + (v >= UMBRAL ? 'green' : '') + '"><td>' + ds.slice(8) + '/' + ds.slice(5, 7) + ' · ' + wd + '</td><td>' + fmt(v) + '</td></tr>'; });
     h += '<tr class="tot"><td>Total del mes</td><td>' + fmt(tt) + '</td></tr></tbody></table>';
     H('dailyTbl', h);
+    if (window.gsap) gsap.from(qa('#dailyTbl tbody tr'), { opacity: 0, x: -8, duration: .3, stagger: .025, ease: 'power2.out', clearProps: 'all' });
     // por almacén
     var entries = Object.keys(D.fact_almacen).map(function (kk) { return [kk, D.fact_almacen[kk]]; });
     var pos = entries.filter(function (e) { return e[1] >= 0; }).sort(function (a, b) { return b[1] - a[1]; });
@@ -425,8 +426,9 @@
     var neta = entries.reduce(function (a, e) { return a + e[1]; }, 0);
     ah += '<div style="border-top:1px solid #E2E8F0;margin-top:4px;padding-top:10px;font-size:12.5px"><div style="display:flex;justify-content:space-between"><span style="font-weight:700">Facturación neta</span><span style="font-weight:800">₲ ' + fmt(neta) + '</span></div><div style="display:flex;justify-content:space-between;margin-top:6px;color:var(--gris)"><span>Incluye NC/devol. facturadas (ZDEV·ZDCS·ZNCV)</span><span style="color:var(--neg);font-weight:600">₲ ' + fmt(D.devoluciones || 0) + '</span></div></div>';
     H('almBox', ah);
+    if (window.gsap) { var _asp = qa('#almBox .bar>span'); _asp.forEach(function (s) { s.style.transition = 'none'; }); gsap.from(_asp, { width: 0, duration: .9, ease: 'power2.out', stagger: .08, delay: .1 }); }
     // resumen pedidos
-    var g = pedResumen(SCOPE); T('pgLin', fmt(g.lineas)); T('pgPed', fmt(g.pedidos)); T('pgTot', fmt(g.total)); T('pgPeso', fmt(g.peso));
+    var g = pedResumen(SCOPE); animCount(q('#pgLin'), g.lineas, function (v) { return fmt(v); }, .9); animCount(q('#pgPed'), g.pedidos, function (v) { return fmt(v); }, .9); animCount(q('#pgTot'), g.total, function (v) { return fmt(v); }, .9); animCount(q('#pgPeso'), g.peso, function (v) { return fmt(v); }, .9);
   }
 
   /* ── RENDER: MES A MES ── */
@@ -442,6 +444,7 @@
     var totM = meta.reduce(function (a, b) { return a + b; }, 0);
     html += '<tr class="tot"><td>TOTAL</td><td>' + fmt(a25) + '</td><td>' + fmt(a26) + '</td><td class="' + (a26 > a25 ? 'pos' : 'neg') + '">' + fp(pct(a26 - a25, a25)) + '</td><td>' + fmt(totM) + '</td><td>' + pct(a26, totM).toFixed(0) + '%</td></tr>';
     tb.innerHTML = html;
+    if (window.gsap) gsap.from(qa('#tblMM tbody tr'), { opacity: 0, x: -8, duration: .3, stagger: .03, ease: 'power2.out', clearProps: 'all' });
   }
 
   /* ── RENDER: PEDIDOS ── */
@@ -451,7 +454,7 @@
     if (fe && !fe.options.length) { var ets = D.ped_lines.reduce(function (a, l) { if (a.indexOf(l[1]) < 0) a.push(l[1]); return a; }, []); fe.innerHTML = '<option value="todos">Todas las etapas</option>' + ets.map(function (e) { return '<option value="' + esc(e) + '">' + esc(e) + '</option>'; }).join(''); fe.value = fEt; }
     var L = pedFiltered(), total = 0, peso = 0, docs = {};
     L.forEach(function (l) { total += l[7]; peso += l[6]; docs[l[9]] = 1; });
-    T('p2Lin', fmt(L.length)); T('p2Ped', fmt(Object.keys(docs).length)); T('p2Tot', fmt(total)); T('p2Peso', fmt(peso));
+    animCount(q('#p2Lin'), L.length, function (v) { return fmt(v); }, .9); animCount(q('#p2Ped'), Object.keys(docs).length, function (v) { return fmt(v); }, .9); animCount(q('#p2Tot'), total, function (v) { return fmt(v); }, .9); animCount(q('#p2Peso'), peso, function (v) { return fmt(v); }, .9);
     var cfg = pedDef[pedView], rows = cfg.rows(L);
     T('pedChTitle', cfg.title); T('pedTblTitle', 'Detalle · ' + cfg.title.toLowerCase());
     var labels = rows.map(function (r) { return r[0]; }), vals = rows.map(function (r) { return r[1]; });
@@ -461,12 +464,15 @@
     rows.forEach(function (r) { tt += r[1] || 0; tp += r[2] || 0; tl += r[3] || 0; hh += '<tr><td>' + esc(r[0]) + '</td><td>' + fmt(r[1]) + '</td><td>' + (r[2] == null ? '' : fmt(r[2])) + '</td><td>' + fmt(r[3]) + '</td></tr>'; });
     hh += '<tr class="tot"><td>TOTAL</td><td>' + fmt(tt) + '</td><td>' + (cfg.cols[2] ? fmt(tp) : '') + '</td><td>' + fmt(tl) + '</td></tr></tbody></table>';
     H('pedTblBox', hh);
+    if (window.gsap) gsap.from(qa('#pedTblBox tbody tr'), { opacity: 0, x: -8, duration: .3, stagger: .025, ease: 'power2.out', clearProps: 'all' });
   }
 
   /* ── RENDER: CONFIG ── */
   function renderConfig() {
     var k = kpis('tot');
-    T('cfMes', D.meses[k.mi] + ' ' + k.y); T('cfDias', k.daysMonth); T('cfFds', k.fds + ' días'); T('cfFer', k.fer + ' días'); T('cfHab', k.bd_tot + ' días'); T('cfTrans', k.bd_el + ' días'); T('cfFalt', k.bd_rest + ' días');
+    T('cfMes', D.meses[k.mi] + ' ' + k.y);
+    var _d = function (v) { return Math.round(v) + ' días'; };
+    animCount(q('#cfDias'), k.daysMonth, function (v) { return Math.round(v); }, .8); animCount(q('#cfFds'), k.fds, _d, .8); animCount(q('#cfFer'), k.fer, _d, .8); animCount(q('#cfHab'), k.bd_tot, _d, .8); animCount(q('#cfTrans'), k.bd_el, _d, .8); animCount(q('#cfFalt'), k.bd_rest, _d, .8);
     renderFerList();
     var hi = q('#hoyInput'); if (hi) hi.value = fmtHoy(hoyDate());
   }
