@@ -189,8 +189,12 @@
       var lb = lastb(d.daily); if (lb) { d.last_bd_cur = lb[1]; d.last_bd_date = lb[0]; }
       var pd = { tot: {}, fer: {}, hie: {} };
       hrows.forEach(function (r) { var dt = asDate(keyOf(r, 'Fecha de facturacion')); if (!dt) return; if (dt.getFullYear() === curY - 1 && dt.getMonth() === curM) { var ds = fmtHoy(dt), mo = num(keyOf(r, 'Monto')), code = (keyOf(r, 'Almacen_codigo') || '').toString().trim(); pd.tot[ds] = (pd.tot[ds] || 0) + mo; if (code === 'Alas') pd.fer[ds] = (pd.fer[ds] || 0) + mo; else if (code === 'Alas Dep. Fabric') pd.hie[ds] = (pd.hie[ds] || 0) + mo; } });
-      var lastPrev = function (o) { var b = Object.keys(o).sort().filter(function (ds) { var w = dOf(ds).getDay(); return w !== 0 && w !== 6; }); return b.length ? o[b[b.length - 1]] : 0; };
-      d.last_bd_prevyear = lastPrev(pd.tot); d.last_bd_prevyear_fer = lastPrev(pd.fer); d.last_bd_prevyear_hie = lastPrev(pd.hie);
+      // Nº de día hábil (L-V) del mes que corresponde al último día con datos
+      var Nbd = 0;
+      if (d.last_bd_date) { var _lb = dOf(d.last_bd_date), _y = _lb.getFullYear(), _m = _lb.getMonth(); for (var _dd = 1; _dd <= _lb.getDate(); _dd++) { var _w = new Date(_y, _m, _dd).getDay(); if (_w !== 0 && _w !== 6) Nbd++; } }
+      // mismo Nº de día hábil del año anterior (no el último del mes)
+      var nthPrevBD = function (o) { var b = Object.keys(o).sort().filter(function (ds) { var w = dOf(ds).getDay(); return w !== 0 && w !== 6; }); if (!b.length) return 0; var i = Nbd > 0 ? Math.min(Nbd, b.length) - 1 : b.length - 1; return o[b[i]]; };
+      d.last_bd_prevyear = nthPrevBD(pd.tot); d.last_bd_prevyear_fer = nthPrevBD(pd.fer); d.last_bd_prevyear_hie = nthPrevBD(pd.hie);
     }
     var ps = S('BASE PEDIDOS PEND. DE FACTURAR');
     if (ps) {
