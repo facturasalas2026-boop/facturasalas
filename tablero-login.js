@@ -107,7 +107,7 @@
     var brand = '<div class="login-brand"><img src="logo-icon.png" alt="ALAS"></div><h1>Tablero de Facturación Diaria</h1>';
     if (users.length && !gateState.selected && !gateState.forceFull) {
       // Selector de perfiles
-      card.innerHTML = brand + '<p class="login-sub2">¿Quién sos?</p><div class="login-users">' +
+      card.innerHTML = brand + '<p class="login-sub2">Seleccioná tu usuario</p><div class="login-users">' +
         users.map(function (u, i) { return '<button type="button" class="login-user" data-idx="' + i + '"><span class="login-av">' + esc(initialOf(u)) + '</span><span class="login-uname">' + esc(u.full_name || u.username) + '</span><span class="login-urm" data-rm="' + i + '" title="Quitar">&times;</span></button>'; }).join('') +
         '</div><button type="button" class="login-link" id="lgOther">Usar otro usuario</button>';
       card.querySelectorAll('.login-user').forEach(function (b) { b.addEventListener('click', function (ev) { if (ev.target.hasAttribute('data-rm')) return; gateState.selected = users[+b.dataset.idx]; renderGate(); }); });
