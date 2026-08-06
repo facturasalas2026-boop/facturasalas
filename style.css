@@ -315,7 +315,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
   .upd-chip span{display:none}
   .mnav{flex:1}.mnav__cur{flex:1;min-width:0;font-size:12.5px}
   .refresh-btn{width:36px;height:36px}
-  .btn--hero{flex:1 1 100%;justify-content:center;height:44px;font-size:13.5px}
+  .btn--hero{display:none}
 
   /* Cards / números */
   .tbd .grid{gap:14px}
