@@ -633,6 +633,6 @@
   }
 
   window.__initTablero = boot;
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
+  // NO auto-arranca: el boot lo dispara index.html SOLO después de autorizar (login/SSO),
+  // así el tablero no se renderiza ni baja datos sin sesión válida.
 })();
