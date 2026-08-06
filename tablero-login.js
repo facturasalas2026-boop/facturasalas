@@ -37,18 +37,23 @@
     try { localStorage.setItem('alas.current_user', JSON.stringify({ name: p.full_name || p.username, role: p.role })); } catch (_) {}
   }
 
-  // Verifica perfil activo/no bloqueado + permiso al módulo. Devuelve el profile o null.
+  var REASON_MSG = { blocked: 'Tu usuario está inactivo o bloqueado.', module: 'Tu usuario no tiene acceso a este módulo.', error: 'No se pudo validar el usuario.' };
+
+  // Devuelve { profile } si está OK, o { reason } si se rechaza.
+  // El permiso al módulo NO bloquea si el sistema de permisos está vacío o no responde.
   function authorize(user) {
-    if (!auth || !user) return Promise.resolve(null);
+    if (!auth || !user) return Promise.resolve({ reason: 'error' });
+    var basic = { id: user.id, username: (user.email || '').split('@')[0], full_name: (user.email || '').split('@')[0], role: 'operador' };
     return auth.from('profiles').select('id,username,full_name,role,is_active,is_blocked').eq('id', user.id).single()
-      .then(function (r) {
-        var p = r.data;
-        if (!p || p.is_active === false || p.is_blocked === true) return null;
+      .then(function (r) { return r.data || basic; }, function () { return basic; })
+      .then(function (p) {
+        if (p && (p.is_active === false || p.is_blocked === true)) return { reason: 'blocked' };
         return auth.rpc('get_allowed_modules').then(function (rr) {
-          var allowed = rr.data || [];
-          return allowed.some(function (m) { return m && m.key === MODULE_KEY; }) ? p : null;
-        });
-      }).catch(function () { return null; });
+          var allowed = (rr && rr.data) || [];
+          if (allowed.length && !allowed.some(function (m) { return m && m.key === MODULE_KEY; })) return { reason: 'module' };
+          return { profile: p };
+        }, function () { return { profile: p }; });
+      });
   }
 
   function tryRestore() {
@@ -56,7 +61,7 @@
     return auth.auth.getSession().then(function (r) {
       var s = r.data && r.data.session;
       if (!s) return false;
-      return authorize(s.user).then(function (p) { if (p) { setAuthClient(p); return true; } return false; });
+      return authorize(s.user).then(function (res) { if (res.profile) { setAuthClient(res.profile); return true; } auth.auth.signOut(); return false; });
     }).catch(function () { return false; });
   }
 
@@ -66,9 +71,9 @@
       if (r.error || !r.data) return { ok: false, msg: 'Usuario o contraseña incorrectos.' };
       return auth.auth.signInWithPassword({ email: r.data, password: password }).then(function (r2) {
         if (r2.error) return { ok: false, msg: 'Usuario o contraseña incorrectos.' };
-        return authorize(r2.data.user).then(function (p) {
-          if (!p) return auth.auth.signOut().then(function () { return { ok: false, msg: 'Tu usuario no tiene acceso a este módulo.' }; });
-          setAuthClient(p);
+        return authorize(r2.data.user).then(function (res) {
+          if (!res.profile) return auth.auth.signOut().then(function () { return { ok: false, msg: REASON_MSG[res.reason] || 'Sin acceso.' }; });
+          setAuthClient(res.profile);
           try { auth.rpc('register_login'); } catch (_) {}
           return { ok: true };
         });
@@ -114,8 +119,10 @@
     return new Promise(function (resolve) { _resolveGate = resolve; });
   }
 
+  function whenDomReady() { return new Promise(function (res) { if (document.body) return res(); document.addEventListener('DOMContentLoaded', function () { res(); }, { once: true }); }); }
+
   function ensureAuth() {
-    return Promise.resolve(window.__alasAuthReady || null).then(function () {
+    return whenDomReady().then(function () { return Promise.resolve(window.__alasAuthReady || null); }).then(function () {
       var c = window.AlasAuthClient;
       if (c && c.isAuthenticated && (!c.hasPermission || c.hasPermission(MODULE_KEY))) return true; // SSO válido con permiso
       return tryRestore().then(function (ok) { return ok ? true : showGate(); });
