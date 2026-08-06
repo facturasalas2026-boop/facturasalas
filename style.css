@@ -93,6 +93,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 /* ── Toolbar del tablero (mes + actualizar) ── */
 .tbd-toolbar{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
 .tbd-toolbar .spacer{flex:1}
+/* Filtro de segmento en su propia fila, centrado (un escalón abajo) */
+#scopeSlot{order:2;flex:1 1 100%;display:flex;justify-content:center;margin-top:8px}
 .tbd-title{display:flex;flex-direction:column}
 .tbd-title h2{font-family:'Sora',sans-serif;font-size:21px;font-weight:800;color:var(--alas-text-1);margin:0;letter-spacing:-.3px}
 .tbd-title .sub{font-size:12.5px;font-weight:600;color:var(--alas-text-3);margin-top:2px}
@@ -295,6 +297,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
   .tbd-title{flex:1 1 100%;order:-1}
   .tbd-title h2{font-size:19px}
   .tbd-title .sub{font-size:11.5px}
+  #scopeSlot{order:-1;margin-top:0}
   .scopebar{flex:1 1 100%}
   .scopebar .scopebtn{flex:1;justify-content:center;height:38px;padding:0 6px;font-size:12px}
   .scopebtn svg{width:16px;height:16px}
