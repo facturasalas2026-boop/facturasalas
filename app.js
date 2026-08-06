@@ -208,7 +208,7 @@
     '<div class="card accent" id="cardDia">' +
     '<div class="acc-top"><div class="acc-topx"><span class="acc-lbl">Facturación del día</span><span class="acc-sub" id="kDiaFecha">—</span></div></div>' +
     '<div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
-    '<div class="acc-obj"><div class="acc-obj-hd"><span>Objetivo del día hábil</span><b id="kDiaObjPct">–</b></div><div class="acc-obj-bar"><span id="kDiaObjBar"></span></div><div class="acc-obj-sub">Necesario: ₲ <span id="kDiaObj">–</span> / día para llegar a la meta</div></div>' +
+    '<div class="acc-obj"><div class="acc-obj-hd"><span>Objetivo del día hábil</span><b id="kDiaObjPct">–</b></div><div class="acc-obj-bar"><span id="kDiaObjBar"></span></div><div class="acc-obj-sub">Necesario ₲ <span id="kDiaObj">–</span>/día en los <span id="kDiaObjDays">–</span> días hábiles que faltan</div></div>' +
     '<div class="acc-foot"><span class="acc-trend flat" id="kDiaVar">—</span><span class="acc-vs">vs mismo día hábil del año anterior · <b>₲ <span id="kDiaPrev">–</span></b></span></div>' +
     '</div>' +
     '</div>' +
@@ -399,10 +399,13 @@
     animCount(q('#kDia'), k.lastCur, function (v) { return fmt(v); }, 1.1);
     T('kDiaFecha', 'Último día hábil · ' + (k.lastDate ? k.lastDate.split('-').reverse().join('/') : '—'));
     animCount(q('#kDiaPrev'), k.prev, function (v) { return fmt(v); }, 1.1);
-    // Objetivo del día hábil = meta del mes ÷ días hábiles totales
-    var dailyObj = k.bd_tot ? k.meta / k.bd_tot : 0, pctObj = pct(k.lastCur, dailyObj);
+    // Objetivo del día DINÁMICO: ritmo requerido = meta restante ÷ días hábiles que faltan
+    var remMeta = Math.max(0, k.meta - k.fact), remDays = Math.max(0, k.bd_rest);
+    var reqDaily = remDays > 0 ? remMeta / remDays : remMeta;
+    var pctObj = remMeta <= 0 ? 100 : pct(k.lastCur, reqDaily);
     animCount(q('#kDiaObjPct'), pctObj, function (v) { return Math.round(v) + '%'; }, 1.1);
-    animCount(q('#kDiaObj'), dailyObj, function (v) { return fmt(v); }, 1.1);
+    animCount(q('#kDiaObj'), reqDaily, function (v) { return fmt(v); }, 1.1);
+    animCount(q('#kDiaObjDays'), remDays, function (v) { return Math.round(v); }, .8);
     var ob = q('#kDiaObjBar'); if (ob) { if (ob.parentNode) ob.parentNode.classList.toggle('over', pctObj >= 100); if (window.gsap) { ob.style.transition = 'none'; gsap.fromTo(ob, { width: '0%' }, { width: Math.min(pctObj, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else ob.style.width = Math.min(pctObj, 100) + '%'; }
     var dv = q('#kDiaVar'); if (dv) { var _cls = chipCls(k.varDia); dv.className = 'acc-trend ' + _cls; dv.innerHTML = trendArrow(_cls) + fp(k.varDia); if (window.gsap) gsap.fromTo(dv, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)', delay: .4, clearProps: 'all' }); }
     if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.acc-top'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-foot'), { y: 10, opacity: 0, duration: .5, delay: .22, ease: 'power2.out', clearProps: 'all' }); } }
