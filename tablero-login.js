@@ -89,7 +89,6 @@
       '<form class="login-card" id="loginForm" autocomplete="on">' +
         '<div class="login-brand"><img src="logo-icon.png" alt="ALAS"></div>' +
         '<h1>Tablero de Facturación Diaria</h1>' +
-        '<p class="login-sub">Ingresá con tu usuario de ALAS</p>' +
         '<label class="login-field"><span>Usuario</span><input type="text" id="lgUser" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>' +
         '<label class="login-field"><span>Contraseña</span><input type="password" id="lgPass" autocomplete="current-password" required></label>' +
         '<div class="login-err" id="lgErr"></div>' +
