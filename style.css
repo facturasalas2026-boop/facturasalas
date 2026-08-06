@@ -381,6 +381,22 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .login-btn{height:46px;display:inline-flex;align-items:center;justify-content:center;gap:0;border:none;border-radius:12px;background:linear-gradient(135deg,var(--azul),var(--azul-2));color:#fff;font-family:inherit;font-weight:800;font-size:14.5px;cursor:pointer;box-shadow:0 8px 20px rgba(11,79,138,.3);transition:filter .16s,box-shadow .16s;margin-top:2px}
 .btn-spinner{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;margin-right:9px;animation:btnspin .6s linear infinite}
 @keyframes btnspin{to{transform:rotate(360deg)}}
+/* Selector de perfiles (estilo Netflix) */
+#loginForm{display:flex;flex-direction:column;gap:14px}
+.login-sub2{font-size:14px;font-weight:700;color:var(--gris);margin:0 0 2px}
+.login-users{display:flex;flex-direction:column;gap:8px}
+.login-user{display:flex;align-items:center;gap:12px;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:12px;background:#fff;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .16s,background .16s,transform .16s}
+.login-user:hover{border-color:var(--azul-3);background:var(--azul-tenue);transform:translateY(-1px)}
+.login-av{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--azul),var(--azul-2));color:#fff;display:grid;place-items:center;font-family:'Sora',sans-serif;font-weight:800;font-size:17px;flex:none}
+.login-av--lg{width:56px;height:56px;font-size:23px;border-radius:15px;margin:0 auto}
+.login-uname{font-weight:700;font-size:14px;color:var(--alas-text-1);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.login-urm{color:var(--gris-2);font-size:18px;line-height:1;padding:0 4px;opacity:.5;transition:opacity .16s,color .16s}
+.login-user:hover .login-urm{opacity:1}
+.login-urm:hover{color:var(--alas-danger)}
+.login-selected{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:2px}
+.login-uname--lg{font-weight:800;font-size:15px;color:var(--alas-text-1);text-align:center}
+.login-link{background:none;border:none;color:var(--azul-2);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:6px}
+.login-link:hover{text-decoration:underline}
 .login-btn:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 12px 26px rgba(11,79,138,.38)}
 .login-btn:disabled{opacity:.75;cursor:default}
 @media(max-width:480px){

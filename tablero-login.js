@@ -81,41 +81,78 @@
     }).catch(function () { return { ok: false, msg: 'No se pudo iniciar sesión. Reintentá.' }; });
   }
 
+  /* ── Usuarios recordados (estilo Netflix) ── */
+  var USERS_KEY = 'alas.tablero.users';
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function initialOf(u) { return (String(u.full_name || u.username || 'U').trim().charAt(0) || 'U').toUpperCase(); }
+  function loadUsers() { try { var a = JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (_) { return []; } }
+  function saveUser(u) { try { var a = loadUsers().filter(function (x) { return x.username !== u.username; }); a.unshift({ username: u.username, full_name: u.full_name || u.username }); localStorage.setItem(USERS_KEY, JSON.stringify(a.slice(0, 5))); } catch (_) {} }
+  function removeUser(username) { try { localStorage.setItem(USERS_KEY, JSON.stringify(loadUsers().filter(function (x) { return x.username !== username; }))); } catch (_) {} }
+
+  var gateState = { selected: null, forceFull: false };
+
   function showGate() {
     var l = document.getElementById('loader'); if (l) l.classList.add('loader--hidden');
     gateEl = document.createElement('div');
     gateEl.className = 'login-gate';
-    gateEl.innerHTML =
-      '<form class="login-card" id="loginForm" autocomplete="on">' +
-        '<div class="login-brand"><img src="logo-icon.png" alt="ALAS"></div>' +
-        '<h1>Tablero de Facturación Diaria</h1>' +
-        '<label class="login-field"><span>Usuario</span><input type="text" id="lgUser" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>' +
-        '<label class="login-field"><span>Contraseña</span><input type="password" id="lgPass" autocomplete="current-password" required></label>' +
-        '<div class="login-err" id="lgErr"></div>' +
-        '<button type="submit" class="login-btn" id="lgBtn">Ingresar</button>' +
-      '</form>';
+    gateEl.innerHTML = '<div class="login-card" id="loginCard"></div>';
     document.body.appendChild(gateEl);
     requestAnimationFrame(function () { gateEl.classList.add('show'); });
-    if (window.gsap) gsap.from('.login-card', { y: 24, opacity: 0, scale: .96, duration: .5, ease: 'back.out(1.5)' });
-    setTimeout(function () { var u = document.getElementById('lgUser'); if (u) u.focus(); }, 120);
+    renderGate();
+    return new Promise(function (resolve) { _resolveGate = resolve; });
+  }
 
-    gateEl.querySelector('#loginForm').addEventListener('submit', function (ev) {
+  function renderGate() {
+    var card = gateEl.querySelector('#loginCard'), users = loadUsers();
+    var brand = '<div class="login-brand"><img src="logo-icon.png" alt="ALAS"></div><h1>Tablero de Facturación Diaria</h1>';
+    if (users.length && !gateState.selected && !gateState.forceFull) {
+      // Selector de perfiles
+      card.innerHTML = brand + '<p class="login-sub2">¿Quién sos?</p><div class="login-users">' +
+        users.map(function (u, i) { return '<button type="button" class="login-user" data-idx="' + i + '"><span class="login-av">' + esc(initialOf(u)) + '</span><span class="login-uname">' + esc(u.full_name || u.username) + '</span><span class="login-urm" data-rm="' + i + '" title="Quitar">&times;</span></button>'; }).join('') +
+        '</div><button type="button" class="login-link" id="lgOther">Usar otro usuario</button>';
+      card.querySelectorAll('.login-user').forEach(function (b) { b.addEventListener('click', function (ev) { if (ev.target.hasAttribute('data-rm')) return; gateState.selected = users[+b.dataset.idx]; renderGate(); }); });
+      card.querySelectorAll('[data-rm]').forEach(function (x) { x.addEventListener('click', function (ev) { ev.stopPropagation(); removeUser(users[+x.dataset.rm].username); renderGate(); }); });
+      card.querySelector('#lgOther').addEventListener('click', function () { gateState.forceFull = true; renderGate(); });
+    } else {
+      // Pantalla de contraseña (usuario recordado) o login completo
+      var u = gateState.selected;
+      card.innerHTML = brand +
+        (u ? '<div class="login-selected"><span class="login-av login-av--lg">' + esc(initialOf(u)) + '</span><span class="login-uname--lg">' + esc(u.full_name || u.username) + '</span></div>' : '') +
+        '<form id="loginForm" autocomplete="on">' +
+          (u ? '' : '<label class="login-field"><span>Usuario</span><input type="text" id="lgUser" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>') +
+          '<label class="login-field"><span>Contraseña</span><input type="password" id="lgPass" autocomplete="current-password" required></label>' +
+          '<div class="login-err" id="lgErr"></div>' +
+          '<button type="submit" class="login-btn" id="lgBtn">Ingresar</button>' +
+          (users.length ? '<button type="button" class="login-link" id="lgBack">Cambiar de usuario</button>' : '') +
+        '</form>';
+      wireForm(u);
+      var back = card.querySelector('#lgBack'); if (back) back.addEventListener('click', function () { gateState.selected = null; gateState.forceFull = false; renderGate(); });
+      setTimeout(function () { var f = card.querySelector(u ? '#lgPass' : '#lgUser'); if (f) f.focus(); }, 120);
+    }
+    if (window.gsap) gsap.fromTo('#loginCard', { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: .35, ease: 'power2.out' });
+  }
+
+  function wireForm(u) {
+    var card = gateEl.querySelector('#loginCard');
+    card.querySelector('#loginForm').addEventListener('submit', function (ev) {
       ev.preventDefault();
-      var u = gateEl.querySelector('#lgUser').value, p = gateEl.querySelector('#lgPass').value;
-      var btn = gateEl.querySelector('#lgBtn'), err = gateEl.querySelector('#lgErr');
+      var username = u ? u.username : card.querySelector('#lgUser').value;
+      var password = card.querySelector('#lgPass').value;
+      var btn = card.querySelector('#lgBtn'), err = card.querySelector('#lgErr');
       err.textContent = ''; btn.disabled = true; btn.classList.add('is-loading'); btn.innerHTML = '<span class="btn-spinner"></span>Ingresando…';
-      doLogin(u, p).then(function (res) {
+      doLogin(username, password).then(function (res) {
         if (res.ok) {
+          var prof = (window.AlasAuthClient && window.AlasAuthClient.user) || {};
+          saveUser({ username: prof.username || username, full_name: prof.full_name || prof.username || username });
           gateEl.classList.add('done');
           setTimeout(function () { if (gateEl && gateEl.parentNode) gateEl.remove(); if (_resolveGate) _resolveGate(); }, 350);
         } else {
           err.textContent = res.msg || 'Error al ingresar.';
           btn.disabled = false; btn.classList.remove('is-loading'); btn.textContent = 'Ingresar';
-          if (window.gsap) gsap.fromTo('.login-card', { x: -9 }, { x: 0, duration: .45, ease: 'elastic.out(1,0.4)' });
+          if (window.gsap) gsap.fromTo('#loginCard', { x: -9 }, { x: 0, duration: .45, ease: 'elastic.out(1,0.4)' });
         }
       });
     });
-    return new Promise(function (resolve) { _resolveGate = resolve; });
   }
 
   function whenDomReady() { return new Promise(function (res) { if (document.body) return res(); document.addEventListener('DOMContentLoaded', function () { res(); }, { once: true }); }); }
