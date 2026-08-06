@@ -106,6 +106,17 @@
   function bdaysYear(y) { var n = 0, end = new Date(y, 11, 31); for (var dt = new Date(y, 0, 1); dt <= end; dt.setDate(dt.getDate() + 1)) { var w = dt.getDay(); if (w !== 0 && w !== 6) n++; } return n; }
   function bdaysYearElapsed(y, hoy) { var n = 0; for (var dt = new Date(y, 0, 1); dt <= hoy; dt.setDate(dt.getDate() + 1)) { var w = dt.getDay(); if (w !== 0 && w !== 6) n++; } return n; }
   function hoyDate() { if (hoyOverride) return hoyOverride; if (D.daily && D.daily.length) return dOf(D.daily[D.daily.length - 1][0]); return new Date(D.cur_year, D.cur_month - 1, new Date(D.cur_year, D.cur_month, 0).getDate()); }
+  // ¿Hoy es día hábil del mes en curso y todavía no hay datos cargados de hoy?
+  function todayPending() {
+    if (!D) return false;
+    var now = hoyOverride ? new Date(hoyOverride.getTime()) : new Date(); now.setHours(0, 0, 0, 0);
+    if (D.cur_year !== now.getFullYear() || D.cur_month !== now.getMonth() + 1) return false;
+    var w = now.getDay(); if (w === 0 || w === 6) return false;
+    if (isHol(now.getFullYear(), now.getMonth(), now.getDate())) return false;
+    var last = (D.daily && D.daily.length) ? dOf(D.daily[D.daily.length - 1][0]) : null;
+    if (!last) return true; last.setHours(0, 0, 0, 0);
+    return last.getTime() < now.getTime();
+  }
   function scoped(sc) {
     if (sc === 'fer') return { v26: D.v2026_fer, v25: D.v2025_fer, meta: D.meta_ldal, daily: D.daily_fer, prev: D.last_bd_prevyear_fer, label: '· Ferretería' };
     if (sc === 'hie') return { v26: D.v2026_hie, v25: D.v2025_hie, meta: D.meta_ldfa, daily: D.daily_hie, prev: D.last_bd_prevyear_hie, label: '· Hierros' };
@@ -210,6 +221,7 @@
     '<div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
     '<div class="acc-obj"><div class="acc-obj-hd"><span>Objetivo del día hábil</span><b id="kDiaObjPct">–</b></div><div class="acc-obj-bar"><span id="kDiaObjBar"></span></div><div class="acc-obj-sub">Necesario ₲ <span id="kDiaObj">–</span>/día en los <span id="kDiaObjDays">–</span> días hábiles que faltan</div></div>' +
     '<div class="acc-foot"><span class="acc-trend flat" id="kDiaVar">—</span><span class="acc-vs">vs mismo día hábil del año anterior · <b>₲ <span id="kDiaPrev">–</span></b></span></div>' +
+    '<div class="acc-pending"><span class="acc-pending-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M9 14.5h6"/></svg></span><div class="acc-pending-t">Sin registros de hoy</div><div class="acc-pending-s">Cargá la planilla del <b id="accPendDate">—</b> para ver la facturación del día</div></div>' +
     '</div>' +
     '</div>' +
     '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-bottom:18px">' +
@@ -395,7 +407,9 @@
     animCount(q('#kFact'), k.fact, function (v) { return fmt(v); }, 1); animCount(q('#kMeta'), k.meta, function (v) { return '₲ ' + fmt(v); }, 1);
     var falta = k.meta - k.fact, cf = q('#kFalta'); if (cf) { cf.textContent = falta > 0 ? 'Falta ₲ ' + fmt(falta) : 'Meta superada +₲ ' + fmt(-falta); cf.className = 'chip ' + (falta > 0 ? 'flat' : 'up'); }
     animCount(q('#kProy'), k.proyMes, function (v) { return fmt(v); }, 1); var pp = q('#kProyPct'), pv = pct(k.proyMes, k.meta); if (pp) { pp.textContent = arrow(pv - 100) + ' ' + pv.toFixed(1) + '%'; pp.className = 'chip ' + (pv >= 100 ? 'up' : pv >= 90 ? 'flat' : 'down'); }
-    // KPI destacado: Facturación del día (count-up + pop del chip + entrada de la card)
+    // KPI destacado: Facturación del día — estado "sin registros de hoy" si el día hábil no está cargado
+    var _pend = todayPending(), _cd0 = q('#cardDia'); if (_cd0) _cd0.classList.toggle('is-pending', _pend);
+    if (_pend) { var _n = hoyOverride ? new Date(hoyOverride.getTime()) : new Date(); T('accPendDate', pad(_n.getDate()) + '/' + pad(_n.getMonth() + 1) + '/' + _n.getFullYear()); if (window.gsap) gsap.from('#cardDia .acc-pending', { opacity: 0, y: 10, scale: .96, duration: .5, ease: 'back.out(1.5)', clearProps: 'all' }); }
     animCount(q('#kDia'), k.lastCur, function (v) { return fmt(v); }, 1.1);
     T('kDiaFecha', 'Último día hábil · ' + (k.lastDate ? k.lastDate.split('-').reverse().join('/') : '—'));
     animCount(q('#kDiaPrev'), k.prev, function (v) { return fmt(v); }, 1.1);

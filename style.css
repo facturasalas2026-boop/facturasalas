@@ -160,6 +160,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .acc-trend.flat{background:#eef1f5;color:var(--gris)}
 .tbd .acc-vs{font-size:12.5px;color:var(--gris);line-height:1.45}
 .tbd .acc-vs b{color:var(--tinta);font-weight:800}
+/* Estado "sin registros de hoy" */
+.tbd .card.accent .acc-pending{display:none}
+.tbd .card.accent.is-pending{justify-content:flex-start}
+.tbd .card.accent.is-pending .acc-num,.tbd .card.accent.is-pending .acc-obj,.tbd .card.accent.is-pending .acc-foot{display:none}
+.tbd .card.accent.is-pending .acc-pending{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:11px;padding:12px 0}
+.tbd .acc-pending-ic{width:56px;height:56px;border-radius:16px;background:var(--azul-tenue);color:var(--azul-2);display:grid;place-items:center;flex:none}
+.tbd .acc-pending-ic svg{width:28px;height:28px}
+.tbd .acc-pending-t{font-family:'Sora',sans-serif;font-size:17px;font-weight:800;color:var(--alas-text-1)}
+.tbd .acc-pending-s{font-size:12.5px;color:var(--gris);line-height:1.5;max-width:270px}
+.tbd .acc-pending-s b{color:var(--tinta);font-weight:800}
 .tbd .card h3{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--gris-2);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
 .tbd .big{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.05;font-family:'Sora',sans-serif}
 .tbd .big .u{font-size:14px;font-weight:600;color:var(--gris-2);margin-right:3px}
