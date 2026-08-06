@@ -290,7 +290,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
   .sidebar:hover{width:100%}
   .sidebar__logo{display:none}
   .sidebar__nav{flex:4;flex-direction:row;gap:0;justify-content:space-around}
-  .sidebar__bottom{display:none}
+  .sidebar__bottom{display:flex;flex:1;flex-direction:row;margin:0;padding:0;border-top:none;gap:0}
+  #btnBack{display:none}
   .sidebar__user{display:none}
   .nav-btn,.nav-btn--back{flex:1;flex-direction:column;height:auto;min-width:0;gap:4px;padding:7px 2px;justify-content:center;align-items:center;text-align:center;border-radius:11px}
   .nav-btn__ico{width:23px;height:23px}.nav-btn__ico svg{width:23px;height:23px}
@@ -377,7 +378,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .login-field input{height:44px;border:1.5px solid var(--gray-200);border-radius:11px;padding:0 14px;font-family:inherit;font-size:14px;font-weight:600;color:var(--alas-text-1);outline:none;transition:border-color .16s var(--ease),box-shadow .16s var(--ease)}
 .login-field input:focus{border-color:var(--azul-3);box-shadow:0 0 0 3px var(--azul-tenue)}
 .login-err{color:var(--alas-danger);font-size:12.5px;font-weight:600;min-height:16px;text-align:center}
-.login-btn{height:46px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--azul),var(--azul-2));color:#fff;font-family:inherit;font-weight:800;font-size:14.5px;cursor:pointer;box-shadow:0 8px 20px rgba(11,79,138,.3);transition:filter .16s,box-shadow .16s;margin-top:2px}
+.login-btn{height:46px;display:inline-flex;align-items:center;justify-content:center;gap:0;border:none;border-radius:12px;background:linear-gradient(135deg,var(--azul),var(--azul-2));color:#fff;font-family:inherit;font-weight:800;font-size:14.5px;cursor:pointer;box-shadow:0 8px 20px rgba(11,79,138,.3);transition:filter .16s,box-shadow .16s;margin-top:2px}
+.btn-spinner{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;margin-right:9px;animation:btnspin .6s linear infinite}
+@keyframes btnspin{to{transform:rotate(360deg)}}
 .login-btn:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 12px 26px rgba(11,79,138,.38)}
 .login-btn:disabled{opacity:.75;cursor:default}
 @media(max-width:480px){

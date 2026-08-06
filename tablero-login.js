@@ -103,7 +103,7 @@
       ev.preventDefault();
       var u = gateEl.querySelector('#lgUser').value, p = gateEl.querySelector('#lgPass').value;
       var btn = gateEl.querySelector('#lgBtn'), err = gateEl.querySelector('#lgErr');
-      err.textContent = ''; btn.disabled = true; btn.classList.add('is-loading'); btn.textContent = 'Ingresando…';
+      err.textContent = ''; btn.disabled = true; btn.classList.add('is-loading'); btn.innerHTML = '<span class="btn-spinner"></span>Ingresando…';
       doLogin(u, p).then(function (res) {
         if (res.ok) {
           gateEl.classList.add('done');

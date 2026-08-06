@@ -79,6 +79,10 @@
             <span class="nav-btn__ico"><svg fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
             <span class="nav-btn__lbl">Menú</span>
           </button>
+          <button class="nav-btn nav-btn--back" type="button" id="btnLogout" title="Cerrar sesión">
+            <span class="nav-btn__ico"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></span>
+            <span class="nav-btn__lbl">Cerrar sesión</span>
+          </button>
         </div>
       </aside>
 
@@ -101,6 +105,9 @@
       if (window.ALASTransition) ALASTransition.exitToLauncher(url); else window.location.href = url;
     }
     document.getElementById('btnBack').addEventListener('click', alasGoToLauncher);
+    document.getElementById('btnLogout').addEventListener('click', function () {
+      if (window.AlasAuthClient && AlasAuthClient.logout) AlasAuthClient.logout(); else location.reload();
+    });
 
     /* ── Revela el contenido y oculta el loader (idempotente) ── */
     function alasReveal() {
