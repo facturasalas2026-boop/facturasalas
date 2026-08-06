@@ -136,7 +136,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .card.accent .big{color:var(--azul);font-size:clamp(30px,3vw,44px);line-height:1.03;margin:2px 0}
 .tbd .card.accent .sub2{font-size:13px;margin-top:12px}
 .tbd .card h3{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--gris-2);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
-.tbd .big{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.05;font-family:'Sora',sans-serif}
+.tbd .big{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.05;font-family:'Sora',sans-serif}
 .tbd .big .u{font-size:14px;font-weight:600;color:var(--gris-2);margin-right:3px}
 .tbd .med{font-size:19px;font-weight:700;font-family:'Sora',sans-serif}
 .tbd .sub2{font-size:12px;color:var(--gris);margin-top:6px}
@@ -213,7 +213,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
   #stage{padding:20px 22px}
   .tbd .grid{gap:14px}
   .tbd .card{padding:18px 18px}
-  .tbd .big{font-size:22px}
+  .tbd .big{font-size:20px}
   .tbd .med{font-size:17px}
   .tbd .hero .med{font-size:26px}
   .tbd .hero .gauge{width:132px;height:132px}
