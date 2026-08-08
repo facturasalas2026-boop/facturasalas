@@ -101,17 +101,17 @@
   function fmtHoy(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
   function dOf(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
   function isHol(y, m, d) { var s = y + '-' + pad(m + 1) + '-' + pad(d); return holidays.some(function (h) { return h.date === s; }); }
-  function bdaysMonth(y, m) { var tot = 0, days = new Date(y, m + 1, 0).getDate(), fds = 0, fer = 0; for (var d = 1; d <= days; d++) { var w = new Date(y, m, d).getDay(); if (w === 0 || w === 6) { fds++; continue; } if (isHol(y, m, d)) { fer++; continue; } tot++; } return { tot: tot, days: days, fds: fds, fer: fer }; }
-  function bdaysElapsed(y, m, hoy) { var n = 0, days = new Date(y, m + 1, 0).getDate(); for (var d = 1; d <= days; d++) { var dt = new Date(y, m, d), w = dt.getDay(); if (w === 0 || w === 6) continue; if (isHol(y, m, d)) continue; if (dt <= hoy) n++; } return n; }
-  function bdaysYear(y) { var n = 0, end = new Date(y, 11, 31); for (var dt = new Date(y, 0, 1); dt <= end; dt.setDate(dt.getDate() + 1)) { var w = dt.getDay(); if (w !== 0 && w !== 6) n++; } return n; }
-  function bdaysYearElapsed(y, hoy) { var n = 0; for (var dt = new Date(y, 0, 1); dt <= hoy; dt.setDate(dt.getDate() + 1)) { var w = dt.getDay(); if (w !== 0 && w !== 6) n++; } return n; }
+  function bdaysMonth(y, m) { var tot = 0, days = new Date(y, m + 1, 0).getDate(), fds = 0, fer = 0; for (var d = 1; d <= days; d++) { var w = new Date(y, m, d).getDay(); if (w === 0) { fds++; continue; } if (isHol(y, m, d)) { fer++; continue; } tot++; } return { tot: tot, days: days, fds: fds, fer: fer }; }
+  function bdaysElapsed(y, m, hoy) { var n = 0, days = new Date(y, m + 1, 0).getDate(); for (var d = 1; d <= days; d++) { var dt = new Date(y, m, d), w = dt.getDay(); if (w === 0) continue; if (isHol(y, m, d)) continue; if (dt <= hoy) n++; } return n; }
+  function bdaysYear(y) { var n = 0, end = new Date(y, 11, 31); for (var dt = new Date(y, 0, 1); dt <= end; dt.setDate(dt.getDate() + 1)) { var w = dt.getDay(); if (w !== 0) n++; } return n; }
+  function bdaysYearElapsed(y, hoy) { var n = 0; for (var dt = new Date(y, 0, 1); dt <= hoy; dt.setDate(dt.getDate() + 1)) { var w = dt.getDay(); if (w !== 0) n++; } return n; }
   function hoyDate() { if (hoyOverride) return hoyOverride; if (D.daily && D.daily.length) return dOf(D.daily[D.daily.length - 1][0]); return new Date(D.cur_year, D.cur_month - 1, new Date(D.cur_year, D.cur_month, 0).getDate()); }
   // ¿Hoy es día hábil del mes en curso y todavía no hay datos cargados de hoy?
   function todayPending() {
     if (!D) return false;
     var now = hoyOverride ? new Date(hoyOverride.getTime()) : new Date(); now.setHours(0, 0, 0, 0);
     if (D.cur_year !== now.getFullYear() || D.cur_month !== now.getMonth() + 1) return false;
-    var w = now.getDay(); if (w === 0 || w === 6) return false;
+    var w = now.getDay(); if (w === 0) return false;
     if (isHol(now.getFullYear(), now.getMonth(), now.getDate())) return false;
     var last = (D.daily && D.daily.length) ? dOf(D.daily[D.daily.length - 1][0]) : null;
     if (!last) return true; last.setHours(0, 0, 0, 0);
@@ -122,7 +122,7 @@
     if (sc === 'hie') return { v26: D.v2026_hie, v25: D.v2025_hie, meta: D.meta_ldfa, daily: D.daily_hie, prev: D.last_bd_prevyear_hie, label: '· Hierros' };
     return { v26: D.v2026, v25: D.v2025, meta: D.meta_tot, daily: D.daily, prev: D.last_bd_prevyear, label: '' };
   }
-  function lastBD(daily, hoy) { var bd = daily.filter(function (x) { var d = dOf(x[0]); return d.getDay() !== 0 && d.getDay() !== 6 && d <= hoy; }); return bd.length ? { val: bd[bd.length - 1][1], date: bd[bd.length - 1][0] } : { val: 0, date: null }; }
+  function lastBD(daily, hoy) { var bd = daily.filter(function (x) { var d = dOf(x[0]); return d.getDay() !== 0 && d <= hoy; }); return bd.length ? { val: bd[bd.length - 1][1], date: bd[bd.length - 1][0] } : { val: 0, date: null }; }
   function kpis(sc) {
     var S = scoped(sc), mi = D.cur_month - 1, y = D.cur_year, hoy = hoyDate();
     var bm = bdaysMonth(y, mi), bd_tot = bm.tot, bd_el = Math.min(bdaysElapsed(y, mi, hoy), bd_tot), bd_rest = bd_tot - bd_el;
@@ -185,15 +185,15 @@
       d.v2026[curM] = d.daily.reduce(function (a, x) { return a + x[1]; }, 0);
       d.v2026_fer[curM] = d.daily_fer.reduce(function (a, x) { return a + x[1]; }, 0);
       d.v2026_hie[curM] = d.daily_hie.reduce(function (a, x) { return a + x[1]; }, 0);
-      var lastb = function (lst) { var b = lst.filter(function (x) { var w = dOf(x[0]).getDay(); return w !== 0 && w !== 6; }); return b.length ? b[b.length - 1] : null; };
+      var lastb = function (lst) { var b = lst.filter(function (x) { var w = dOf(x[0]).getDay(); return w !== 0; }); return b.length ? b[b.length - 1] : null; };
       var lb = lastb(d.daily); if (lb) { d.last_bd_cur = lb[1]; d.last_bd_date = lb[0]; }
       var pd = { tot: {}, fer: {}, hie: {} };
       hrows.forEach(function (r) { var dt = asDate(keyOf(r, 'Fecha de facturacion')); if (!dt) return; if (dt.getFullYear() === curY - 1 && dt.getMonth() === curM) { var ds = fmtHoy(dt), mo = num(keyOf(r, 'Monto')), code = (keyOf(r, 'Almacen_codigo') || '').toString().trim(); pd.tot[ds] = (pd.tot[ds] || 0) + mo; if (code === 'Alas') pd.fer[ds] = (pd.fer[ds] || 0) + mo; else if (code === 'Alas Dep. Fabric') pd.hie[ds] = (pd.hie[ds] || 0) + mo; } });
-      // Nº de día hábil (L-V) del mes que corresponde al último día con datos
+      // Nº de día hábil (L-S) del mes que corresponde al último día con datos
       var Nbd = 0;
-      if (d.last_bd_date) { var _lb = dOf(d.last_bd_date), _y = _lb.getFullYear(), _m = _lb.getMonth(); for (var _dd = 1; _dd <= _lb.getDate(); _dd++) { var _w = new Date(_y, _m, _dd).getDay(); if (_w !== 0 && _w !== 6) Nbd++; } }
+      if (d.last_bd_date) { var _lb = dOf(d.last_bd_date), _y = _lb.getFullYear(), _m = _lb.getMonth(); for (var _dd = 1; _dd <= _lb.getDate(); _dd++) { var _w = new Date(_y, _m, _dd).getDay(); if (_w !== 0) Nbd++; } }
       // mismo Nº de día hábil del año anterior (no el último del mes)
-      var nthPrevBD = function (o) { var b = Object.keys(o).sort().filter(function (ds) { var w = dOf(ds).getDay(); return w !== 0 && w !== 6; }); if (!b.length) return 0; var i = Nbd > 0 ? Math.min(Nbd, b.length) - 1 : b.length - 1; return o[b[i]]; };
+      var nthPrevBD = function (o) { var b = Object.keys(o).sort().filter(function (ds) { var w = dOf(ds).getDay(); return w !== 0; }); if (!b.length) return 0; var i = Nbd > 0 ? Math.min(Nbd, b.length) - 1 : b.length - 1; return o[b[i]]; };
       d.last_bd_prevyear = nthPrevBD(pd.tot); d.last_bd_prevyear_fer = nthPrevBD(pd.fer); d.last_bd_prevyear_hie = nthPrevBD(pd.hie);
     }
     var ps = S('BASE PEDIDOS PEND. DE FACTURAR');
@@ -233,7 +233,7 @@
     '<div class="card"><h3>Proyección fin de mes</h3><div class="big"><span class="u">₲</span><span id="kProy">–</span></div><div class="sub2">Ritmo diario × días hábiles del mes</div><div style="margin-top:9px"><span class="chip" id="kProyPct">–</span> <span class="mini">vs meta</span></div></div>' +
     '<div class="card"><h3>Mes actual vs mismo mes año pasado</h3><div class="big"><span class="u">₲</span><span id="kMes">–</span></div><div class="sub2" id="kMesPrevL">–</div><div style="margin-top:9px"><span class="chip" id="kMesVar">–</span></div></div>' +
     '<div class="card"><h3>Proyección fin de año</h3><div class="big"><span class="u">₲</span><span id="kAnio">–</span></div><div class="sub2">Acum. año + ritmo meses restantes</div><div style="margin-top:9px"><span class="chip" id="kAnioPct">–</span> <span class="mini">de meta anual</span></div></div>' +
-    '<div class="card"><h3>Días hábiles del mes</h3><div class="big"><span id="kBdEl">–</span><span class="u" style="font-size:16px"> / </span><span id="kBdTot">–</span></div><div class="sub2">Transcurridos / totales (L-V, sin feriados)</div><div style="margin-top:9px"><span class="chip flat" id="kBdRest">–</span></div></div>' +
+    '<div class="card"><h3>Días hábiles del mes</h3><div class="big"><span id="kBdEl">–</span><span class="u" style="font-size:16px"> / </span><span id="kBdTot">–</span></div><div class="sub2">Transcurridos / totales (L-S, sin feriados)</div><div style="margin-top:9px"><span class="chip flat" id="kBdRest">–</span></div></div>' +
     '</div>' +
     '<div class="grid g2" style="margin-bottom:16px">' +
     '<div class="card"><h3>Facturación diaria del mes <span id="dScope" style="font-weight:600;color:var(--gris)"></span></h3><div class="scrolltbl" id="dailyTbl"></div></div>' +
@@ -256,7 +256,7 @@
 
     '<section class="page" id="config">' +
     '<div class="grid g2" style="margin-bottom:16px">' +
-    '<div class="card"><h3>Cálculo de días hábiles</h3><div class="stat-row"><span class="k">Mes analizado</span><span class="v" id="cfMes">–</span></div><div class="stat-row"><span class="k">Días del mes</span><span class="v" id="cfDias">–</span></div><div class="stat-row"><span class="k">Fines de semana</span><span class="v" id="cfFds">–</span></div><div class="stat-row"><span class="k">Feriados cargados</span><span class="v" id="cfFer">–</span></div><div class="stat-row"><span class="k">Días hábiles (L-V, netos)</span><span class="v" id="cfHab">–</span></div><div class="stat-row"><span class="k">Transcurridos hasta hoy</span><span class="v" id="cfTrans">–</span></div><div class="stat-row"><span class="k">Que faltan</span><span class="v" id="cfFalt">–</span></div></div>' +
+    '<div class="card"><h3>Cálculo de días hábiles</h3><div class="stat-row"><span class="k">Mes analizado</span><span class="v" id="cfMes">–</span></div><div class="stat-row"><span class="k">Días del mes</span><span class="v" id="cfDias">–</span></div><div class="stat-row"><span class="k">Domingos</span><span class="v" id="cfFds">–</span></div><div class="stat-row"><span class="k">Feriados cargados</span><span class="v" id="cfFer">–</span></div><div class="stat-row"><span class="k">Días hábiles (L-S, netos)</span><span class="v" id="cfHab">–</span></div><div class="stat-row"><span class="k">Transcurridos hasta hoy</span><span class="v" id="cfTrans">–</span></div><div class="stat-row"><span class="k">Que faltan</span><span class="v" id="cfFalt">–</span></div></div>' +
     '<div class="card"><h3>Feriados (excepciones manuales)</h3><div class="holiday-in" id="ferAddRow"><div class="fld"><label>Fecha del feriado</label><input type="date" id="ferDate"></div><div class="fld"><label>Descripción (opcional)</label><input type="text" id="ferName" placeholder="Ej: Día del trabajador"></div><button class="btn" id="btnAddFer" style="background:var(--azul);color:#fff">+ Agregar</button></div><div id="ferList"></div><div class="note" style="margin-top:14px">Los feriados se descuentan de los días hábiles y recalculan las proyecciones para todo el equipo.</div></div>' +
     '</div>' +
     '<div class="card"><h3>Fecha de referencia ("hoy")</h3><div class="holiday-in" style="margin-bottom:0"><div class="fld"><label>Simular fecha (para proyecciones)</label><input type="date" id="hoyInput"></div><button class="btn" id="btnHoy" style="background:var(--azul-tenue);color:var(--azul)">Aplicar</button><button class="btn" id="btnHoyReset" style="background:#eef1f5;color:var(--gris)">Volver a la última fecha con datos</button></div></div>' +
