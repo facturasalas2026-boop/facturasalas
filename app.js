@@ -160,6 +160,25 @@
   function asDate(v) { if (v instanceof Date) return v; if (typeof v === 'string') { var m = v.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/); if (m) { var y = +m[3]; if (y < 100) y += 2000; return new Date(y, +m[2] - 1, +m[1]); } var d = new Date(v); if (!isNaN(d)) return d; } if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400 * 1000)); return null; }
   function hourOf(v) { if (v instanceof Date) return v.getHours(); if (typeof v === 'string') { var m = v.match(/(\d{1,2}):/); if (m) return +m[1]; } if (typeof v === 'number' && v < 1) return Math.floor(v * 24); return -1; }
   var keyOf = function (o, name) { var k = Object.keys(o).find(function (x) { return x.trim().toLowerCase() === name.trim().toLowerCase(); }); return k ? o[k] : undefined; };
+  // Valida que el Excel subido SEA la planilla SAP de facturación (hojas + columnas clave).
+  // Devuelve {ok:true} o {ok:false, reason:'...'} para NO dejar cargar un archivo equivocado.
+  function validateWB(wb) {
+    if (!wb || !wb.SheetNames || !wb.SheetNames.length) return { ok: false, reason: 'El archivo no tiene hojas. ¿Es un Excel válido?' };
+    var find = function (n) { var k = wb.SheetNames.find(function (x) { return String(x).trim().toLowerCase() === n.trim().toLowerCase(); }); return k ? wb.Sheets[k] : null; };
+    // Hojas que debe tener la planilla de facturación diaria
+    var REQ = ['x monto de fc fecha', 'Facturacion historico', 'BASE PEDIDOS PEND. DE FACTURAR', 'Presupuesto de ventas (Meta)'];
+    var missing = REQ.filter(function (n) { return !find(n); });
+    if (missing.length) return { ok: false, reason: 'Esta no parece la planilla de facturación SAP. Falta(n) la(s) hoja(s): «' + missing.join('», «') + '».' };
+    // Columnas clave de la hoja diaria (por si es un Excel distinto con una hoja de nombre parecido)
+    var colsOf = function (ws) { var set = {}; XLSX.utils.sheet_to_json(ws, { defval: null }).slice(0, 40).forEach(function (r) { Object.keys(r).forEach(function (k) { set[String(k).trim().toLowerCase()] = 1; }); }); return set; };
+    var has = function (set, name) { return !!set[name.trim().toLowerCase()]; };
+    var xc = colsOf(find('x monto de fc fecha'));
+    var need = ['Fecha de documento', 'Monto Gs', 'Almacen'];
+    var faltan = need.filter(function (c) { return !has(xc, c); });
+    if (faltan.length) return { ok: false, reason: 'La hoja «x monto de fc fecha» no tiene la(s) columna(s): ' + faltan.join(' · ') + '. Revisá que sea la planilla correcta.' };
+    return { ok: true };
+  }
+
   function parseWB(wb) {
     var d = JSON.parse(JSON.stringify(EMPTY_SNAP));
     var S = function (n) { return wb.Sheets[wb.SheetNames.find(function (x) { return x.trim().toLowerCase() === n.toLowerCase(); })]; };
@@ -535,7 +554,19 @@
   function setProg(t, label) { uplTarget = t; if (label) T('uplMsg', label); if (!uplRAF) uplRAF = requestAnimationFrame(uplTick); }
   function uplTick() { uplCur += (uplTarget - uplCur) * 0.16; if (Math.abs(uplTarget - uplCur) < 0.4) uplCur = uplTarget; var n = q('#uplNum'), fg = q('#uplFg'); if (n) n.textContent = Math.round(uplCur); if (fg) fg.style.strokeDashoffset = (UPL_C * (1 - uplCur / 100)).toFixed(1); if (uplCur !== uplTarget) uplRAF = requestAnimationFrame(uplTick); else uplRAF = null; }
   function closeUpload() { var ov = q('#uplOv'); if (!ov) return; ov.classList.remove('show'); setTimeout(function () { if (ov.parentNode) ov.remove(); }, 300); }
-  function failUpload(msg) { closeUpload(); toast(msg, true); }
+  function failUpload(msg) {
+    var ov = q('#uplOv'); if (!ov) { toast(msg, true); return; }
+    var card = ov.querySelector('.upl-card');
+    var p = card.querySelector('.upl-check path'); if (p) p.setAttribute('d', 'M48 48 L84 84 M84 48 L48 84'); // check → X
+    ov.classList.add('done', 'fail');
+    T('uplTitle', 'No se pudo cargar');
+    T('uplMsg', msg);
+    if (!card.querySelector('.upl-close')) {
+      var btn = document.createElement('button'); btn.className = 'btn upl-close'; btn.textContent = 'Cerrar';
+      btn.addEventListener('click', function () { closeUpload(); });
+      card.appendChild(btn);
+    }
+  }
   function finishUpload(diff) {
     setProg(100, 'Listo');
     setTimeout(function () {
@@ -585,6 +616,8 @@
       setTimeout(function () {
         try {
           var wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
+          var vld = validateWB(wb);
+          if (!vld.ok) { failUpload(vld.reason); return; }
           var newSnap = parseWB(wb);
           setProg(60, 'Comparando con lo cargado…');
           var anio = newSnap.cur_year, mes = newSnap.cur_month;

@@ -433,6 +433,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .upl-ov.done .upl-check{display:block}
 .upl-check circle{fill:none;stroke:var(--azul-2);stroke-width:6;stroke-dasharray:308;stroke-dashoffset:308;animation:uplCircle .5s var(--ease) forwards}
 .upl-check path{fill:none;stroke:var(--azul-2);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:uplTick .4s var(--ease) .32s forwards}
+/* Estado de rechazo (planilla incorrecta / error de carga): X roja */
+.upl-ov.fail .upl-check circle{stroke:#dc2626}
+.upl-ov.fail .upl-check path{stroke:#dc2626;stroke-width:9;stroke-dasharray:none;stroke-dashoffset:0;animation:none}
+.upl-ov.fail .upl-title{color:#b91c1c}
+.upl-ov.fail .upl-msg{color:#991b1b;font-weight:700;max-width:380px}
+.upl-close{margin-top:8px;align-self:stretch}
 @keyframes uplCircle{to{stroke-dashoffset:0}}
 @keyframes uplTick{to{stroke-dashoffset:0}}
 .upl-close{margin-top:2px}
