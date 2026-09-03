@@ -13,6 +13,9 @@
  *   pullFeriados()   -> Promise<[{id,fecha,descripcion}]>
  *   addFeriado(f,d)  -> Promise<row>
  *   delFeriado(fecha)-> Promise<void>
+ *   listRegistros(n) -> Promise<[{id,entrega,estado,registrado_por,created_at}]>
+ *   addRegistro(e,u,i)-> Promise<{row}|{duplicate:true}>
+ *   onRegistroInsert(cb)-> unsubscribe fn (realtime best-effort)
  * ============================================================ */
 (function () {
   var CFG = window.SUPABASE_CONFIG;
@@ -96,6 +99,51 @@
       assert();
       return sb.from('feriados').delete().eq('fecha', fecha)
         .then(function (r) { if (r.error) throw r.error; });
+    },
+
+    /* ── Control de Facturas · registro de entregas (pickeo) ── */
+
+    // Últimos registros (por fecha desc). Devuelve [] si no hay Supabase.
+    listRegistros: function (limit) {
+      if (!sb) return Promise.resolve([]);
+      return sb.from('registro_entregas')
+        .select('id,entrega,estado,registrado_por,registrado_por_id,created_at')
+        .order('created_at', { ascending: false })
+        .limit(limit || 500)
+        .then(function (r) {
+          if (r.error) { console.error('[TableroDB] listRegistros', r.error); return []; }
+          return r.data || [];
+        });
+    },
+
+    // Inserta una entrega. Resuelve { row } si ok, o { duplicate: true }
+    // si esa entrega ya estaba registrada (violación del UNIQUE, code 23505).
+    addRegistro: function (entrega, por, porId) {
+      assert();
+      return sb.from('registro_entregas')
+        .insert({ entrega: entrega, registrado_por: por || null, registrado_por_id: porId || null })
+        .select()
+        .then(function (r) {
+          if (r.error) {
+            if (r.error.code === '23505') return { duplicate: true };
+            throw r.error;
+          }
+          return { row: (r.data || [])[0] };
+        });
+    },
+
+    // Suscripción realtime a nuevos registros (best-effort). Devuelve
+    // una función para desuscribir, o un noop si no hay Supabase.
+    onRegistroInsert: function (cb) {
+      if (!sb) return function () {};
+      try {
+        var ch = sb.channel('registro_entregas_rt')
+          .on('postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'registro_entregas' },
+            function (payload) { try { cb(payload.new); } catch (_) {} })
+          .subscribe();
+        return function () { try { sb.removeChannel(ch); } catch (_) {} };
+      } catch (e) { console.warn('[TableroDB] realtime no disponible', e); return function () {}; }
     }
   };
 

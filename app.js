@@ -50,7 +50,12 @@
     grid: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>',
     refresh: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>',
     deposito: '<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9.5l7-4 7 4V21"/><path d="M9 21v-6h6v6"/><path d="M9 11.5h6"/></svg>',
-    fabrica: '<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 21V11l5 3V11l5 3V8l5 3v10"/><path d="M8 21v-4h3v4"/></svg>'
+    fabrica: '<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 21V11l5 3V11l5 3V8l5 3v10"/><path d="M8 21v-4h3v4"/></svg>',
+    scan: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><path d="M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>',
+    userIco: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    clock: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    check: '<svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+    alert: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>'
   };
 
   /* ── Rol / permisos (gate real = SSO) ── */
@@ -60,6 +65,11 @@
     var role = (c.getRole && c.getRole() || '').toLowerCase();
     return role === 'admin' || role === 'supervisor';
   }
+  function userRole() { var c = window.AlasAuthClient; return (c && c.getRole && c.getRole() || '').toLowerCase(); }
+  function userName() { var c = window.AlasAuthClient; return (c && c.getCurrentUser && c.getCurrentUser()) || '—'; }
+  function userId() { var c = window.AlasAuthClient; var u = c && c.user; return (u && (u.id || u.userId)) || null; }
+  // Rol restringido: solo ve "Control de facturas" y entra directo ahí.
+  function isRegistroOnly() { return userRole() === 'registro'; }
   function confirmPro(opts) {
     var bd = el('<div class="modal-bd"><div class="modal-box cpro">' +
       '<div class="cpro__ico ' + (opts.danger ? 'cpro__ico--danger' : '') + '"><svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>' +
@@ -404,7 +414,10 @@
 
   function go(v) {
     currentView = v; setNav(v);
-    if (!D) return;
+    if (v === 'registro') { renderRegistro(); return; }
+    if (_regUnsub) { _regUnsub(); _regUnsub = null; }  // saliendo del registro: cortar realtime
+    if (!D) { renderEmpty(); return; }
+    if (!q('#stage .tbd')) { renderShell(); return; }   // el shell no está montado (venías del registro/empty)
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === v); });
     var ss = q('#scopeSlot'); if (ss) ss.style.display = (v === 'principal' || v === 'mesames') ? '' : 'none';
     setToolbarTitle(v);
@@ -644,12 +657,175 @@
   function cacheSave() { try { localStorage.setItem(LS_KEY, JSON.stringify({ stamp: D._stamp || Date.now(), data: D })); } catch (e) {} }
   function cacheLoad() { try { var raw = localStorage.getItem(LS_KEY); if (raw) { var o = JSON.parse(raw); if (o && o.data) return o.data; } } catch (e) {} return null; }
 
+  /* ── RENDER: CONTROL DE FACTURAS (registro de entregas por escaneo) ── */
+  var registros = [];
+  var _regUnsub = null;
+
+  function fmtFechaHora(iso) {
+    var d = new Date(iso); if (isNaN(d.getTime())) return '—';
+    var f = d.toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    var h = d.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' });
+    return f + ' · ' + h;
+  }
+  function normEntrega(v) { return String(v == null ? '' : v).trim().toUpperCase().replace(/\s+/g, ' '); }
+  function avInitial(s) { return (String(s || '—').trim().charAt(0) || '—').toUpperCase(); }
+
+  function regRowHtml(r) {
+    return '<tr data-id="' + esc(r.id) + '">' +
+      '<td class="reg-ent">' + esc(r.entrega) + '</td>' +
+      '<td><span class="reg-chip">' + IC.check + ' Registrado</span></td>' +
+      '<td><span class="reg-user"><span class="reg-uav">' + esc(avInitial(r.registrado_por)) + '</span>' + esc(r.registrado_por || '—') + '</span></td>' +
+      '<td class="reg-when">' + esc(fmtFechaHora(r.created_at)) + '</td>' +
+      '</tr>';
+  }
+
+  function renderRegistro() {
+    killCharts();
+    q('#stage').innerHTML =
+      '<div class="tbd-toolbar"><div class="tbd-title"><h2>Control de facturas</h2><span class="sub">Registro de entregas por código de barra</span></div><span class="spacer"></span>' +
+      '<span class="reg-countbadge" id="regCount">0 registradas</span></div>' +
+      '<div class="reg-wrap">' +
+        '<div class="reg-scan" id="regScan">' +
+          '<div class="reg-scan__ico">' + IC.scan + '</div>' +
+          '<form id="regForm" class="reg-scan__form" autocomplete="off">' +
+            '<label class="reg-scan__field"><span>Escaneá el código de barra de la entrega</span>' +
+            '<input type="text" id="regInput" placeholder="Escaneá o escribí el N° de entrega y Enter…" autocomplete="off" autocapitalize="characters" spellcheck="false" /></label>' +
+            '<button type="submit" class="btn btn--primary reg-scan__btn">' + IC.check + ' Registrar</button>' +
+          '</form>' +
+          '<div class="reg-alert" id="regAlert" hidden></div>' +
+        '</div>' +
+        '<div class="reg-tablecard">' +
+          '<div class="reg-tablehead"><span class="reg-tablehead__t">' + IC.clock + ' Entregas registradas</span>' +
+          '<span class="reg-by">' + IC.userIco + ' Registra: <b>' + esc(userName()) + '</b></span></div>' +
+          '<div class="reg-tablescroll"><table class="reg-table"><thead><tr>' +
+            '<th>Entrega</th><th>Estado</th><th>Registrado por</th><th>Fecha y hora</th>' +
+          '</tr></thead><tbody id="regBody"></tbody></table>' +
+          '<div class="reg-empty" id="regEmpty" hidden>' + IC.scan + '<p>Todavía no hay entregas registradas. Escaneá la primera factura.</p></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    if (window.gsap) {
+      gsap.from('#stage .tbd-toolbar', { opacity: 0, y: -8, duration: .35, ease: 'power2.out', clearProps: 'all' });
+      gsap.from('#regScan', { opacity: 0, y: 12, duration: .42, ease: 'power2.out', clearProps: 'all', delay: .05 });
+      gsap.from('.reg-tablecard', { opacity: 0, y: 16, duration: .46, ease: 'power2.out', clearProps: 'all', delay: .12 });
+    }
+    wireRegistro();
+    loadRegistros();
+  }
+
+  function wireRegistro() {
+    var form = q('#regForm'), input = q('#regInput');
+    if (form) form.addEventListener('submit', function (ev) { ev.preventDefault(); registrar(input ? input.value : ''); });
+    if (input) {
+      input.focus();
+      // Foco permanente estilo escáner (salvo que haya un modal abierto)
+      input.addEventListener('blur', function () {
+        setTimeout(function () {
+          if (currentView === 'registro' && document.body.contains(input) && !document.querySelector('.modal-bd') && !document.querySelector('.login-gate')) input.focus();
+        }, 80);
+      });
+    }
+    if (_regUnsub) { _regUnsub(); _regUnsub = null; }
+    if (window.TableroDB && TableroDB.onRegistroInsert) {
+      _regUnsub = TableroDB.onRegistroInsert(function (row) {
+        if (!row || registros.some(function (r) { return String(r.id) === String(row.id) || normEntrega(r.entrega) === normEntrega(row.entrega); })) return;
+        registros.unshift(row); prependRegRow(row, true); updRegCount();
+      });
+    }
+  }
+
+  function loadRegistros() {
+    if (!(window.TableroDB && TableroDB.ready)) { registros = []; paintRegistros(); return; }
+    TableroDB.listRegistros(500).then(function (rows) { registros = rows || []; paintRegistros(); });
+  }
+
+  function paintRegistros() {
+    var body = q('#regBody'); if (!body) return;
+    body.innerHTML = registros.map(regRowHtml).join('');
+    var empty = q('#regEmpty'); if (empty) empty.hidden = registros.length > 0;
+    updRegCount();
+    if (window.gsap && registros.length) gsap.from('#regBody tr', { opacity: 0, y: 8, duration: .3, stagger: .03, ease: 'power2.out', clearProps: 'transform,opacity' });
+  }
+
+  function prependRegRow(row, fromOther) {
+    var body = q('#regBody'); if (!body) return;
+    var empty = q('#regEmpty'); if (empty) empty.hidden = true;
+    var tr = el(regRowHtml(row)); body.insertBefore(tr, body.firstChild);
+    if (window.gsap) gsap.fromTo(tr,
+      { opacity: 0, y: -10, backgroundColor: fromOther ? 'rgba(11,95,141,.10)' : 'rgba(22,163,74,.16)' },
+      { opacity: 1, y: 0, backgroundColor: 'rgba(0,0,0,0)', duration: .55, ease: 'power2.out', clearProps: 'transform,opacity,background-color' });
+  }
+
+  function updRegCount() { var b = q('#regCount'); if (b) b.textContent = registros.length + (registros.length === 1 ? ' registrada' : ' registradas'); }
+
+  function registrar(raw) {
+    var input = q('#regInput');
+    var entrega = normEntrega(raw);
+    if (!entrega) { if (input) input.focus(); return; }
+    hideRegAlert();
+    // Chequeo instantáneo en cliente
+    if (registros.some(function (r) { return normEntrega(r.entrega) === entrega; })) {
+      showDupAlert(entrega); if (input) { input.value = ''; input.focus(); } return;
+    }
+    if (!(window.TableroDB && TableroDB.ready)) { toast('Sin conexión con la base', true); return; }
+    var btn = q('.reg-scan__btn'); if (btn) btn.disabled = true;
+    TableroDB.addRegistro(entrega, userName(), userId()).then(function (res) {
+      if (btn) btn.disabled = false;
+      if (res.duplicate) {
+        // Ya existía en la base (otro picker o registro previo)
+        showDupAlert(entrega);
+        if (!registros.some(function (r) { return normEntrega(r.entrega) === entrega; })) loadRegistros();
+      } else if (res.row) {
+        registros.unshift(res.row); prependRegRow(res.row, false); updRegCount(); okPulse();
+        toast('Entrega ' + entrega + ' registrada');
+      }
+      if (input) { input.value = ''; input.focus(); }
+    }).catch(function (e) {
+      if (btn) btn.disabled = false; console.error('[registro]', e);
+      toast('No se pudo registrar. Reintentá.', true); if (input) input.focus();
+    });
+  }
+
+  function okPulse() {
+    var s = q('#regScan'); if (s && window.gsap) gsap.fromTo(s,
+      { boxShadow: '0 0 0 0 rgba(22,163,74,.45)' },
+      { boxShadow: '0 0 0 7px rgba(22,163,74,0)', duration: .6, ease: 'power2.out', clearProps: 'box-shadow' });
+  }
+
+  function showDupAlert(entrega) {
+    var a = q('#regAlert'); if (!a) return;
+    a.innerHTML = '<span class="reg-alert__ico">' + IC.alert + '</span>' +
+      '<span class="reg-alert__txt"><b>Entrega ya registrada</b>Esta factura con el N° de entrega <b>' + esc(entrega) + '</b> ya ha sido registrada.</span>';
+    a.hidden = false;
+    if (window.gsap) {
+      gsap.killTweensOf(a);
+      gsap.fromTo(a, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: .28, ease: 'power2.out' });
+      gsap.fromTo(a, { x: -11 }, { x: 0, duration: .5, ease: 'elastic.out(1,0.35)', delay: .04 });
+    }
+    if (navigator.vibrate) { try { navigator.vibrate(120); } catch (_) {} }
+    clearTimeout(a._t); a._t = setTimeout(hideRegAlert, 5000);
+  }
+  function hideRegAlert() {
+    var a = q('#regAlert'); if (!a || a.hidden) return;
+    if (window.gsap) gsap.to(a, { opacity: 0, y: -6, duration: .2, onComplete: function () { a.hidden = true; a.style.opacity = ''; a.style.transform = ''; } });
+    else a.hidden = true;
+  }
+
   /* ── BOOT ── */
   var _booted = false;
   function boot() {
     if (_booted) return; _booted = true;
     var fb = q('#fileBase'); if (fb) fb.addEventListener('change', onFile);
     qa('[data-nav]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.nav); }); });
+
+    // Rol restringido "registro": solo ve Control de facturas y entra directo.
+    if (isRegistroOnly()) {
+      qa('[data-nav]').forEach(function (b) { if (b.dataset.nav !== 'registro') b.style.display = 'none'; });
+      currentView = 'registro'; setNav('registro'); renderRegistro();
+      return;
+    }
+
     var ready = window.TableroDB && TableroDB.ready;
     Promise.all([
       ready ? TableroDB.pullFeriados() : Promise.resolve([]),

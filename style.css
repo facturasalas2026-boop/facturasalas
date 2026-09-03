@@ -446,3 +446,64 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .upl-diff .row{display:flex;justify-content:space-between;gap:12px}
 .upl-diff .row b{color:var(--alas-text-1);font-weight:800}
 .upl-diff .tagnew{color:var(--pos);font-weight:800}
+
+/* ══ Control de facturas · registro de entregas (pickeo) ══ */
+.reg-countbadge{display:inline-flex;align-items:center;height:30px;padding:0 14px;border-radius:999px;background:var(--azul-tenue);color:var(--azul-2);font-size:12.5px;font-weight:800;white-space:nowrap}
+.reg-wrap{display:flex;flex-direction:column;gap:16px;width:100%;max-width:1120px;margin:0 auto}
+
+/* Tarjeta de escaneo */
+.reg-scan{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:22px;border-radius:var(--radius);color:#fff;
+  background:linear-gradient(135deg,var(--alas-brand) 0%,var(--alas-brand-dark) 100%);box-shadow:0 12px 30px rgba(8,72,106,.24)}
+.reg-scan__ico{flex-shrink:0;width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.16);display:grid;place-items:center}
+.reg-scan__ico svg{width:28px;height:28px}
+.reg-scan__form{flex:1 1 320px;display:flex;align-items:flex-end;gap:12px;min-width:0}
+.reg-scan__field{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0}
+.reg-scan__field>span{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.85)}
+.reg-scan__field input{height:52px;border:0;border-radius:12px;padding:0 16px;font-family:'Sora','Inter',sans-serif;font-size:20px;font-weight:800;letter-spacing:.5px;color:var(--tinta);background:#fff;outline:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.45);transition:box-shadow var(--fast)}
+.reg-scan__field input:focus{box-shadow:inset 0 0 0 2px #fff,0 0 0 4px rgba(255,255,255,.35)}
+.reg-scan__field input::placeholder{color:var(--gris-2);font-weight:600;font-size:15px;letter-spacing:0;font-family:'Inter',sans-serif}
+.reg-scan__btn{height:52px;flex-shrink:0;padding:0 22px;background:#fff;border-color:#fff;color:var(--alas-brand);font-size:14.5px}
+.reg-scan__btn:hover{background:#fff;color:var(--alas-brand-dark);filter:none;transform:translateY(-1px)}
+.reg-scan__btn svg{width:18px;height:18px}
+
+/* Alerta roja PRO (duplicado) */
+.reg-alert{flex-basis:100%;display:flex;align-items:center;gap:13px;padding:13px 16px;border-radius:12px;background:#fff;border:1.5px solid var(--alas-danger);border-left-width:5px;box-shadow:0 10px 26px rgba(220,38,38,.22)}
+.reg-alert[hidden]{display:none}
+.reg-alert__ico{flex-shrink:0;width:36px;height:36px;border-radius:10px;background:#fee2e2;color:var(--alas-danger);display:grid;place-items:center}
+.reg-alert__ico svg{width:21px;height:21px}
+.reg-alert__txt{display:flex;flex-direction:column;gap:1px;line-height:1.35;color:var(--alas-text-2);font-size:13px}
+.reg-alert__txt>b:first-child{color:var(--alas-danger);font-size:13.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+.reg-alert__txt b{color:var(--tinta);font-weight:800}
+
+/* Tarjeta / tabla de registros */
+.reg-tablecard{background:var(--panel);border:1px solid var(--linea);border-radius:var(--radius);box-shadow:var(--sombra);overflow:hidden}
+.reg-tablehead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 20px;border-bottom:1px solid var(--linea)}
+.reg-tablehead__t{display:inline-flex;align-items:center;gap:9px;font-size:14px;font-weight:800;color:var(--tinta)}
+.reg-tablehead__t svg{width:18px;height:18px;color:var(--azul-2)}
+.reg-by{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--gris);font-weight:600}
+.reg-by svg{width:16px;height:16px;color:var(--gris-2)}
+.reg-by b{color:var(--tinta);font-weight:800}
+.reg-tablescroll{max-height:52vh;overflow:auto}
+.reg-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.reg-table thead th{position:sticky;top:0;z-index:1;background:var(--gray-100);text-align:left;padding:11px 20px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--gris);white-space:nowrap}
+.reg-table thead th:last-child{text-align:right}
+.reg-table tbody td{padding:13px 20px;border-top:1px solid var(--linea);vertical-align:middle}
+.reg-table tbody tr:hover{background:var(--azul-tenue)}
+.reg-ent{font-family:'Sora','Inter',sans-serif;font-weight:800;font-size:15px;color:var(--tinta);letter-spacing:.3px;white-space:nowrap}
+.reg-chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 12px 0 9px;border-radius:999px;background:var(--pos-bg);color:var(--verde-fuerte);font-size:12px;font-weight:800;white-space:nowrap}
+.reg-chip svg{width:14px;height:14px}
+.reg-user{display:inline-flex;align-items:center;gap:9px;color:var(--alas-text-2);font-weight:600}
+.reg-uav{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--azul-tenue);color:var(--azul-2);display:grid;place-items:center;font-size:12px;font-weight:800}
+.reg-when{text-align:right;color:var(--gris);font-weight:600;white-space:nowrap}
+.reg-empty{display:flex;flex-direction:column;align-items:center;gap:12px;padding:44px 20px;color:var(--gris-2);text-align:center}
+.reg-empty[hidden]{display:none}
+.reg-empty svg{width:40px;height:40px;opacity:.5}
+.reg-empty p{margin:0;font-size:14px;font-weight:600;max-width:340px}
+
+@media (max-width:640px){
+  .reg-scan{padding:16px;gap:13px}
+  .reg-scan__form{flex-basis:100%}
+  .reg-scan__btn{flex:1}
+  .reg-tablehead{flex-direction:column;align-items:flex-start;gap:6px}
+  .reg-table thead th,.reg-table tbody td{padding-left:14px;padding-right:14px}
+}
