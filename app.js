@@ -671,8 +671,8 @@
   function fmtFechaHora(iso) {
     var d = new Date(iso); if (isNaN(d.getTime())) return '—';
     var f = d.toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    var h = d.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' });
-    return f + ' · ' + h;
+    var h = d.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return f + ' · ' + h + ' hs';
   }
   function normEntrega(v) { return String(v == null ? '' : v).trim().toUpperCase().replace(/\s+/g, ' '); }
   function avInitial(s) { return (String(s || '—').trim().charAt(0) || '—').toUpperCase(); }
