@@ -458,9 +458,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .reg-mbtn:active:not(:disabled){transform:translateY(0) scale(.95)}
 .reg-mbtn:disabled{opacity:.35;cursor:not-allowed}
 .reg-mbtn svg{width:20px;height:20px}
-.reg-mlabel{min-width:190px;text-align:center;display:flex;flex-direction:column;gap:1px}
-.reg-mlabel>span{font-family:'Sora','Inter',sans-serif;font-size:17px;font-weight:800;color:var(--tinta);text-transform:capitalize;line-height:1.1}
-.reg-mlabel small{font-size:11.5px;font-weight:700;color:var(--azul-2)}
+.reg-mlabel{min-width:200px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px}
+.reg-mlabel>span{font-family:'Sora','Inter',sans-serif;font-size:18px;font-weight:800;color:var(--tinta);text-transform:capitalize;line-height:1.1}
+.reg-mlabel small{display:inline-flex;align-items:baseline;gap:6px;padding:5px 15px;border-radius:999px;background:var(--azul-tenue);color:var(--azul-2);font-size:13px;font-weight:700;letter-spacing:.2px}
+.reg-mlabel small b{font-family:'Sora','Inter',sans-serif;font-size:17px;font-weight:800}
 
 /* Tarjeta de escaneo */
 .reg-scan{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:22px;border-radius:var(--radius);color:#fff;

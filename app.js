@@ -690,8 +690,7 @@
     killCharts();
     regMonth = curYM();
     q('#stage').innerHTML =
-      '<div class="tbd-toolbar"><div class="tbd-title"><h2>Control de facturas</h2><span class="sub">Registro de entregas por código de barra</span></div><span class="spacer"></span>' +
-      '<span class="reg-countbadge" id="regCount">0 registradas</span></div>' +
+      '<div class="tbd-toolbar"><div class="tbd-title"><h2>Control de facturas</h2><span class="sub">Registro de entregas por código de barra</span></div><span class="spacer"></span></div>' +
       '<div class="reg-wrap">' +
         '<div class="reg-monthbar">' +
           '<button class="reg-mbtn" id="regPrev" type="button" aria-label="Mes anterior"><svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>' +
@@ -807,11 +806,11 @@
       { opacity: 1, y: 0, backgroundColor: 'rgba(0,0,0,0)', duration: .55, ease: 'power2.out', clearProps: 'transform,opacity,background-color' });
   }
 
-  function updRegCount() { var b = q('#regCount'); if (b) b.textContent = registros.length + (registros.length === 1 ? ' en total' : ' en total'); }
+  function updRegCount() {}
   function updMonthLbl() {
     T('regMonthLbl', regMonthLabel());
     var n = regFiltered().length;
-    T('regMonthSub', n + (n === 1 ? ' registrada' : ' registradas'));
+    H('regMonthSub', '<b>' + n + '</b> ' + (n === 1 ? 'registrada' : 'registradas'));
     var next = q('#regNext'); if (next) next.disabled = isCurMonth();
   }
 
