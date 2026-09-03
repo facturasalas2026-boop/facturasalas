@@ -465,7 +465,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 /* Tarjeta de escaneo */
 .reg-scan{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:22px;border-radius:var(--radius);color:#fff;
   background:linear-gradient(135deg,var(--alas-brand) 0%,var(--alas-brand-dark) 100%);box-shadow:0 12px 30px rgba(8,72,106,.24)}
-.reg-scan__ico{flex-shrink:0;width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.16);display:grid;place-items:center}
+.reg-scan__ico{flex-shrink:0;align-self:flex-end;width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.16);display:grid;place-items:center}
 .reg-scan__ico svg{width:28px;height:28px}
 .reg-scan__form{flex:1 1 320px;display:flex;align-items:flex-end;gap:12px;min-width:0}
 .reg-scan__field{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0}
