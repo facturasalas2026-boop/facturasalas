@@ -660,6 +660,13 @@
   /* ── RENDER: CONTROL DE FACTURAS (registro de entregas por escaneo) ── */
   var registros = [];
   var _regUnsub = null;
+  var regMonth = { y: 0, m: 0 };  // mes en vista (filtro)
+
+  function curYM() { var d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; }
+  function isCurMonth() { var c = curYM(); return regMonth.y === c.y && regMonth.m === c.m; }
+  function inMonth(iso, y, m) { var d = new Date(iso); return !isNaN(d.getTime()) && d.getFullYear() === y && d.getMonth() === m; }
+  function regFiltered() { return registros.filter(function (r) { return inMonth(r.created_at, regMonth.y, regMonth.m); }); }
+  function regMonthLabel() { return MESES[regMonth.m] + ' ' + regMonth.y; }
 
   function fmtFechaHora(iso) {
     var d = new Date(iso); if (isNaN(d.getTime())) return '—';
@@ -681,15 +688,21 @@
 
   function renderRegistro() {
     killCharts();
+    regMonth = curYM();
     q('#stage').innerHTML =
       '<div class="tbd-toolbar"><div class="tbd-title"><h2>Control de facturas</h2><span class="sub">Registro de entregas por código de barra</span></div><span class="spacer"></span>' +
       '<span class="reg-countbadge" id="regCount">0 registradas</span></div>' +
       '<div class="reg-wrap">' +
+        '<div class="reg-monthbar">' +
+          '<button class="reg-mbtn" id="regPrev" type="button" aria-label="Mes anterior"><svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>' +
+          '<div class="reg-mlabel"><span id="regMonthLbl">—</span><small id="regMonthSub">0 registradas</small></div>' +
+          '<button class="reg-mbtn" id="regNext" type="button" aria-label="Mes siguiente"><svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>' +
+        '</div>' +
         '<div class="reg-scan" id="regScan">' +
           '<div class="reg-scan__ico">' + IC.scan + '</div>' +
           '<form id="regForm" class="reg-scan__form" autocomplete="off">' +
             '<label class="reg-scan__field"><span>Escaneá el código de barra de la entrega</span>' +
-            '<input type="text" id="regInput" placeholder="Escaneá o escribí el N° de entrega y Enter…" autocomplete="off" autocapitalize="characters" spellcheck="false" /></label>' +
+            '<input type="text" id="regInput" placeholder="Escaneá el N° de entrega…" autocomplete="off" autocapitalize="characters" spellcheck="false" /></label>' +
             '<button type="submit" class="btn btn--primary reg-scan__btn">' + IC.check + ' Registrar</button>' +
           '</form>' +
           '<div class="reg-alert" id="regAlert" hidden></div>' +
@@ -700,15 +713,16 @@
           '<div class="reg-tablescroll"><table class="reg-table"><thead><tr>' +
             '<th>Entrega</th><th>Estado</th><th>Registrado por</th><th>Fecha y hora</th>' +
           '</tr></thead><tbody id="regBody"></tbody></table>' +
-          '<div class="reg-empty" id="regEmpty" hidden>' + IC.scan + '<p>Todavía no hay entregas registradas. Escaneá la primera factura.</p></div>' +
+          '<div class="reg-empty" id="regEmpty" hidden>' + IC.scan + '<p>Todavía no hay entregas registradas este mes. Escaneá la primera factura.</p></div>' +
           '</div>' +
         '</div>' +
       '</div>';
 
     if (window.gsap) {
       gsap.from('#stage .tbd-toolbar', { opacity: 0, y: -8, duration: .35, ease: 'power2.out', clearProps: 'all' });
-      gsap.from('#regScan', { opacity: 0, y: 12, duration: .42, ease: 'power2.out', clearProps: 'all', delay: .05 });
-      gsap.from('.reg-tablecard', { opacity: 0, y: 16, duration: .46, ease: 'power2.out', clearProps: 'all', delay: .12 });
+      gsap.from('.reg-monthbar', { opacity: 0, y: -6, duration: .38, ease: 'power2.out', clearProps: 'all', delay: .04 });
+      gsap.from('#regScan', { opacity: 0, y: 12, duration: .42, ease: 'power2.out', clearProps: 'all', delay: .09 });
+      gsap.from('.reg-tablecard', { opacity: 0, y: 16, duration: .46, ease: 'power2.out', clearProps: 'all', delay: .15 });
     }
     wireRegistro();
     loadRegistros();
@@ -719,20 +733,50 @@
     if (form) form.addEventListener('submit', function (ev) { ev.preventDefault(); registrar(input ? input.value : ''); });
     if (input) {
       input.focus();
-      // Foco permanente estilo escáner (salvo que haya un modal abierto)
+      // Auto-registro al escanear: los escáneres tipean muy rápido y suelen
+      // no mandar Enter. Si el burst fue veloz, registramos solo al terminar.
+      var burst = { t0: 0, n: 0 };
+      input.addEventListener('input', function () {
+        if (burst.n === 0) burst.t0 = Date.now();
+        burst.n++;
+        clearTimeout(input._scanT);
+        input._scanT = setTimeout(function () {
+          var fast = (Date.now() - burst.t0) / Math.max(1, burst.n) < 45;
+          var val = input.value.trim();
+          burst = { t0: 0, n: 0 };
+          if (val && fast) registrar(val);
+        }, 150);
+      });
+      // Foco permanente estilo escáner (salvo modal/login abierto)
       input.addEventListener('blur', function () {
         setTimeout(function () {
-          if (currentView === 'registro' && document.body.contains(input) && !document.querySelector('.modal-bd') && !document.querySelector('.login-gate')) input.focus();
+          if (currentView === 'registro' && document.body.contains(input) && !document.querySelector('.modal-bd') && !document.querySelector('.login-gate') && !document.querySelector('.reg-flash')) input.focus();
         }, 80);
       });
     }
+    var prev = q('#regPrev'), next = q('#regNext');
+    if (prev) prev.addEventListener('click', function () { stepMonth(-1); });
+    if (next) next.addEventListener('click', function () { stepMonth(1); });
+
     if (_regUnsub) { _regUnsub(); _regUnsub = null; }
     if (window.TableroDB && TableroDB.onRegistroInsert) {
       _regUnsub = TableroDB.onRegistroInsert(function (row) {
         if (!row || registros.some(function (r) { return String(r.id) === String(row.id) || normEntrega(r.entrega) === normEntrega(row.entrega); })) return;
-        registros.unshift(row); prependRegRow(row, true); updRegCount();
+        registros.unshift(row);
+        if (isCurMonth() && inMonth(row.created_at, regMonth.y, regMonth.m)) prependRegRow(row, true);
+        updRegCount(); updMonthLbl();
       });
     }
+  }
+
+  function stepMonth(delta) {
+    var m = regMonth.m + delta, y = regMonth.y;
+    if (m < 0) { m = 11; y--; } else if (m > 11) { m = 0; y++; }
+    var c = curYM();
+    if (y > c.y || (y === c.y && m > c.m)) return; // sin futuro
+    regMonth = { y: y, m: m };
+    paintRegistros();
+    if (window.gsap) gsap.fromTo('#regMonthLbl', { y: delta > 0 ? 8 : -8, opacity: .25 }, { y: 0, opacity: 1, duration: .3, ease: 'power2.out' });
   }
 
   function loadRegistros() {
@@ -742,10 +786,16 @@
 
   function paintRegistros() {
     var body = q('#regBody'); if (!body) return;
-    body.innerHTML = registros.map(regRowHtml).join('');
-    var empty = q('#regEmpty'); if (empty) empty.hidden = registros.length > 0;
-    updRegCount();
-    if (window.gsap && registros.length) gsap.from('#regBody tr', { opacity: 0, y: 8, duration: .3, stagger: .03, ease: 'power2.out', clearProps: 'transform,opacity' });
+    var rows = regFiltered();
+    body.innerHTML = rows.map(regRowHtml).join('');
+    var empty = q('#regEmpty');
+    if (empty) {
+      empty.hidden = rows.length > 0;
+      var p = empty.querySelector('p');
+      if (p) p.textContent = isCurMonth() ? 'Todavía no hay entregas registradas este mes. Escaneá la primera factura.' : 'No hay entregas registradas en ' + regMonthLabel() + '.';
+    }
+    updRegCount(); updMonthLbl();
+    if (window.gsap && rows.length) gsap.from('#regBody tr', { opacity: 0, y: 8, duration: .3, stagger: .03, ease: 'power2.out', clearProps: 'transform,opacity' });
   }
 
   function prependRegRow(row, fromOther) {
@@ -753,38 +803,73 @@
     var empty = q('#regEmpty'); if (empty) empty.hidden = true;
     var tr = el(regRowHtml(row)); body.insertBefore(tr, body.firstChild);
     if (window.gsap) gsap.fromTo(tr,
-      { opacity: 0, y: -10, backgroundColor: fromOther ? 'rgba(11,95,141,.10)' : 'rgba(22,163,74,.16)' },
+      { opacity: 0, y: -10, backgroundColor: fromOther ? 'rgba(11,95,141,.10)' : 'rgba(20,102,176,.16)' },
       { opacity: 1, y: 0, backgroundColor: 'rgba(0,0,0,0)', duration: .55, ease: 'power2.out', clearProps: 'transform,opacity,background-color' });
   }
 
-  function updRegCount() { var b = q('#regCount'); if (b) b.textContent = registros.length + (registros.length === 1 ? ' registrada' : ' registradas'); }
+  function updRegCount() { var b = q('#regCount'); if (b) b.textContent = registros.length + (registros.length === 1 ? ' en total' : ' en total'); }
+  function updMonthLbl() {
+    T('regMonthLbl', regMonthLabel());
+    var n = regFiltered().length;
+    T('regMonthSub', n + (n === 1 ? ' registrada' : ' registradas'));
+    var next = q('#regNext'); if (next) next.disabled = isCurMonth();
+  }
 
+  var _regBusy = false;
   function registrar(raw) {
     var input = q('#regInput');
+    if (input && input._scanT) { clearTimeout(input._scanT); input._scanT = null; }
     var entrega = normEntrega(raw);
     if (!entrega) { if (input) input.focus(); return; }
+    if (_regBusy) return;
     hideRegAlert();
     // Chequeo instantáneo en cliente
     if (registros.some(function (r) { return normEntrega(r.entrega) === entrega; })) {
       showDupAlert(entrega); if (input) { input.value = ''; input.focus(); } return;
     }
     if (!(window.TableroDB && TableroDB.ready)) { toast('Sin conexión con la base', true); return; }
+    _regBusy = true;
     var btn = q('.reg-scan__btn'); if (btn) btn.disabled = true;
     TableroDB.addRegistro(entrega, userName(), userId()).then(function (res) {
+      _regBusy = false;
       if (btn) btn.disabled = false;
       if (res.duplicate) {
-        // Ya existía en la base (otro picker o registro previo)
         showDupAlert(entrega);
         if (!registros.some(function (r) { return normEntrega(r.entrega) === entrega; })) loadRegistros();
       } else if (res.row) {
-        registros.unshift(res.row); prependRegRow(res.row, false); updRegCount(); okPulse();
-        toast('Entrega ' + entrega + ' registrada');
+        registros.unshift(res.row);
+        if (!isCurMonth()) { regMonth = curYM(); paintRegistros(); }
+        else prependRegRow(res.row, false);
+        updRegCount(); updMonthLbl(); okPulse();
+        flashRegistrado(entrega);
       }
       if (input) { input.value = ''; input.focus(); }
     }).catch(function (e) {
+      _regBusy = false;
       if (btn) btn.disabled = false; console.error('[registro]', e);
       toast('No se pudo registrar. Reintentá.', true); if (input) input.focus();
     });
+  }
+
+  // Modal PRO centrado: "REGISTRADO" con check azul (aparece y desaparece rápido)
+  function flashRegistrado(entrega) {
+    var ov = el('<div class="reg-flash"><div class="reg-flash__card">' +
+      '<div class="reg-flash__badge"><svg viewBox="0 0 52 52" class="reg-flash__svg"><circle class="rf-ring" cx="26" cy="26" r="24"/><path class="rf-tick" d="M15 27l7 7 15-16"/></svg></div>' +
+      '<div class="reg-flash__txt">REGISTRADO</div>' +
+      (entrega ? '<div class="reg-flash__ent">' + esc(entrega) + '</div>' : '') +
+      '</div></div>');
+    document.body.appendChild(ov);
+    if (window.gsap) {
+      var tl = gsap.timeline({ onComplete: function () { ov.remove(); } });
+      tl.fromTo(ov, { opacity: 0 }, { opacity: 1, duration: .14, ease: 'power2.out' });
+      tl.fromTo(ov.querySelector('.reg-flash__card'), { scale: .6, y: 10 }, { scale: 1, y: 0, duration: .34, ease: 'back.out(2.4)' }, 0);
+      var tick = ov.querySelector('.rf-tick');
+      if (tick) { var L = tick.getTotalLength ? tick.getTotalLength() : 40; gsap.set(tick, { strokeDasharray: L, strokeDashoffset: L }); tl.to(tick, { strokeDashoffset: 0, duration: .3, ease: 'power2.out' }, .14); }
+      tl.to(ov.querySelector('.reg-flash__card'), { scale: 1.05, duration: .12, yoyo: true, repeat: 1, ease: 'power1.inOut' }, .44);
+      tl.to(ov, { opacity: 0, duration: .22, ease: 'power2.in' }, '+=0.34');
+    } else {
+      setTimeout(function () { ov.remove(); }, 900);
+    }
   }
 
   function okPulse() {
