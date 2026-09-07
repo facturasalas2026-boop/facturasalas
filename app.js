@@ -877,13 +877,25 @@
     var c = curYM();
     if (y > c.y || (y === c.y && m > c.m)) return; // sin futuro
     regMonth = { y: y, m: m };
-    paintRegistros();
+    registros = [];              // cada mes se carga de su propio rango en el servidor
+    regUser = '';                // el filtro de usuarios es por mes; reset al cambiar
+    var lbl = q('#regUserLbl'); if (lbl) lbl.textContent = 'Todos';
+    var uBtnEl = q('#regUserBtn'); if (uBtnEl) uBtnEl.classList.remove('is-active');
+    loadRegistros();
     if (window.gsap) gsap.fromTo('#regMonthLbl', { y: delta > 0 ? 8 : -8, opacity: .25 }, { y: 0, opacity: 1, duration: .3, ease: 'power2.out' });
   }
 
+  var _regLoadSeq = 0;
   function loadRegistros() {
-    if (!(window.TableroDB && TableroDB.ready)) { registros = []; paintRegistros(); return; }
-    TableroDB.listRegistros(500).then(function (rows) { registros = rows || []; paintRegistros(); });
+    if (!(window.TableroDB && TableroDB.listRegistrosMes)) { registros = []; paintRegistros(); return; }
+    var seq = ++_regLoadSeq;                 // evita que una carga vieja pise a una nueva
+    var body = q('#regBody');
+    if (body && !registros.length) body.innerHTML = '';   // sin parpadeo si ya hay datos
+    TableroDB.listRegistrosMes(regMonth.y, regMonth.m).then(function (rows) {
+      if (seq !== _regLoadSeq) return;        // cambió de mes mientras cargaba → descartar
+      registros = rows || [];
+      paintRegistros();
+    });
   }
 
   function paintRegistros(animate) {
@@ -957,10 +969,9 @@
         showDupAlert(entrega);
         if (!registros.some(function (r) { return normEntrega(r.entrega) === entrega; })) loadRegistros();
       } else if (res.row) {
-        registros.unshift(res.row);
-        if (!isCurMonth()) { regMonth = curYM(); paintRegistros(); }
-        else prependRegRow(res.row, false);
-        updRegCount(); updMonthLbl(); okPulse();
+        if (!isCurMonth()) { regMonth = curYM(); loadRegistros(); }
+        else { registros.unshift(res.row); prependRegRow(res.row, false); updRegCount(); updMonthLbl(); }
+        okPulse();
         flashRegistrado(entrega);
       }
       if (input) { input.value = ''; input.focus(); }

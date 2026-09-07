@@ -116,6 +116,32 @@
         });
     },
 
+    // TODOS los registros de un (anio,mes), sin límite. Filtra por rango de
+    // created_at en el servidor y pagina en tandas de 1000 (Supabase corta en
+    // 1000 por request). Los límites se calculan en hora local: new Date(y,m,1)
+    // → instante UTC del inicio del mes local, así coincide con el filtro por
+    // mes que hace la UI. Devuelve el mes completo (contador real).
+    listRegistrosMes: function (anio, mes) {
+      if (!sb) return Promise.resolve([]);
+      var startISO = new Date(anio, mes, 1).toISOString();
+      var endISO = new Date(anio, mes + 1, 1).toISOString();
+      var SIZE = 1000, all = [];
+      function page(from) {
+        return sb.from('registro_entregas')
+          .select('id,entrega,estado,registrado_por,registrado_por_id,created_at')
+          .gte('created_at', startISO).lt('created_at', endISO)
+          .order('created_at', { ascending: false })
+          .range(from, from + SIZE - 1)
+          .then(function (r) {
+            if (r.error) { console.error('[TableroDB] listRegistrosMes', r.error); return all; }
+            var rows = r.data || [];
+            all = all.concat(rows);
+            return rows.length === SIZE ? page(from + SIZE) : all;
+          });
+      }
+      return page(0);
+    },
+
     // Inserta una entrega. Resuelve { row } si ok, o { duplicate: true }
     // si esa entrega ya estaba registrada (violación del UNIQUE, code 23505).
     addRegistro: function (entrega, por, porId) {
