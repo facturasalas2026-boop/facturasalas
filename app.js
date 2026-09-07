@@ -733,10 +733,13 @@
             '</div>' +
             '<span class="reg-search__count" id="regSearchCount" hidden></span>' +
           '</div>' +
-          '<div class="reg-tablescroll"><table class="reg-table"><thead><tr>' +
-            '<th>Entrega</th><th>Estado</th><th>Registrado por</th><th>Fecha y hora</th>' +
-          '</tr></thead><tbody id="regBody"></tbody></table>' +
-          '<div class="reg-empty" id="regEmpty" hidden>' + IC.scan + '<p>Todavía no hay entregas registradas este mes. Escaneá la primera factura.</p></div>' +
+          '<div class="reg-tablewrap">' +
+            '<div class="reg-tablescroll"><table class="reg-table"><thead><tr>' +
+              '<th>Entrega</th><th>Estado</th><th>Registrado por</th><th>Fecha y hora</th>' +
+            '</tr></thead><tbody id="regBody"></tbody></table>' +
+            '<div class="reg-empty" id="regEmpty" hidden>' + IC.scan + '<p>Todavía no hay entregas registradas este mes. Escaneá la primera factura.</p></div>' +
+            '</div>' +
+            '<div class="reg-loader" id="regLoader"><span class="reg-spin"></span></div>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -786,14 +789,15 @@
       sInput.addEventListener('input', function () {
         regSearch = sInput.value;
         if (sClear) sClear.hidden = !regSearch;           // toggle inmediato del ✕
+        showRegLoader();                                   // se mantiene mientras tipeás
         clearTimeout(_searchT);                            // debounce: filtra al frenar de tipear
-        _searchT = setTimeout(function () { paintRegistros(false); }, 110);
+        _searchT = setTimeout(function () { paintRegistros(false); hideRegLoader(); }, 140);
       });
       sInput.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && regSearch) { ev.preventDefault(); clearBuscador(); } });
     }
     if (sClear) sClear.addEventListener('click', clearBuscador);
     function clearBuscador() {
-      clearTimeout(_searchT);
+      clearTimeout(_searchT); hideRegLoader();
       regSearch = ''; if (sInput) sInput.value = ''; if (sClear) sClear.hidden = true;
       paintRegistros(false); if (sInput) sInput.focus();
     }
@@ -885,17 +889,22 @@
     if (window.gsap) gsap.fromTo('#regMonthLbl', { y: delta > 0 ? 8 : -8, opacity: .25 }, { y: 0, opacity: 1, duration: .3, ease: 'power2.out' });
   }
 
+  function showRegLoader() { var l = q('#regLoader'); if (l) l.classList.add('is-on'); }
+  function hideRegLoader() { var l = q('#regLoader'); if (l) l.classList.remove('is-on'); }
+
   var _regLoadSeq = 0;
   function loadRegistros() {
     if (!(window.TableroDB && TableroDB.listRegistrosMes)) { registros = []; paintRegistros(); return; }
     var seq = ++_regLoadSeq;                 // evita que una carga vieja pise a una nueva
     var body = q('#regBody');
     if (body && !registros.length) body.innerHTML = '';   // sin parpadeo si ya hay datos
+    showRegLoader();
     TableroDB.listRegistrosMes(regMonth.y, regMonth.m).then(function (rows) {
       if (seq !== _regLoadSeq) return;        // cambió de mes mientras cargaba → descartar
       registros = rows || [];
       paintRegistros();
-    });
+      hideRegLoader();
+    }).catch(function () { if (seq === _regLoadSeq) hideRegLoader(); });
   }
 
   function paintRegistros(animate) {

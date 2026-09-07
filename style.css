@@ -512,6 +512,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .reg-empty svg{width:40px;height:40px;opacity:.5}
 .reg-empty p{margin:0;font-size:14px;font-weight:600;max-width:340px}
 
+/* ── Loader redondo centrado sobre los registros (cambio de mes / filtrado) ── */
+.reg-tablewrap{position:relative;min-height:130px}
+.reg-loader{position:absolute;inset:0;display:grid;place-items:center;background:rgba(255,255,255,.64);backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s var(--ease),visibility 0s linear .18s;z-index:6}
+.reg-loader.is-on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .18s var(--ease)}
+.reg-spin{width:42px;height:42px;border-radius:50%;border:3.5px solid var(--azul-tenue);border-top-color:var(--azul-2);animation:regSpin .7s linear infinite}
+@keyframes regSpin{to{transform:rotate(360deg)}}
+
 /* ── Buscador PRO (debajo de los registros) ── */
 .reg-search{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--linea);background:linear-gradient(180deg,#fbfdff,#f3f7fc)}
 .reg-search__box{position:relative;flex:1;display:flex;align-items:center;min-width:0}
