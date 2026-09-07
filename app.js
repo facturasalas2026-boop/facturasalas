@@ -716,11 +716,6 @@
         '<div class="reg-tablecard">' +
           '<div class="reg-tablehead"><span class="reg-tablehead__t">' + IC.clock + ' Entregas registradas</span>' +
           '<span class="reg-by">' + IC.userIco + ' Registra: <b>' + esc(userName()) + '</b></span></div>' +
-          '<div class="reg-tablescroll"><table class="reg-table"><thead><tr>' +
-            '<th>Entrega</th><th>Estado</th><th>Registrado por</th><th>Fecha y hora</th>' +
-          '</tr></thead><tbody id="regBody"></tbody></table>' +
-          '<div class="reg-empty" id="regEmpty" hidden>' + IC.scan + '<p>Todavía no hay entregas registradas este mes. Escaneá la primera factura.</p></div>' +
-          '</div>' +
           '<div class="reg-search" id="regSearchBar">' +
             '<div class="reg-search__box">' +
               '<span class="reg-search__ico">' + IC.search + '</span>' +
@@ -728,6 +723,11 @@
               '<button type="button" class="reg-search__clear" id="regSearchClear" aria-label="Limpiar búsqueda" hidden>' + IC.clearX + '</button>' +
             '</div>' +
             '<span class="reg-search__count" id="regSearchCount" hidden></span>' +
+          '</div>' +
+          '<div class="reg-tablescroll"><table class="reg-table"><thead><tr>' +
+            '<th>Entrega</th><th>Estado</th><th>Registrado por</th><th>Fecha y hora</th>' +
+          '</tr></thead><tbody id="regBody"></tbody></table>' +
+          '<div class="reg-empty" id="regEmpty" hidden>' + IC.scan + '<p>Todavía no hay entregas registradas este mes. Escaneá la primera factura.</p></div>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -772,19 +772,21 @@
       });
     }
     // Buscador PRO: filtra la tabla en vivo (no toca el contador del mes)
-    var sInput = q('#regSearchInput'), sClear = q('#regSearchClear');
+    var sInput = q('#regSearchInput'), sClear = q('#regSearchClear'), _searchT = null;
     if (sInput) {
       sInput.addEventListener('input', function () {
         regSearch = sInput.value;
-        if (sClear) sClear.hidden = !regSearch;
-        paintRegistros();
+        if (sClear) sClear.hidden = !regSearch;           // toggle inmediato del ✕
+        clearTimeout(_searchT);                            // debounce: filtra al frenar de tipear
+        _searchT = setTimeout(function () { paintRegistros(false); }, 110);
       });
       sInput.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && regSearch) { ev.preventDefault(); clearBuscador(); } });
     }
     if (sClear) sClear.addEventListener('click', clearBuscador);
     function clearBuscador() {
+      clearTimeout(_searchT);
       regSearch = ''; if (sInput) sInput.value = ''; if (sClear) sClear.hidden = true;
-      paintRegistros(); if (sInput) sInput.focus();
+      paintRegistros(false); if (sInput) sInput.focus();
     }
     var prev = q('#regPrev'), next = q('#regNext');
     if (prev) prev.addEventListener('click', function () { stepMonth(-1); });
@@ -796,7 +798,7 @@
         if (!row || registros.some(function (r) { return String(r.id) === String(row.id) || normEntrega(r.entrega) === normEntrega(row.entrega); })) return;
         registros.unshift(row);
         if (isCurMonth() && inMonth(row.created_at, regMonth.y, regMonth.m)) {
-          if (regSearch.trim()) paintRegistros();        // con búsqueda activa, re-filtra
+          if (regSearch.trim()) paintRegistros(false);   // con búsqueda activa, re-filtra sin animar
           else prependRegRow(row, true);
         }
         updRegCount(); updMonthLbl();
@@ -819,7 +821,8 @@
     TableroDB.listRegistros(500).then(function (rows) { registros = rows || []; paintRegistros(); });
   }
 
-  function paintRegistros() {
+  function paintRegistros(animate) {
+    if (animate === undefined) animate = true;
     var body = q('#regBody'); if (!body) return;
     var monthRows = regFiltered();
     var term = regSearch.trim();
@@ -840,7 +843,12 @@
       else sc.hidden = true;
     }
     updRegCount(); updMonthLbl();
-    if (window.gsap && rows.length) gsap.from('#regBody tr', { opacity: 0, y: 8, duration: .3, stagger: .03, ease: 'power2.out', clearProps: 'transform,opacity' });
+    // La animación con stagger solo al abrir la vista / cambiar de mes, nunca por tecla:
+    // animar 500 filas en cada keystroke era lo que trababa el buscador.
+    if (animate && window.gsap && rows.length) {
+      var n = Math.min(rows.length, 40); // solo las primeras filas visibles
+      gsap.from('#regBody tr:nth-child(-n+' + n + ')', { opacity: 0, y: 8, duration: .3, stagger: .03, ease: 'power2.out', clearProps: 'transform,opacity' });
+    }
   }
 
   function prependRegRow(row, fromOther) {

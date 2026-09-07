@@ -513,7 +513,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .reg-empty p{margin:0;font-size:14px;font-weight:600;max-width:340px}
 
 /* ── Buscador PRO (debajo de los registros) ── */
-.reg-search{display:flex;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--linea);background:linear-gradient(180deg,#fbfdff,#f3f7fc)}
+.reg-search{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--linea);background:linear-gradient(180deg,#fbfdff,#f3f7fc)}
 .reg-search__box{position:relative;flex:1;display:flex;align-items:center;min-width:0}
 .reg-search__ico{position:absolute;left:14px;display:grid;place-items:center;color:var(--gris-2);pointer-events:none;transition:color var(--base),transform var(--base)}
 .reg-search__ico svg{width:18px;height:18px}
