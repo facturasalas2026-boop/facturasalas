@@ -664,6 +664,7 @@
   var _regUnsub = null;
   var regMonth = { y: 0, m: 0 };  // mes en vista (filtro)
   var regSearch = '';             // término del buscador (filtra la tabla, no el contador)
+  var regUser = '';               // filtro por usuario (registrado_por); '' = todos
 
   function _norm(s) { return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase(); }
   function regMatch(r, term) { var t = _norm(term); return _norm(r.entrega).indexOf(t) >= 0 || _norm(r.registrado_por).indexOf(t) >= 0; }
@@ -695,7 +696,7 @@
   function renderRegistro() {
     killCharts();
     regMonth = curYM();
-    regSearch = '';
+    regSearch = ''; regUser = '';
     q('#stage').innerHTML =
       '<div class="tbd-toolbar"><div class="tbd-title"><h2>Control de facturas</h2><span class="sub">Registro de entregas por código de barra</span></div><span class="spacer"></span></div>' +
       '<div class="reg-wrap">' +
@@ -721,6 +722,14 @@
               '<span class="reg-search__ico">' + IC.search + '</span>' +
               '<input type="text" id="regSearchInput" placeholder="Buscar entrega o responsable…" autocomplete="off" spellcheck="false" />' +
               '<button type="button" class="reg-search__clear" id="regSearchClear" aria-label="Limpiar búsqueda" hidden>' + IC.clearX + '</button>' +
+            '</div>' +
+            '<div class="reg-ufilter" id="regUserFilter">' +
+              '<button type="button" class="reg-ufilter__btn" id="regUserBtn" aria-haspopup="listbox" aria-expanded="false">' +
+                '<span class="reg-ufilter__ico">' + IC.userIco + '</span>' +
+                '<span class="reg-ufilter__lbl" id="regUserLbl">Todos</span>' +
+                '<span class="reg-ufilter__caret"><svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>' +
+              '</button>' +
+              '<div class="reg-ufilter__menu" id="regUserMenu" role="listbox" hidden></div>' +
             '</div>' +
             '<span class="reg-search__count" id="regSearchCount" hidden></span>' +
           '</div>' +
@@ -788,6 +797,62 @@
       regSearch = ''; if (sInput) sInput.value = ''; if (sClear) sClear.hidden = true;
       paintRegistros(false); if (sInput) sInput.focus();
     }
+
+    // Filtro de usuarios PRO (dropdown con avatar + cantidad por persona)
+    var uBtn = q('#regUserBtn'), uMenu = q('#regUserMenu'), uWrap = q('#regUserFilter');
+    function setUserLbl() {
+      var lbl = q('#regUserLbl'); if (lbl) lbl.textContent = regUser || 'Todos';
+      if (uBtn) uBtn.classList.toggle('is-active', !!regUser);
+    }
+    function buildUserMenu() {
+      if (!uMenu) return;
+      var monthRows = regFiltered();
+      var map = {}, order = [];
+      monthRows.forEach(function (r) {
+        var name = r.registrado_por || '—', k = _norm(name);
+        if (!map[k]) { map[k] = { name: name, n: 0 }; order.push(k); }
+        map[k].n++;
+      });
+      order.sort(function (a, b) { return map[b].n - map[a].n; });
+      var html = '<button type="button" class="reg-uopt' + (regUser ? '' : ' is-sel') + '" data-user="">' +
+        '<span class="reg-uopt__all">' + IC.userIco + '</span><span class="reg-uopt__name">Todos los usuarios</span>' +
+        '<span class="reg-uopt__n">' + monthRows.length + '</span></button>';
+      order.forEach(function (k) {
+        var u = map[k], sel = _norm(regUser) === k ? ' is-sel' : '';
+        html += '<button type="button" class="reg-uopt' + sel + '" data-user="' + esc(u.name) + '">' +
+          '<span class="reg-uav">' + esc(avInitial(u.name)) + '</span>' +
+          '<span class="reg-uopt__name">' + esc(u.name) + '</span>' +
+          '<span class="reg-uopt__n">' + u.n + '</span></button>';
+      });
+      uMenu.innerHTML = html;
+    }
+    function onDocUser(ev) { if (uWrap && !uWrap.contains(ev.target)) closeUserMenu(); }
+    function onEscUser(ev) { if (ev.key === 'Escape') closeUserMenu(); }
+    function openUserMenu() {
+      if (!uMenu) return;
+      buildUserMenu();
+      uMenu.hidden = false;
+      if (uBtn) uBtn.setAttribute('aria-expanded', 'true');
+      if (uWrap) uWrap.classList.add('is-open');
+      document.addEventListener('click', onDocUser, true);
+      document.addEventListener('keydown', onEscUser, true);
+      if (window.gsap) gsap.fromTo(uMenu, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: .18, ease: 'power2.out' });
+    }
+    function closeUserMenu() {
+      if (!uMenu || uMenu.hidden) return;
+      uMenu.hidden = true;
+      if (uBtn) uBtn.setAttribute('aria-expanded', 'false');
+      if (uWrap) uWrap.classList.remove('is-open');
+      document.removeEventListener('click', onDocUser, true);
+      document.removeEventListener('keydown', onEscUser, true);
+    }
+    if (uBtn) uBtn.addEventListener('click', function (ev) { ev.stopPropagation(); if (uMenu && uMenu.hidden) openUserMenu(); else closeUserMenu(); });
+    if (uMenu) uMenu.addEventListener('click', function (ev) {
+      var opt = ev.target.closest ? ev.target.closest('.reg-uopt') : null; if (!opt) return;
+      regUser = opt.getAttribute('data-user') || '';
+      setUserLbl(); closeUserMenu(); paintRegistros(false);
+    });
+
     var prev = q('#regPrev'), next = q('#regNext');
     if (prev) prev.addEventListener('click', function () { stepMonth(-1); });
     if (next) next.addEventListener('click', function () { stepMonth(1); });
@@ -798,7 +863,7 @@
         if (!row || registros.some(function (r) { return String(r.id) === String(row.id) || normEntrega(r.entrega) === normEntrega(row.entrega); })) return;
         registros.unshift(row);
         if (isCurMonth() && inMonth(row.created_at, regMonth.y, regMonth.m)) {
-          if (regSearch.trim()) paintRegistros(false);   // con búsqueda activa, re-filtra sin animar
+          if (regSearch.trim() || regUser) paintRegistros(false);   // con filtro activo, re-filtra sin animar
           else prependRegRow(row, true);
         }
         updRegCount(); updMonthLbl();
@@ -826,20 +891,22 @@
     var body = q('#regBody'); if (!body) return;
     var monthRows = regFiltered();
     var term = regSearch.trim();
-    var rows = term ? monthRows.filter(function (r) { return regMatch(r, term); }) : monthRows;
+    var byUser = regUser ? monthRows.filter(function (r) { return _norm(r.registrado_por) === _norm(regUser); }) : monthRows;
+    var rows = term ? byUser.filter(function (r) { return regMatch(r, term); }) : byUser;
+    var filtro = !!(term || regUser);
     body.innerHTML = rows.map(regRowHtml).join('');
     var empty = q('#regEmpty');
     if (empty) {
       empty.hidden = rows.length > 0;
       var p = empty.querySelector('p');
       if (p) {
-        if (term && monthRows.length > 0) p.textContent = 'Sin coincidencias para «' + term + '».';
+        if (filtro && monthRows.length > 0) p.textContent = term ? ('Sin coincidencias para «' + term + '».') : 'Sin entregas para el filtro aplicado.';
         else p.textContent = isCurMonth() ? 'Todavía no hay entregas registradas este mes. Escaneá la primera factura.' : 'No hay entregas registradas en ' + regMonthLabel() + '.';
       }
     }
     var sc = q('#regSearchCount');
     if (sc) {
-      if (term) { sc.hidden = false; sc.textContent = rows.length + (rows.length === 1 ? ' coincidencia' : ' coincidencias'); }
+      if (filtro) { sc.hidden = false; sc.textContent = rows.length + (rows.length === 1 ? ' coincidencia' : ' coincidencias'); }
       else sc.hidden = true;
     }
     updRegCount(); updMonthLbl();
