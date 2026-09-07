@@ -55,6 +55,8 @@
     userIco: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
     clock: '<svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
     check: '<svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+    search: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>',
+    clearX: '<svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
     alert: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>'
   };
 
@@ -661,6 +663,10 @@
   var registros = [];
   var _regUnsub = null;
   var regMonth = { y: 0, m: 0 };  // mes en vista (filtro)
+  var regSearch = '';             // término del buscador (filtra la tabla, no el contador)
+
+  function _norm(s) { return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase(); }
+  function regMatch(r, term) { var t = _norm(term); return _norm(r.entrega).indexOf(t) >= 0 || _norm(r.registrado_por).indexOf(t) >= 0; }
 
   function curYM() { var d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; }
   function isCurMonth() { var c = curYM(); return regMonth.y === c.y && regMonth.m === c.m; }
@@ -689,6 +695,7 @@
   function renderRegistro() {
     killCharts();
     regMonth = curYM();
+    regSearch = '';
     q('#stage').innerHTML =
       '<div class="tbd-toolbar"><div class="tbd-title"><h2>Control de facturas</h2><span class="sub">Registro de entregas por código de barra</span></div><span class="spacer"></span></div>' +
       '<div class="reg-wrap">' +
@@ -714,6 +721,14 @@
           '</tr></thead><tbody id="regBody"></tbody></table>' +
           '<div class="reg-empty" id="regEmpty" hidden>' + IC.scan + '<p>Todavía no hay entregas registradas este mes. Escaneá la primera factura.</p></div>' +
           '</div>' +
+          '<div class="reg-search" id="regSearchBar">' +
+            '<div class="reg-search__box">' +
+              '<span class="reg-search__ico">' + IC.search + '</span>' +
+              '<input type="text" id="regSearchInput" placeholder="Buscar entrega o responsable…" autocomplete="off" spellcheck="false" />' +
+              '<button type="button" class="reg-search__clear" id="regSearchClear" aria-label="Limpiar búsqueda" hidden>' + IC.clearX + '</button>' +
+            '</div>' +
+            '<span class="reg-search__count" id="regSearchCount" hidden></span>' +
+          '</div>' +
         '</div>' +
       '</div>';
 
@@ -722,6 +737,7 @@
       gsap.from('.reg-monthbar', { opacity: 0, y: -6, duration: .38, ease: 'power2.out', clearProps: 'all', delay: .04 });
       gsap.from('#regScan', { opacity: 0, y: 12, duration: .42, ease: 'power2.out', clearProps: 'all', delay: .09 });
       gsap.from('.reg-tablecard', { opacity: 0, y: 16, duration: .46, ease: 'power2.out', clearProps: 'all', delay: .15 });
+      gsap.from('#regSearchBar', { opacity: 0, y: 14, duration: .44, ease: 'back.out(1.4)', clearProps: 'all', delay: .26 });
     }
     wireRegistro();
     loadRegistros();
@@ -746,12 +762,29 @@
           if (val && fast) registrar(val);
         }, 150);
       });
-      // Foco permanente estilo escáner (salvo modal/login abierto)
+      // Foco permanente estilo escáner (salvo modal/login/buscador enfocado)
       input.addEventListener('blur', function () {
         setTimeout(function () {
-          if (currentView === 'registro' && document.body.contains(input) && !document.querySelector('.modal-bd') && !document.querySelector('.login-gate') && !document.querySelector('.reg-flash')) input.focus();
+          var ae = document.activeElement;
+          var enBuscador = ae && ae.closest && ae.closest('.reg-search');
+          if (currentView === 'registro' && document.body.contains(input) && !enBuscador && !document.querySelector('.modal-bd') && !document.querySelector('.login-gate') && !document.querySelector('.reg-flash')) input.focus();
         }, 80);
       });
+    }
+    // Buscador PRO: filtra la tabla en vivo (no toca el contador del mes)
+    var sInput = q('#regSearchInput'), sClear = q('#regSearchClear');
+    if (sInput) {
+      sInput.addEventListener('input', function () {
+        regSearch = sInput.value;
+        if (sClear) sClear.hidden = !regSearch;
+        paintRegistros();
+      });
+      sInput.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && regSearch) { ev.preventDefault(); clearBuscador(); } });
+    }
+    if (sClear) sClear.addEventListener('click', clearBuscador);
+    function clearBuscador() {
+      regSearch = ''; if (sInput) sInput.value = ''; if (sClear) sClear.hidden = true;
+      paintRegistros(); if (sInput) sInput.focus();
     }
     var prev = q('#regPrev'), next = q('#regNext');
     if (prev) prev.addEventListener('click', function () { stepMonth(-1); });
@@ -762,7 +795,10 @@
       _regUnsub = TableroDB.onRegistroInsert(function (row) {
         if (!row || registros.some(function (r) { return String(r.id) === String(row.id) || normEntrega(r.entrega) === normEntrega(row.entrega); })) return;
         registros.unshift(row);
-        if (isCurMonth() && inMonth(row.created_at, regMonth.y, regMonth.m)) prependRegRow(row, true);
+        if (isCurMonth() && inMonth(row.created_at, regMonth.y, regMonth.m)) {
+          if (regSearch.trim()) paintRegistros();        // con búsqueda activa, re-filtra
+          else prependRegRow(row, true);
+        }
         updRegCount(); updMonthLbl();
       });
     }
@@ -785,13 +821,23 @@
 
   function paintRegistros() {
     var body = q('#regBody'); if (!body) return;
-    var rows = regFiltered();
+    var monthRows = regFiltered();
+    var term = regSearch.trim();
+    var rows = term ? monthRows.filter(function (r) { return regMatch(r, term); }) : monthRows;
     body.innerHTML = rows.map(regRowHtml).join('');
     var empty = q('#regEmpty');
     if (empty) {
       empty.hidden = rows.length > 0;
       var p = empty.querySelector('p');
-      if (p) p.textContent = isCurMonth() ? 'Todavía no hay entregas registradas este mes. Escaneá la primera factura.' : 'No hay entregas registradas en ' + regMonthLabel() + '.';
+      if (p) {
+        if (term && monthRows.length > 0) p.textContent = 'Sin coincidencias para «' + term + '».';
+        else p.textContent = isCurMonth() ? 'Todavía no hay entregas registradas este mes. Escaneá la primera factura.' : 'No hay entregas registradas en ' + regMonthLabel() + '.';
+      }
+    }
+    var sc = q('#regSearchCount');
+    if (sc) {
+      if (term) { sc.hidden = false; sc.textContent = rows.length + (rows.length === 1 ? ' coincidencia' : ' coincidencias'); }
+      else sc.hidden = true;
     }
     updRegCount(); updMonthLbl();
     if (window.gsap && rows.length) gsap.from('#regBody tr', { opacity: 0, y: 8, duration: .3, stagger: .03, ease: 'power2.out', clearProps: 'transform,opacity' });

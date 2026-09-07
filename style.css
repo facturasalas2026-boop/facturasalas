@@ -512,12 +512,31 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .reg-empty svg{width:40px;height:40px;opacity:.5}
 .reg-empty p{margin:0;font-size:14px;font-weight:600;max-width:340px}
 
+/* ── Buscador PRO (debajo de los registros) ── */
+.reg-search{display:flex;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--linea);background:linear-gradient(180deg,#fbfdff,#f3f7fc)}
+.reg-search__box{position:relative;flex:1;display:flex;align-items:center;min-width:0}
+.reg-search__ico{position:absolute;left:14px;display:grid;place-items:center;color:var(--gris-2);pointer-events:none;transition:color var(--base),transform var(--base)}
+.reg-search__ico svg{width:18px;height:18px}
+.reg-search__box input{width:100%;height:44px;border:1.5px solid var(--linea);border-radius:12px;padding:0 44px;font-family:'Inter',sans-serif;font-size:14.5px;font-weight:600;color:var(--tinta);background:#fff;outline:none;transition:border-color var(--base),box-shadow var(--base),background var(--base)}
+.reg-search__box input::placeholder{color:var(--gris-2);font-weight:500}
+.reg-search__box input:focus{border-color:var(--azul-2);box-shadow:0 0 0 4px rgba(20,102,176,.14);background:#fff}
+.reg-search__box:focus-within .reg-search__ico{color:var(--azul-2);transform:scale(1.1)}
+.reg-search__clear{position:absolute;right:8px;width:28px;height:28px;border:0;border-radius:8px;background:var(--gray-100);color:var(--gris);display:grid;place-items:center;cursor:pointer;transition:background var(--fast),transform var(--fast),color var(--fast);animation:regSearchClearIn .22s var(--ease) both}
+.reg-search__clear:hover{background:var(--gray-200);color:var(--tinta);transform:scale(1.08)}
+.reg-search__clear[hidden]{display:none}
+.reg-search__clear svg{width:14px;height:14px}
+@keyframes regSearchClearIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.reg-search__count{flex-shrink:0;font-size:12.5px;font-weight:800;color:var(--azul-2);background:var(--azul-tenue);padding:7px 13px;border-radius:999px;white-space:nowrap;animation:regSearchClearIn .22s var(--ease) both}
+.reg-search__count[hidden]{display:none}
+
 @media (max-width:640px){
   .reg-scan{padding:16px;gap:13px}
   .reg-scan__form{flex-basis:100%}
   .reg-scan__btn{flex:1}
   .reg-tablehead{flex-direction:column;align-items:flex-start;gap:6px}
   .reg-table thead th,.reg-table tbody td{padding-left:14px;padding-right:14px}
+  .reg-search{flex-wrap:wrap}
+  .reg-search__count{width:100%;text-align:center}
 }
 
 /* Modal flash "REGISTRADO" con check azul (aparece/desaparece rápido) */
