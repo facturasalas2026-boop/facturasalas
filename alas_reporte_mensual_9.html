@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALAS · Reporte Mensual de Reparto y Facturación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    /* ---- Tokens ALAS (extraídos del sistema de diseño real) ---- */
+    --primary:#0B5F8D;--primary-dark:#08486A;--accent:#3B82F6;--accent-soft:#DBEAFE;
+    --success:#10B981;--success-soft:#D1FAE5;--warning:#F59E0B;--warning-soft:#FEF3C7;--danger:#EF4444;
+    --gray-50:#F8FAFC;--gray-100:#F1F5F9;--gray-200:#E2E8F0;--gray-300:#CBD5E1;
+    --gray-400:#94A3B8;--gray-500:#64748B;--gray-600:#475569;--gray-700:#334155;
+    --white:#fff;--text:#1A1A1A;--muted:#6B7280;--line:#E5E7EB;--soft-line:#F0F0F0;
+    --radius:14px;--radius-xl:24px;
+    --alas-ease:cubic-bezier(0.16,1,0.3,1);--alas-ease-in:cubic-bezier(0.4,0,1,1);
+    --alas-ease-inout:cubic-bezier(0.65,0.05,0.36,1);--alas-ease-spring:cubic-bezier(0.34,1.15,0.64,1);
+    --alas-dur-fast:150ms;--alas-dur-normal:280ms;--alas-dur-page:420ms;--alas-dur-module:680ms;
+    --fast:var(--alas-dur-fast) var(--alas-ease);--base:var(--alas-dur-normal) var(--alas-ease);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{min-height:100%;}
+  button,input{font:inherit;}
+  body{
+    min-height:100vh;font-family:Inter,"DM Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+    color:var(--gray-700);background:linear-gradient(160deg,#9CA3AF 0%,#C4CAD4 50%,#E5E7EB 100%);
+    -webkit-font-smoothing:antialiased;
+  }
+  .num{font-feature-settings:"tnum";}
+
+  /* ================= SHELL (marco redondeado tipo app) ================= */
+  .layout{min-height:100vh;padding:16px;display:flex;align-items:stretch;}
+  .system-shell{
+    position:relative;flex:1;display:flex;flex-direction:column;height:calc(100vh - 32px);max-height:calc(100vh - 32px);
+    overflow:hidden;background:var(--white);border-radius:var(--radius-xl);box-shadow:0 8px 40px rgba(0,0,0,.12);
+    opacity:0;
+  }
+
+  /* ================= HEADER ================= */
+  .report-header{
+    flex-shrink:0;background:linear-gradient(100deg,#0e6fa8 0%,var(--primary) 55%,var(--primary-dark) 100%);
+    padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);overflow:hidden;
+  }
+  .brand{display:flex;align-items:center;gap:14px;min-width:0;flex-shrink:1;}
+  .brand img{height:30px;display:block;flex-shrink:0;}
+  .brand-divider{width:1px;height:26px;background:rgba(255,255,255,.22);flex-shrink:0;}
+  .brand-text{color:rgba(255,255,255,.6);font-size:11.5px;line-height:1.3;min-width:0;overflow:hidden;}
+  .brand-text b{color:#fff;display:block;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .period-divider{width:1px;height:30px;background:rgba(255,255,255,.22);flex-shrink:0;}
+  .period-picker{display:flex;align-items:baseline;gap:8px;flex-shrink:0;}
+  .period-select, .period-input{
+    background:transparent;border:none;color:#fff;font-weight:800;font-size:24px;letter-spacing:-.01em;
+    padding:2px 4px;border-radius:6px;cursor:pointer;transition:background var(--fast);
+    -moz-appearance:textfield;
+  }
+  .period-select{padding-right:2px;}
+  .period-select option{color:var(--text);font-weight:600;font-size:14px;}
+  .period-input{width:78px;cursor:text;}
+  .period-input::-webkit-outer-spin-button, .period-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .period-select:hover, .period-input:hover, .period-select:focus, .period-input:focus{background:rgba(255,255,255,.12);outline:none;}
+  .header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex:1 1 auto;min-width:0;}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:8px 14px;border:0;border-radius:9px;
+    font-size:12.5px;font-weight:700;white-space:nowrap;cursor:pointer;
+    transition:background var(--base),box-shadow var(--base),transform var(--fast);
+  }
+  .btn:active{transform:scale(.97);}
+  .btn--primary{background:var(--accent);color:#fff;box-shadow:0 6px 16px rgba(47,111,255,.28);}
+  .btn--primary:hover{background:#1D4ED8;box-shadow:0 10px 22px rgba(47,111,255,.34);}
+  .btn--ghost{background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.25);}
+  .btn--ghost:hover{background:rgba(255,255,255,.16);}
+  .btn--outline{background:#fff;color:var(--primary);border:1px solid var(--line);}
+  .btn--outline:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--primary-dark);}
+
+  /* ================= STAGE (contenido con scroll interno) ================= */
+  .report-stage{flex:1;overflow-y:auto;background:var(--gray-50);}
+  .stage-inner{max-width:1600px;margin:0 auto;padding:24px 34px 40px;}
+
+  .section-label{display:flex;align-items:center;gap:10px;margin:22px 0 12px;font-size:11px;font-weight:800;
+    text-transform:uppercase;letter-spacing:1px;color:var(--accent);}
+  .section-label:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(59,130,246,.25),transparent);}
+
+  /* ================= HERO KPI BAR ================= */
+  .hero-bar{
+    display:flex;background:#fff;border-radius:var(--radius);box-shadow:0 1px 3px rgba(15,23,42,.06),0 10px 26px rgba(15,23,42,.06);
+    border:1px solid var(--line);overflow:hidden;opacity:0;
+  }
+  .hero-seg{
+    flex:1;padding:20px 26px;border-right:1px solid var(--soft-line);
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .hero-seg:last-child{border-right:none;}
+  .hero-seg .hl{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);}
+  /* El valor y su unidad van en la misma línea, alineados por la base del texto. */
+  .hv-row{display:flex;align-items:baseline;gap:6px;margin-top:10px;min-width:0;}
+  .hero-seg .hv{font-size:32px;font-weight:800;color:var(--text);line-height:1;letter-spacing:-.025em;}
+  .hero-seg .hu{font-size:13px;color:var(--muted);font-weight:700;flex-shrink:0;}
+  .hero-seg.ring{
+    flex:1.5;position:relative;overflow:hidden;
+    background:radial-gradient(130% 140% at 12% 0%, #14739F 0%, var(--primary) 48%, var(--primary-dark) 100%);
+    display:flex;flex-direction:column;justify-content:center;padding:16px 24px;
+  }
+  .hero-seg.ring:before{
+    content:"";position:absolute;right:-70px;top:-80px;width:220px;height:220px;border-radius:50%;
+    background:rgba(255,255,255,.045);pointer-events:none;
+  }
+  .hero-seg.ring .hl{color:rgba(255,255,255,.62);position:relative;}
+  .ring-body{display:flex;align-items:center;gap:24px;margin-top:8px;position:relative;}
+
+  /* El arco es un semicírculo: la abertura es angosta arriba y ancha abajo.
+     Por eso el número va apoyado en la parte baja (zona ancha) y no centrado
+     en el medio, donde la curva se le venía encima a los dígitos. */
+  .ring-gauge{position:relative;width:200px;height:125px;flex-shrink:0;}
+  .ring-gauge svg{display:block;width:200px;height:125px;}
+  .g-track{stroke:rgba(255,255,255,.15);}
+  .g-arc{filter:drop-shadow(0 2px 5px rgba(2,32,54,.35));}
+  .g-dot{filter:drop-shadow(0 1px 4px rgba(2,32,54,.45));}
+  .ring-value{
+    position:absolute;left:0;right:0;top:60px;text-align:center;
+    font-size:28px;font-weight:800;color:#fff;line-height:1;letter-spacing:-.035em;
+  }
+  .ring-value i{font-size:15px;font-style:normal;font-weight:800;color:rgba(255,255,255,.62);margin-left:2px;}
+  .ring-sub{
+    position:absolute;left:0;right:0;top:96px;text-align:center;
+    font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.42);
+  }
+
+  .ring-foot{display:flex;flex-direction:column;justify-content:center;gap:11px;min-width:0;flex:1;}
+  .rf-item{
+    display:flex;flex-direction:column;gap:3px;min-width:0;padding:10px 14px;border-radius:11px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);
+  }
+  .rf-item.is-key{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.2);}
+  .rf-l{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:rgba(255,255,255,.55);}
+  .rf-v{font-size:16px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ring-flag{
+    display:inline-block;margin-top:9px;align-self:flex-start;padding:3px 9px;border-radius:20px;
+    font-size:9.5px;font-weight:800;letter-spacing:.04em;background:rgba(245,158,11,.22);
+    color:#FDE68A;border:1px solid rgba(245,158,11,.45);position:relative;
+  }
+  .ring-flag[hidden]{display:none;}
+
+  /* ================= PANEL (tarjeta contenedora) ================= */
+  .panel{
+    background:#fff;border-radius:var(--radius);border:1px solid var(--line);
+    box-shadow:0 1px 3px rgba(15,23,42,.04);overflow:hidden;opacity:0;
+  }
+  .panel-title{
+    display:flex;align-items:center;justify-content:space-between;padding:13px 20px;
+    border-bottom:1px solid var(--soft-line);
+  }
+  .panel-title h3{margin:0;font-size:13.5px;font-weight:800;color:var(--text);}
+  .panel-title span.note{font-size:10.5px;color:var(--muted);font-weight:600;}
+
+  /* ================= TARJETAS POR CANAL (tablero individual) ================= */
+  .channel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch;}
+  .ch-card{
+    display:flex;flex-direction:column;background:#fff;border-radius:var(--radius);
+    border:1px solid var(--line);box-shadow:0 1px 3px rgba(15,23,42,.05);overflow:hidden;opacity:0;
+    transition:box-shadow var(--base),transform var(--base);
+  }
+  .ch-card:hover{box-shadow:0 8px 22px rgba(15,23,42,.09);transform:translateY(-2px);}
+  .ch-top{height:4px;background:var(--ch-color);}
+  .ch-card[data-ch="int"]{--ch-color:#0B5F8D;--ch-soft:#E0EDF6;}
+  .ch-card[data-ch="loc"]{--ch-color:#3B82F6;--ch-soft:#DBEAFE;}
+  .ch-card[data-ch="trans"]{--ch-color:#7C6BF0;--ch-soft:#E9E6FD;}
+  .ch-head{display:flex;align-items:center;gap:8px;padding:13px 16px 0;}
+  .ch-dot{width:9px;height:9px;border-radius:50%;background:var(--ch-color);flex-shrink:0;}
+  .ch-name{font-size:12.5px;font-weight:800;color:var(--text);letter-spacing:.01em;}
+  .ch-hero{padding:8px 16px 14px;border-bottom:1px solid var(--soft-line);}
+  .ch-hero-l{display:block;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);}
+  .ch-hero-v{display:flex;align-items:baseline;gap:4px;margin-top:5px;}
+  .ch-hero-v input{
+    flex:1;min-width:0;border:none;outline:none;background:transparent;text-align:left;
+    font-size:21px;font-weight:800;color:var(--text);padding:1px 0;
+    border-bottom:1px dashed transparent;transition:border-color var(--fast),color var(--fast);
+  }
+  .ch-hero-v input:focus{border-bottom-color:var(--accent);color:var(--accent);}
+  .ch-hero-v .ch-u{font-size:10.5px;font-weight:700;color:var(--gray-400);flex-shrink:0;}
+  .ch-rows{flex:1;padding:4px 0;}
+  .ch-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:9px 18px;transition:background var(--fast);
+  }
+  .ch-row:hover{background:var(--gray-50);}
+  .ch-rl{font-size:12px;font-weight:600;color:var(--gray-500);min-width:0;}
+  .ch-rv{display:flex;align-items:baseline;justify-content:flex-end;gap:3px;flex-shrink:0;max-width:58%;}
+  .ch-rv input{
+    width:100%;min-width:0;border:none;outline:none;background:transparent;text-align:right;
+    font-size:13.5px;font-weight:700;color:var(--text);padding:1px 0;
+    border-bottom:1px dashed transparent;transition:border-color var(--fast),color var(--fast);
+  }
+  .ch-rv input:focus{border-bottom-color:var(--accent);color:var(--accent);}
+  .ch-rv .unit{font-size:9.5px;font-weight:700;color:var(--gray-400);flex-shrink:0;font-style:normal;}
+  .ch-foot{margin-top:auto;}
+  .ch-total{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:10px 16px;background:var(--ch-soft);border-top:1px solid var(--soft-line);
+  }
+  .ch-total span{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--primary-dark);}
+  .ch-total b{font-size:13px;font-weight:800;color:var(--primary-dark);white-space:nowrap;}
+  .ch-inc{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:11px 16px;background:var(--ch-color);
+  }
+  .ch-inc span{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.72);}
+  .ch-inc b{font-size:16px;font-weight:800;color:#fff;white-space:nowrap;}
+
+  /* ================= MINI BAR CAMIONES ================= */
+  .mini-bar{display:flex;border-top:1px solid var(--soft-line);}
+  .mini-seg{flex:1;padding:12px 18px;border-right:1px solid var(--soft-line);}
+  .mini-seg:last-child{border-right:none;}
+  .mini-seg .ml{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  .mini-seg input, .mini-seg .mv{
+    display:block;width:100%;border:none;outline:none;background:transparent;font-weight:800;font-size:16px;color:var(--text);
+    padding:4px 0 0;transition:color var(--fast);
+  }
+  .mini-seg input:focus{color:var(--accent);}
+  .mini-seg.total{background:var(--accent);}
+  .mini-seg.total .ml{color:rgba(255,255,255,.75);}
+  .mini-seg.total .mv{color:#fff;}
+
+  /* ================= WIZARD SUMMARY CARD (ledger) ================= */
+  table.ledger{width:100%;border-collapse:collapse;}
+  table.ledger td{padding:10px 20px;border-bottom:1px solid var(--soft-line);font-size:13px;}
+  table.ledger tr:last-child td{border-bottom:none;}
+  table.ledger tr:hover td{background:var(--gray-50);}
+  table.ledger td:first-child{color:var(--muted);font-weight:600;width:58%;}
+  table.ledger td:last-child{text-align:right;font-weight:800;color:var(--text);}
+  table.ledger input{
+    width:100%;border:none;outline:none;background:transparent;text-align:right;
+    font-weight:800;font-size:13.5px;color:var(--text);padding:2px 0;
+    border-bottom:1px dashed transparent;transition:border-color var(--fast),color var(--fast);
+  }
+  table.ledger input:focus{border-bottom:1px dashed var(--accent);color:var(--accent);}
+  table.ledger .unit{font-size:10.5px;font-weight:600;color:var(--gray-400);margin-left:4px;}
+  table.ledger tr.row-calc td{background:var(--accent-soft);}
+  table.ledger tr.row-calc td:first-child{color:var(--primary-dark);}
+  table.ledger tr.row-calc td:last-child{color:var(--primary-dark);}
+  table.ledger tr.row-highlight td{background:var(--accent);}
+  table.ledger tr.row-highlight td:first-child{color:rgba(255,255,255,.8);}
+  table.ledger tr.row-highlight td:last-child{color:#fff;font-size:14.5px;}
+
+  .main-grid{display:grid;grid-template-columns:1.65fr 1fr;gap:20px;align-items:start;}
+  .main-col-left, .main-col-right{min-width:0;}
+  .main-col-right{display:flex;flex-direction:column;}
+  .main-col-right .panel{margin-bottom:16px;}
+  .main-col-right .panel:last-child{margin-bottom:0;}
+
+  small.hint{display:block;font-size:10.5px;color:var(--gray-400);padding:10px 20px 14px;}
+
+  /* ================= MONTO POR ZONA (gráfico + tabla) ================= */
+  .zona-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+  .zona-col{min-width:0;}
+  .zbar-wrap{padding:18px 20px 20px;display:flex;flex-direction:column;gap:16px;}
+  .zbar-row{display:flex;align-items:center;gap:13px;}
+  .zbar-rank{
+    width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:800;color:#fff;background:var(--gray-300);box-shadow:0 2px 6px rgba(15,23,42,.12);
+  }
+  .zbar-row[data-rank="1"] .zbar-rank{background:linear-gradient(135deg,#F5A623,#FBBF24);box-shadow:0 4px 12px rgba(245,166,35,.4);}
+  .zbar-row[data-rank="2"] .zbar-rank{background:linear-gradient(135deg,#94A3B8,#CBD5E1);box-shadow:0 4px 12px rgba(148,163,184,.32);}
+  .zbar-row[data-rank="3"] .zbar-rank{background:linear-gradient(135deg,#C17A45,#E0A06B);box-shadow:0 4px 12px rgba(193,122,69,.32);}
+  .zbar-main{flex:1;min-width:0;}
+  .zbar-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;}
+  .zbar-label{font-size:12px;font-weight:800;color:var(--gray-700);letter-spacing:.02em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .zbar-value{flex-shrink:0;text-align:right;font-size:12px;font-weight:800;color:var(--text);white-space:nowrap;}
+  .zbar-track{position:relative;height:22px;background:var(--gray-100);border-radius:7px;overflow:hidden;}
+  .zbar-fill{
+    position:relative;height:100%;width:0%;border-radius:7px;
+    background:linear-gradient(90deg,var(--primary) 0%,var(--accent) 100%);
+    display:flex;align-items:center;justify-content:flex-end;padding-right:8px;overflow:hidden;
+  }
+  .zbar-row[data-rank="1"] .zbar-fill{background:linear-gradient(90deg,#0B5F8D 0%,#2F86D6 55%,#5FA8EC 100%);}
+  .zbar-shine{position:absolute;top:0;left:-40%;width:34%;height:100%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
+    transform:skewX(-18deg);pointer-events:none;}
+  .zbar-pct{font-size:10px;font-weight:800;color:#fff;opacity:0;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.15);}
+
+  /* ================= TABLA DE ZONAS ================= */
+  table.zona-table{width:100%;border-collapse:collapse;}
+  table.zona-table thead th{
+    text-align:right;font-size:10px;letter-spacing:.5px;text-transform:uppercase;
+    color:var(--muted);font-weight:800;padding:12px 14px 10px;border-bottom:1px solid var(--soft-line);
+  }
+  table.zona-table thead th:first-child{text-align:left;color:var(--gray-600);}
+  table.zona-table tbody td{
+    padding:9px 14px;border-bottom:1px solid var(--soft-line);text-align:right;
+    font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;
+  }
+  table.zona-table tbody td:first-child{text-align:left;font-size:12.5px;font-weight:700;color:var(--gray-700);}
+  table.zona-table tbody tr:last-child td{border-bottom:none;}
+  table.zona-table tbody tr:hover td{background:var(--gray-50);}
+  table.zona-table input{
+    width:100%;border:none;outline:none;background:transparent;text-align:right;
+    font-weight:700;font-size:13px;color:var(--text);padding:2px 0;
+    border-bottom:1px dashed transparent;transition:border-color var(--fast),color var(--fast);
+  }
+  table.zona-table input:focus{border-bottom-color:var(--accent);color:var(--accent);}
+  table.zona-table .unit{font-size:10.5px;font-weight:600;color:var(--gray-400);margin-left:4px;}
+  table.zona-table .zona-empty-row td{
+    text-align:center;color:var(--gray-400);font-weight:600;font-size:12px;padding:22px 14px;
+  }
+  th.sortable{cursor:pointer;user-select:none;transition:color var(--fast);}
+  th.sortable:hover{color:var(--accent);}
+  th.sortable .arrow{font-size:8px;margin-left:3px;display:inline-block;transition:transform var(--fast);}
+  td.zt-label{text-align:left !important;font-weight:700;color:var(--gray-700);}
+
+  .zona-form{display:flex;gap:10px;padding:16px 20px;flex-wrap:wrap;align-items:center;}
+  .zf-input{
+    height:38px;padding:0 12px;border:1.5px solid var(--gray-200);border-radius:9px;
+    font-size:13px;font-weight:600;color:var(--text);background:#fff;outline:none;
+    transition:border-color var(--fast),box-shadow var(--fast);
+  }
+  .zf-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+  .zf-name{flex:1 1 220px;min-width:160px;}
+  .zf-input:not(.zf-name){width:130px;}
+  .zona-empty{padding:30px 20px;text-align:center;font-size:12.5px;color:var(--gray-400);}
+  .zona-empty-row td{padding:30px 20px;text-align:center;font-size:12.5px;color:var(--gray-400);}
+  .zt-del-btn{
+    width:24px;height:24px;border:none;border-radius:7px;background:transparent;color:var(--gray-400);
+    font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background var(--fast),color var(--fast);
+  }
+  .zt-del-btn:hover{background:#FEF2F2;color:var(--danger);}
+
+  /* ================= MODO SOLO LECTURA (usado en el HTML exportado) ================= */
+  .view-only .header-actions,
+  .view-only #panelCargarZona,
+  .view-only .zt-del{display:none !important;}
+  .view-only .ch-card:hover{transform:none;box-shadow:0 1px 3px rgba(15,23,42,.05);}
+  .view-only input{pointer-events:none;cursor:default;border-bottom-color:transparent !important;}
+  .view-only input:focus{border-bottom-color:transparent !important;color:inherit !important;}
+  .view-only .period-select{
+    pointer-events:none;cursor:default;-webkit-appearance:none;appearance:none;
+    color:#fff !important;opacity:1;background-image:none;
+  }
+  .view-only .period-select::-ms-expand{display:none;}
+  .view-only .period-input{pointer-events:none;cursor:default;}
+  @media (max-width:640px){
+    .zf-input:not(.zf-name){width:100%;}
+    .zona-form{flex-direction:column;align-items:stretch;}
+  }
+
+  /* ================= MODAL DE CONFIRMACIÓN ================= */
+  .confirm-backdrop{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;
+    background:rgba(15,23,42,0);backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0);
+    z-index:300;opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity var(--alas-dur-normal) var(--alas-ease),visibility 0s linear var(--alas-dur-normal),
+      background-color var(--alas-dur-normal) var(--alas-ease),backdrop-filter var(--alas-dur-normal) var(--alas-ease);
+  }
+  .confirm-backdrop.is-open{
+    visibility:visible;opacity:1;transition-delay:0s;pointer-events:auto;
+    background:rgba(15,23,42,.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  }
+  .confirm-modal{
+    position:relative;width:min(400px,calc(100vw - 28px));background:#fff;border-radius:var(--radius-xl);
+    box-shadow:0 20px 60px rgba(0,102,204,.18),0 4px 16px rgba(0,0,0,.08);overflow:hidden;
+    opacity:0;transform:translateY(20px) scale(.95);
+    transition:opacity var(--alas-dur-page) var(--alas-ease),transform var(--alas-dur-page) var(--alas-ease);
+  }
+  .confirm-backdrop.is-open .confirm-modal{opacity:1;transform:translateY(0) scale(1);}
+  .confirm-modal:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--danger);}
+  .confirm-body{padding:24px 26px 20px;}
+  .confirm-icon{
+    width:40px;height:40px;border-radius:12px;background:#FEF2F2;color:var(--danger);
+    display:flex;align-items:center;justify-content:center;margin-bottom:14px;
+  }
+  .confirm-icon svg{width:20px;height:20px;}
+  .confirm-title{font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px;}
+  .confirm-text{font-size:13px;color:var(--muted);line-height:1.5;}
+
+  .guide-modal{width:min(480px,calc(100vw - 28px));}
+  .guide-modal:before{background:var(--accent) !important;}
+  .guide-icon{background:var(--accent-soft) !important;color:var(--primary-dark) !important;}
+  .guide-fields{
+    margin-top:10px;display:grid;grid-template-columns:1fr;gap:5px;
+    max-height:220px;overflow-y:auto;padding-right:4px;
+  }
+  .guide-fields div{
+    font-size:11.5px;font-weight:700;color:var(--primary-dark);background:var(--accent-soft);
+    padding:5px 9px;border-radius:6px;
+  }
+  .guide-note{margin-top:12px;font-size:12px;color:var(--gray-500);background:var(--gray-50);
+    border-left:3px solid var(--gray-300);padding:8px 12px;border-radius:0 8px 8px 0;}
+  .guide-note b{color:var(--gray-700);}
+  .confirm-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 26px;background:var(--gray-50);border-top:1px solid var(--soft-line);}
+  .btn--danger{background:var(--danger);color:#fff;box-shadow:0 6px 16px rgba(239,68,68,.28);}
+  .btn--danger:hover{background:#DC2626;box-shadow:0 10px 22px rgba(239,68,68,.34);}
+  .btn--secondary{background:#fff;color:var(--gray-600);border:1px solid var(--gray-200);}
+  .btn--secondary:hover{background:var(--gray-50);border-color:var(--gray-300);}
+
+  /* ================= TOAST IMPORTACIÓN ================= */
+  .toast{
+    position:fixed;top:18px;right:18px;z-index:200;max-width:340px;
+    background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(15,23,42,.18);
+    border:1px solid var(--line);padding:14px 16px;opacity:0;transform:translateY(-10px);
+    pointer-events:none;
+  }
+  .toast.warn{border-left:3px solid var(--gray-400);}
+  .toast.ok{border-left:3px solid var(--accent);}
+  .toast .t-title{font-size:12.5px;font-weight:800;color:var(--text);margin-bottom:3px;}
+  .toast .t-body{font-size:11.5px;color:var(--muted);line-height:1.4;}
+
+  /* =========================================================
+     RESPONSIVE — se aplica igual en la app y en el HTML descargado
+     ========================================================= */
+
+  /* ---------- Tablet / notebook chico ---------- */
+  @media (max-width:1080px){
+    .main-grid{grid-template-columns:1fr;}
+    .zona-grid{grid-template-columns:1fr;}
+    .hero-bar{flex-wrap:wrap;}
+    .hero-seg{flex:1 1 33.333%;border-bottom:1px solid var(--soft-line);}
+    .hero-seg.ring{flex:1 1 100%;border-bottom:none;}
+    .stage-inner{padding:20px 20px 32px;}
+  }
+
+  /* ---------- Tablet vertical ---------- */
+  @media (max-width:900px){
+    /* El marco de app con scroll interno no funciona en pantallas chicas:
+       pasamos a scroll normal de página. */
+    .layout{padding:0;min-height:0;}
+    .system-shell{height:auto;max-height:none;border-radius:0;box-shadow:none;}
+    .report-stage{overflow:visible;}
+    .channel-grid{grid-template-columns:1fr;gap:12px;}
+    .hero-seg{flex:1 1 50%;}
+    .hero-seg .hv{font-size:28px;}
+  }
+
+  /* ---------- Móvil ---------- */
+  @media (max-width:680px){
+    body{background:var(--gray-50);}
+    .stage-inner{padding:14px 14px 28px;}
+    .section-label{margin:18px 0 10px;font-size:10px;}
+
+    /* Encabezado: marca arriba, período debajo, botones a lo ancho */
+    .report-header{flex-direction:column;align-items:stretch;gap:12px;padding:14px 16px;}
+    .brand{flex-wrap:wrap;gap:10px;}
+    .brand img{height:26px;}
+    .brand-text{font-size:10.5px;}
+    .brand-text b{font-size:13px;}
+    .period-divider{display:none;}
+    .period-picker{width:100%;margin-top:2px;}
+    .period-select, .period-input{font-size:21px;}
+    .period-input{width:66px;}
+    .header-actions{width:100%;gap:6px;}
+    .header-actions .btn{flex:1 1 auto;min-height:38px;padding:8px 10px;font-size:11.5px;}
+
+    /* KPIs: uno por fila, a lo ancho */
+    .hero-bar{flex-direction:column;border-radius:12px;}
+    .hero-seg{flex:1 1 auto;padding:14px 16px;}
+    .hero-seg .hl{font-size:10.5px;}
+    .hero-seg .hv{font-size:26px;}
+    .hv-row{margin-top:7px;}
+
+    /* Nivel de entrega: gauge centrado arriba, datos abajo a lo ancho */
+    .hero-seg.ring{padding:16px;}
+    .ring-body{flex-direction:column;align-items:stretch;gap:14px;margin-top:10px;}
+    .ring-gauge{align-self:center;width:190px;height:119px;}
+    .ring-gauge svg{width:190px;height:119px;}
+    .ring-value{top:57px;font-size:27px;}
+    .ring-value i{font-size:14px;}
+    .ring-sub{top:91px;}
+    .ring-foot{flex:none;}
+    .rf-v{font-size:17px;}
+    .ring-flag{align-self:center;}
+
+    /* Tarjetas de canal */
+    .ch-hero-v input{font-size:20px;}
+    .ch-rl{font-size:12px;}
+    .ch-rv{max-width:52%;}
+
+    /* Camiones: dos arriba, total a lo ancho abajo */
+    .mini-bar{flex-wrap:wrap;}
+    .mini-seg{flex:1 1 50%;border-bottom:1px solid var(--soft-line);}
+    .mini-seg:nth-child(2){border-right:none;}
+    .mini-seg.total{flex:1 1 100%;border-bottom:none;}
+
+    /* Ranking de zonas */
+    .zbar-wrap{padding:14px 14px 18px;gap:14px;}
+    .zbar-row{gap:10px;}
+    .zbar-rank{width:23px;height:23px;font-size:10px;}
+    .zbar-label{font-size:11.5px;}
+    .zbar-value{font-size:11.5px;}
+    .zbar-track{height:19px;}
+
+    /* Tablas anchas: scroll horizontal en vez de romper el layout */
+    table.zona-table, table.ledger{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;}
+    table.zona-table thead th, table.zona-table tbody td{padding:9px 11px;}
+    table.ledger td{padding:10px 14px;}
+
+    /* Aviso de importación */
+    .toast{left:12px;right:12px;top:12px;max-width:none;}
+  }
+
+  /* ---------- Móvil angosto ---------- */
+  @media (max-width:400px){
+    .hero-seg .hv{font-size:22px;}
+    .ch-hero-v input{font-size:18px;}
+    .ring-gauge{width:168px;height:105px;}
+    .ring-gauge svg{width:168px;height:105px;}
+    .ring-value{top:50px;font-size:24px;}
+    .ring-value i{font-size:13px;}
+    .ring-sub{top:80px;font-size:8px;}
+    .header-actions{flex-wrap:wrap;}
+    .header-actions .btn{flex:1 1 100%;}
+  }
+
+  @media print{
+    body{background:#fff;}
+    .btn, .btn--ghost, .header-actions{display:none;}
+    .layout{padding:0;}
+    .system-shell{height:auto;max-height:none;box-shadow:none;border-radius:0;}
+    .report-stage{overflow:visible;}
+    .panel,.hero-bar,.ch-card{box-shadow:none;border:1px solid var(--gray-300);opacity:1 !important;}
+    .ch-card{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="layout">
+    <main class="system-shell" id="shell">
+
+      <div class="report-header">
+        <div class="brand">
+          <img src="data:image/png;base64,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" alt="ALAS">
+          <div class="brand-divider"></div>
+          <div class="brand-text"><b>Reporte Mensual</b>Reparto y Facturación</div>
+          <div class="period-divider"></div>
+          <div class="period-picker">
+            <select class="period-select" id="mes"></select>
+            <input class="period-input" id="anio" type="number" value="2026">
+          </div>
+        </div>
+        <div class="header-actions">
+          <input type="file" id="fileImport" accept=".xlsx,.xls" style="display:none">
+          <button class="btn btn--ghost" id="btnImport">Importar Excel</button>
+          <button class="btn btn--ghost" id="btnClear">Limpiar mes</button>
+          <button class="btn btn--primary" id="btnExport">Descargar HTML</button>
+        </div>
+      </div>
+
+      <div class="report-stage">
+        <div class="stage-inner">
+
+          <!-- ================= HERO ================= -->
+          <div class="hero-bar" data-anim>
+            <div class="hero-seg">
+              <span class="hl">Monto repartido</span>
+              <div class="hv-row"><span class="hv num" id="hero_monto">0</span><span class="hu">Gs.</span></div>
+            </div>
+            <div class="hero-seg">
+              <span class="hl">Gasto total</span>
+              <div class="hv-row"><span class="hv num" id="hero_gasto">0</span><span class="hu">Gs.</span></div>
+            </div>
+            <div class="hero-seg">
+              <span class="hl">Incidencia general</span>
+              <div class="hv-row"><span class="hv num" id="hero_incidencia">0,00</span><span class="hu">%</span></div>
+            </div>
+            <div class="hero-seg ring" title="Nivel de entrega = Disponible p/reparto ÷ Facturación total × 100. Disponible = Facturación total − Retira.">
+              <span class="hl">Nivel de entrega</span>
+              <div class="ring-body">
+                <div class="ring-gauge">
+                  <svg viewBox="0 0 160 100">
+                    <defs>
+                      <linearGradient id="gaugeGrad" x1="0" y1="1" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#22D3EE"/>
+                        <stop offset="45%" stop-color="#7DD3FC"/>
+                        <stop offset="100%" stop-color="#FFFFFF"/>
+                      </linearGradient>
+                    </defs>
+                    <path class="g-track" d="M 16 84 A 64 64 0 0 1 144 84" fill="none" stroke-width="13" stroke-linecap="round"/>
+                    <path id="gaugeArc" class="g-arc" d="M 16 84 A 64 64 0 0 1 144 84" fill="none" stroke="url(#gaugeGrad)"
+                          stroke-width="13" stroke-linecap="round" stroke-dasharray="201.1" stroke-dashoffset="201.1"/>
+                    <circle id="gaugeDot" class="g-dot" cx="16" cy="84" r="4" fill="#fff"/>
+                  </svg>
+                  <div class="ring-value num"><span id="gauge_value">0,00</span><i>%</i></div>
+                  <div class="ring-sub">de lo facturado</div>
+                </div>
+                <div class="ring-foot">
+                  <div class="rf-item is-key">
+                    <span class="rf-l">Disponible p/reparto</span>
+                    <span class="rf-v num" id="gauge_disponible">0</span>
+                  </div>
+                  <div class="rf-item">
+                    <span class="rf-l">Facturación total</span>
+                    <span class="rf-v num" id="gauge_facturacion">0</span>
+                  </div>
+                </div>
+              </div>
+              <span class="ring-flag" id="ringFlag" hidden>Revisar: el disponible supera la facturación</span>
+            </div>
+          </div>
+
+          <!-- ================= REPARTO POR CANAL + RESUMEN/FACTURACION ================= -->
+          <div class="main-grid">
+
+            <div class="main-col-left">
+              <div class="section-label">Reparto por canal</div>
+              <div class="channel-grid">
+
+                <div class="ch-card" data-ch="int" data-anim>
+                  <div class="ch-top"></div>
+                  <div class="ch-head"><span class="ch-dot"></span><span class="ch-name">Interior</span></div>
+                  <div class="ch-hero">
+                    <span class="ch-hero-l">Monto repartido</span>
+                    <div class="ch-hero-v"><input data-role="int_monto" value="0"><span class="ch-u">Gs.</span></div>
+                  </div>
+                  <div class="ch-rows">
+                    <div class="ch-row"><span class="ch-rl">Peso</span>
+                      <span class="ch-rv"><input data-role="int_peso" value="0"><i class="unit">Kg</i></span></div>
+                    <div class="ch-row"><span class="ch-rl">Km recorridos</span>
+                      <span class="ch-rv"><input data-role="int_km" value="0"><i class="unit">Km</i></span></div>
+                    <div class="ch-row"><span class="ch-rl">Pago a transportadoras</span>
+                      <span class="ch-rv"><input data-role="int_pagoTransp" value="0"></span></div>
+                    <div class="ch-row"><span class="ch-rl">Gratificaciones</span>
+                      <span class="ch-rv"><input data-role="int_gratificaciones" value="0"></span></div>
+                    <div class="ch-row"><span class="ch-rl">Gasto viático</span>
+                      <span class="ch-rv"><input data-role="int_viatico" value="0"></span></div>
+                  </div>
+                  <div class="ch-foot">
+                    <div class="ch-total"><span>Gasto total</span><b id="int_gastoTotal">0 Gs.</b></div>
+                    <div class="ch-inc"><span>Incidencia</span><b id="int_incidencia">0,00%</b></div>
+                  </div>
+                </div>
+
+                <div class="ch-card" data-ch="loc" data-anim>
+                  <div class="ch-top"></div>
+                  <div class="ch-head"><span class="ch-dot"></span><span class="ch-name">Local</span></div>
+                  <div class="ch-hero">
+                    <span class="ch-hero-l">Monto repartido</span>
+                    <div class="ch-hero-v"><input data-role="loc_monto" value="0"><span class="ch-u">Gs.</span></div>
+                  </div>
+                  <div class="ch-rows">
+                    <div class="ch-row"><span class="ch-rl">Peso</span>
+                      <span class="ch-rv"><input data-role="loc_peso" value="0"><i class="unit">Kg</i></span></div>
+                    <div class="ch-row"><span class="ch-rl">Pago a transportadoras</span>
+                      <span class="ch-rv"><input data-role="loc_pagoTransp" value="0"></span></div>
+                    <div class="ch-row"><span class="ch-rl">Gasto viático</span>
+                      <span class="ch-rv"><input data-role="loc_viatico" value="0"></span></div>
+                  </div>
+                  <div class="ch-foot">
+                    <div class="ch-total"><span>Gasto total</span><b id="loc_gastoTotal">0 Gs.</b></div>
+                    <div class="ch-inc"><span>Incidencia</span><b id="loc_incidencia">0,00%</b></div>
+                  </div>
+                </div>
+
+                <div class="ch-card" data-ch="trans" data-anim>
+                  <div class="ch-top"></div>
+                  <div class="ch-head"><span class="ch-dot"></span><span class="ch-name">Transportadora</span></div>
+                  <div class="ch-hero">
+                    <span class="ch-hero-l">Monto de factura</span>
+                    <div class="ch-hero-v"><input data-role="trans_monto" value="0"><span class="ch-u">Gs.</span></div>
+                  </div>
+                  <div class="ch-rows">
+                    <div class="ch-row"><span class="ch-rl">Importe flete</span>
+                      <span class="ch-rv"><input data-role="trans_flete" value="0"></span></div>
+                  </div>
+                  <div class="ch-foot">
+                    <div class="ch-total"><span>Gasto total</span><b id="trans_gastoTotal">0 Gs.</b></div>
+                    <div class="ch-inc"><span>Incidencia</span><b id="trans_incidencia">0,00%</b></div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="panel" data-anim style="margin-top:14px;">
+                <div class="mini-bar">
+                  <div class="mini-seg"><span class="ml">Camiones interior</span><input data-role="cam_interior" value="0"></div>
+                  <div class="mini-seg"><span class="ml">Camiones periferia</span><input data-role="cam_periferia" value="0"></div>
+                  <div class="mini-seg total"><span class="ml">Camiones total</span><span class="mv" id="cam_total">0</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="main-col-right">
+              <div class="section-label">Resumen y facturación</div>
+
+              <div class="panel" data-anim>
+                <div class="panel-title"><h3>Resumen del reparto</h3></div>
+                <table class="ledger">
+                  <tr class="row-calc"><td>Peso total</td><td id="otros_pesoTotal">0</td></tr>
+                  <tr><td>Peso en hierros</td><td><input data-role="peso_hierros" value="0"><span class="unit">Kg</span></td></tr>
+                  <tr class="row-highlight"><td>Disponible p/reparto</td><td id="otros_disponible">0</td></tr>
+                </table>
+              </div>
+
+              <div class="panel" data-anim>
+                <div class="panel-title"><h3>Facturación</h3></div>
+                <table class="ledger">
+                  <tr><td>Fac. mes pasado</td><td><input data-role="fac_mesPasado" value="0"></td></tr>
+                  <tr><td>Retira</td><td><input data-role="fac_retira" value="0"></td></tr>
+                  <tr><td>Nota de crédito</td><td><input data-role="fac_notaCredito" value="0"></td></tr>
+                  <tr><td>Facturación mes</td><td><input data-role="fac_mes" value="0"></td></tr>
+                  <tr class="row-highlight"><td>Facturación total</td><td id="fact_total">0 Gs.</td></tr>
+                </table>
+                <small class="hint">La nota de crédito es informativa y no se resta del disponible p/reparto.</small>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ================= MONTO POR ZONA ================= -->
+          <div class="section-label">Monto por zona</div>
+
+          <div class="panel" data-anim id="panelCargarZona">
+            <div class="panel-title">
+              <h3>Cargar zona</h3>
+              <input type="file" id="fileImportZonas" accept=".xlsx,.xls" style="display:none">
+              <button class="btn btn--outline" id="btnImportZonas" style="padding:6px 12px;font-size:11.5px;">⭳ Importar Excel</button>
+            </div>
+            <div class="zona-form">
+              <input id="zfNombre" class="zf-input zf-name" placeholder="Nombre de la zona (ej: Capital)">
+              <input id="zfMonto" class="zf-input" placeholder="Monto (Gs.)">
+              <input id="zfPeso" class="zf-input" placeholder="Peso (Kg)">
+              <input id="zfIncidencia" class="zf-input" placeholder="Incidencia (%)">
+              <button class="btn btn--primary" id="btnAddZona">+ Agregar zona</button>
+            </div>
+            <small class="hint" style="padding-top:0;">Solo aparecen en la tabla y el gráfico las zonas que vayas cargando acá — nada de listas fijas con ceros.</small>
+          </div>
+
+          <div class="zona-grid">
+
+            <div class="zona-col">
+              <div class="panel" data-anim>
+                <div class="panel-title"><h3>Ranking de zonas por monto repartido</h3></div>
+                <div class="zbar-wrap" id="zonaChart"></div>
+              </div>
+            </div>
+
+            <div class="zona-col">
+              <div class="panel" data-anim>
+                <div class="panel-title"><h3>Zona · Monto · Peso · Incidencia</h3></div>
+                <table class="cmp zona-table">
+                  <thead>
+                    <tr>
+                      <th style="text-align:left;">Zona</th>
+                      <th>Monto</th>
+                      <th>Peso</th>
+                      <th class="sortable" id="thIncidencia">Incidencia <span class="arrow" id="incArrow">▲</span></th>
+                      <th class="zt-del" style="width:34px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="zonaTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast">
+    <div class="t-title" id="toastTitle">Importación</div>
+    <div class="t-body" id="toastBody">—</div>
+  </div>
+
+  <div class="confirm-backdrop" id="confirmBackdrop">
+    <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="confirm-body">
+        <div class="confirm-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16"/></svg>
+        </div>
+        <div class="confirm-title" id="confirmTitle">Limpiar mes</div>
+        <div class="confirm-text" id="confirmText">¿Seguro que querés borrar los datos cargados de este mes? Esta acción no se puede deshacer.</div>
+      </div>
+      <div class="confirm-footer">
+        <button class="btn btn--secondary" id="confirmCancel">Cancelar</button>
+        <button class="btn btn--danger" id="confirmOk">Sí, limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirm-backdrop" id="guideBackdrop">
+    <div class="confirm-modal guide-modal" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+      <div class="confirm-body">
+        <div class="confirm-icon guide-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="confirm-title" id="guideTitle">Cómo importar</div>
+        <div class="confirm-text" id="guideBody">—</div>
+      </div>
+      <div class="confirm-footer">
+        <button class="btn btn--secondary" id="guideCancel">Cancelar</button>
+        <button class="btn btn--primary" id="guideOk">Seleccionar archivo</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ---------- Snapshot (solo existe en el HTML exportado) ----------
+// Cuando se descarga el reporte, se embebe acá una copia de todos los datos.
+// Si está presente, el archivo es una "foto" del mes: lee de este snapshot y
+// nunca del localStorage, así se ve igual en cualquier máquina y no cambia
+// aunque después se editen los datos en la app.
+const SNAP = (function(){
+  const el = document.getElementById('alasSnapshot');
+  if (!el) return null;
+  try { return JSON.parse(el.textContent); } catch(e){ return null; }
+})();
+const IS_EXPORT = !!SNAP;
+
+// ---------- Meses ----------
+const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const mesSel = document.getElementById('mes');
+// En el archivo exportado las <option> ya vienen en el HTML: si las volvemos a
+// crear quedarían los 12 meses duplicados.
+if (mesSel.options.length === 0) {
+  meses.forEach(m => { const o=document.createElement('option'); o.textContent=m; mesSel.appendChild(o); });
+}
+mesSel.value = IS_EXPORT ? SNAP.mes : 'Agosto';
+if (IS_EXPORT) document.getElementById('anio').value = SNAP.anio;
+
+// ---------- Formato ----------
+function fmtGs(n){
+  n = Math.round(n);
+  const sign = n < 0 ? '-' : '';
+  const s = Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return sign + s;
+}
+function fmtPct(n){ if(!isFinite(n)) n = 0; return n.toFixed(2).replace('.', ','); }
+function parseRaw(input){ return parseFloat(input.dataset.value || '0') || 0; }
+function val(role){ const el = document.querySelector('[data-role="'+role+'"]'); return el ? parseRaw(el) : 0; }
+
+// ---------- Persistencia ----------
+function storageKey(){ return 'alas_reporte_' + mesSel.value + '_' + document.getElementById('anio').value; }
+function saveState(){
+  if (IS_EXPORT) return; // el archivo descargado es una foto: no se guarda nada
+  const data = {};
+  document.querySelectorAll('input[data-role]').forEach(i => { data[i.getAttribute('data-role')] = i.dataset.value; });
+  try { localStorage.setItem(storageKey(), JSON.stringify(data)); } catch(e){}
+}
+function applyInputValue(inp, num){
+  const neg = num < 0;
+  const digits = Math.abs(num).toString();
+  inp.dataset.value = String(num);
+  inp.value = (neg ? '-' : '') + digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+function applyPercentValue(inp, num){
+  inp.dataset.value = String(num);
+  inp.value = num.toFixed(2).replace('.', ',');
+}
+function loadState(){
+  let data = {};
+  if (IS_EXPORT) {
+    data = SNAP.inputs || {};
+  } else {
+    try { const raw = localStorage.getItem(storageKey()); data = raw ? JSON.parse(raw) : {}; } catch(e){}
+  }
+  document.querySelectorAll('input[data-role]').forEach(inp => {
+    const role = inp.getAttribute('data-role');
+    const num = data[role] !== undefined ? (parseFloat(data[role]) || 0) : (parseFloat(inp.dataset.initial) || 0);
+    if (inp.dataset.kind === 'pct') applyPercentValue(inp, num); else applyInputValue(inp, num);
+  });
+  calculateAll(true);
+  if (typeof loadZonas === 'function') loadZonas();
+}
+
+// ---------- Formateo en vivo (reusable para inputs creados dinámicamente) ----------
+function wireInput(inp){
+  const isPct = inp.dataset.kind === 'pct';
+  if (isPct) {
+    inp.dataset.initial = String(parseFloat((inp.getAttribute('value') || '0').replace(',', '.')) || 0);
+  } else {
+    const raw0 = (inp.getAttribute('value') || '0').replace(/\./g, '');
+    inp.dataset.initial = String(parseInt(raw0, 10) || 0);
+  }
+  inp.dataset.value = '0';
+  inp.addEventListener('input', () => {
+    if (isPct) {
+      let raw = inp.value.replace(/[^\d,.\-]/g, '').replace(',', '.');
+      let num = raw === '' || raw === '-' ? 0 : parseFloat(raw);
+      if (isNaN(num)) num = 0;
+      inp.dataset.value = String(num);
+      inp.value = raw; // dejar escribir libremente la coma decimal
+    } else {
+      let raw = inp.value.replace(/[^\d-]/g, '');
+      const neg = raw.indexOf('-') === 0;
+      raw = raw.replace(/-/g, '');
+      let num = raw === '' ? 0 : parseInt(raw, 10);
+      if (neg) num = -num;
+      applyInputValue(inp, num);
+    }
+    calculateAll();
+    saveState();
+  });
+  if (isPct) {
+    inp.addEventListener('blur', () => { applyPercentValue(inp, parseFloat(inp.dataset.value) || 0); });
+  }
+}
+document.querySelectorAll('input[data-role]').forEach(wireInput);
+// En el archivo exportado, además de ocultar los botones, bloqueamos la edición
+// real de los campos (el CSS solo evita el clic, no el foco con Tab).
+if (IS_EXPORT) {
+  document.querySelectorAll('input').forEach(i => { i.readOnly = true; });
+  mesSel.setAttribute('aria-disabled', 'true');
+  mesSel.addEventListener('mousedown', e => e.preventDefault());
+  mesSel.addEventListener('keydown', e => e.preventDefault());
+}
+
+// ---------- Animación numérica + pulso ----------
+const prevVals = {};
+function setNumber(elId, target, formatter, pulse){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  const from = prevVals[elId] !== undefined ? prevVals[elId] : target;
+  const changed = from !== target;
+  prevVals[elId] = target;
+  if (window.gsap) {
+    gsap.to({ v: from }, {
+      v: target, duration: 0.42, ease: 'power3.out',
+      onUpdate: function () { el.textContent = formatter(this.targets()[0].v); }
+    });
+    if (pulse && changed) {
+      const row = el.closest('tr') || el.closest('.mini-seg') || el.closest('.hero-seg');
+      if (row) gsap.fromTo(row, { filter: 'brightness(1.15)' }, { filter: 'brightness(1)', duration: 0.68 });
+    }
+  } else {
+    el.textContent = formatter(target);
+  }
+}
+
+// ---------- Cálculo principal ----------
+function calculateAll(silent){
+  const pulse = !silent;
+  const int_monto = val('int_monto'), int_peso = val('int_peso'),
+        int_pagoTransp = val('int_pagoTransp'), int_gratificaciones = val('int_gratificaciones'),
+        int_viatico = val('int_viatico');
+  const loc_monto = val('loc_monto'), loc_peso = val('loc_peso'),
+        loc_pagoTransp = val('loc_pagoTransp'), loc_viatico = val('loc_viatico');
+  const trans_monto = val('trans_monto'), trans_flete = val('trans_flete');
+  const cam_interior = val('cam_interior'), cam_periferia = val('cam_periferia');
+  const fac_mesPasado = val('fac_mesPasado'), fac_retira = val('fac_retira'), fac_mes = val('fac_mes');
+
+  const int_gastoTotal = int_pagoTransp + int_gratificaciones + int_viatico;
+  const int_incidencia = int_monto !== 0 ? (int_gastoTotal / int_monto) * 100 : 0;
+  setNumber('int_gastoTotal', int_gastoTotal, v => fmtGs(v) + ' Gs.', pulse);
+  document.getElementById('int_incidencia').textContent = fmtPct(int_incidencia) + '%';
+
+  const loc_gastoTotal = loc_pagoTransp + loc_viatico;
+  const loc_incidencia = loc_monto !== 0 ? (loc_gastoTotal / loc_monto) * 100 : 0;
+  setNumber('loc_gastoTotal', loc_gastoTotal, v => fmtGs(v) + ' Gs.', pulse);
+  document.getElementById('loc_incidencia').textContent = fmtPct(loc_incidencia) + '%';
+
+  const trans_incidencia = trans_monto !== 0 ? (trans_flete / trans_monto) * 100 : 0;
+  setNumber('trans_gastoTotal', trans_flete, v => fmtGs(v) + ' Gs.', pulse);
+  document.getElementById('trans_incidencia').textContent = fmtPct(trans_incidencia) + '%';
+
+  const cam_total = cam_interior + cam_periferia;
+  setNumber('cam_total', cam_total, fmtGs, pulse);
+
+  const montoRepartido = int_monto + loc_monto + trans_monto;
+  const pesoTotal = int_peso + loc_peso;
+  const gastoTotal = int_gastoTotal + loc_gastoTotal + trans_flete;
+  const incidenciaTotal = montoRepartido !== 0 ? (gastoTotal / montoRepartido) * 100 : 0;
+
+  setNumber('hero_monto', montoRepartido, fmtGs, pulse);
+  setNumber('hero_gasto', gastoTotal, fmtGs, pulse);
+  setNumber('hero_incidencia', incidenciaTotal, fmtPct, pulse);
+  setNumber('otros_pesoTotal', pesoTotal, fmtGs, pulse);
+
+  const factTotal = fac_mes + fac_mesPasado;
+  const disponible = factTotal - fac_retira;
+  setNumber('fact_total', factTotal, v => fmtGs(v) + ' Gs.', pulse);
+  setNumber('otros_disponible', disponible, fmtGs, pulse);
+
+  // Nivel de entrega = qué parte de lo facturado queda para repartir,
+  // es decir Disponible p/reparto sobre la Facturación total.
+  const nivelEntrega = factTotal !== 0 ? (disponible / factTotal) * 100 : 0;
+  setNumber('gauge_value', nivelEntrega, fmtPct, false);
+  setNumber('gauge_disponible', disponible, fmtGs, false);
+  setNumber('gauge_facturacion', factTotal, fmtGs, false);
+
+  // Arco: semicírculo de radio 64 centrado en (80,84) -> largo = PI * 64.
+  const totalLen = Math.PI * 64;
+  const pctCapped = Math.max(0, Math.min(nivelEntrega, 100));
+  const offset = totalLen - (totalLen * pctCapped / 100);
+  const arc = document.getElementById('gaugeArc');
+  const dot = document.getElementById('gaugeDot');
+
+  // El disponible no debería superar lo facturado; si pasa (por un retira
+  // negativo o mal cargado), pintamos el arco en ámbar como alerta.
+  const excede = nivelEntrega > 100;
+  arc.setAttribute('stroke', excede ? '#FBBF24' : 'url(#gaugeGrad)');
+  document.getElementById('ringFlag').hidden = !excede;
+
+  // Posición del marcador sobre el arco.
+  const ang = Math.PI * (pctCapped / 100);
+  const dotX = 80 - 64 * Math.cos(ang);
+  const dotY = 84 - 64 * Math.sin(ang);
+
+  if (window.gsap) {
+    gsap.to(arc, { strokeDashoffset: offset, duration: 0.9, ease: 'power3.out' });
+    gsap.to(dot, { attr: { cx: dotX, cy: dotY }, duration: 0.9, ease: 'power3.out' });
+  } else {
+    arc.setAttribute('stroke-dashoffset', offset);
+    dot.setAttribute('cx', dotX);
+    dot.setAttribute('cy', dotY);
+  }
+}
+
+// ---------- Importar Excel ----------
+// Mapeo: nombre de columna en el Excel del sistema -> campo del reporte.
+// Los campos ya calculados (GASTO TOTAL, INCIDENCIA, MONTO REPARTIDO, etc.) no se importan:
+// el reporte los vuelve a calcular solo a partir de los datos "crudos".
+const excelMap = {
+  'INTERIOR MONTO': 'int_monto',
+  'INTERIOR PESO': 'int_peso',
+  'INTERIOR GASTO': 'int_pagoTransp',
+  'INTERIOR VIATICO': 'int_viatico',
+  'INTERIOR KM': 'int_km',
+  'INTERIOR HORA EXTRA': 'int_gratificaciones',
+  'LOCAL MONTO': 'loc_monto',
+  'LOCAL PESO': 'loc_peso',
+  'LOCAL VIATICO': 'loc_viatico',
+  'LOCAL GASTO': 'loc_pagoTransp',
+  'PESO EN HIERROS': 'peso_hierros',
+  'TRANSPORT IMPORTE DE FLETE': 'trans_flete',
+  'TRANSPORT MONTO DE FACTURA': 'trans_monto',
+  'FACTURACION MES': 'fac_mes',
+  'RETIRA': 'fac_retira',
+  'NOTA DE CREDITO': 'fac_notaCredito',
+  'FACT ULTIMO DIA MES PASADO': 'fac_mesPasado',
+};
+// Campos del reporte que este Excel nunca trae (no tienen fila equivalente).
+const camposSinExcel = { 'cam_interior': 'Camiones interior', 'cam_periferia': 'Camiones periferia' };
+
+function parseExcelValue(v){
+  if (typeof v === 'number') return Math.round(v);
+  if (typeof v === 'string') {
+    let s = v.replace(/Gs\.?/gi, '').trim();
+    const neg = s.trim().startsWith('-');
+    s = s.replace(/-/g, '').replace(/\./g, '').replace(/,/g, '').trim();
+    const num = parseInt(s, 10) || 0;
+    return neg ? -num : num;
+  }
+  return 0;
+}
+
+function showToast(title, body, kind){
+  const t = document.getElementById('toast');
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastBody').textContent = body;
+  t.className = 'toast ' + (kind || 'ok');
+  if (window.gsap) {
+    gsap.killTweensOf(t);
+    gsap.fromTo(t, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.32, ease: 'power3.out' });
+    gsap.to(t, { opacity: 0, y: -10, duration: 0.32, delay: 5, ease: 'power2.in' });
+  } else {
+    t.style.opacity = 1;
+    setTimeout(() => { t.style.opacity = 0; }, 5000);
+  }
+}
+
+document.getElementById('btnImport').addEventListener('click', () => {
+  openGuide({
+    title: 'Cómo importar el Excel mensual',
+    bodyHtml:
+      '<p>Hoja llamada <b>DATOS</b>: nombre del dato en la columna A, valor en la columna B. Filas que reconoce:</p>' +
+      '<div class="guide-fields">' +
+        Object.keys(excelMap).map(k => '<div>' + k + '</div>').join('') +
+      '</div>' +
+      '<div class="guide-note">No hace falta incluir filas ya calculadas (se recalculan solas). Camiones no viene en este archivo.</div>',
+    okLabel: 'Seleccionar archivo',
+    onOk: () => document.getElementById('fileImport').click(),
+  });
+});
+
+document.getElementById('fileImport').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!window.XLSX) { showToast('No se pudo importar', 'La librería de lectura de Excel no cargó (revisá tu conexión a internet).', 'warn'); return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = new Uint8Array(ev.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const sheetName = wb.SheetNames.includes('DATOS') ? 'DATOS' : wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+      let matched = 0;
+      const foundKeys = new Set();
+      rows.forEach(row => {
+        if (!row || row.length < 2) return;
+        const label = String(row[0] || '').trim().toUpperCase();
+        const role = excelMap[label];
+        if (role) {
+          const num = parseExcelValue(row[1]);
+          const inp = document.querySelector('[data-role="' + role + '"]');
+          if (inp) { applyInputValue(inp, num); matched++; foundKeys.add(role); }
+        }
+      });
+
+      calculateAll();
+      saveState();
+
+      const faltantes = Object.values(camposSinExcel);
+      showToast(
+        'Excel importado',
+        matched + ' campos actualizados desde "' + file.name + '". No vienen en este archivo (revisar manualmente): ' + faltantes.join(', ') + '.',
+        'ok'
+      );
+    } catch (err) {
+      showToast('Error al importar', 'No se pudo leer el archivo. Verificá que sea el Excel exportado por el sistema (hoja "DATOS").', 'warn');
+    }
+    e.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+
+// ---------- Período ----------
+mesSel.addEventListener('change', loadState);
+document.getElementById('anio').addEventListener('change', loadState);
+
+// ---------- Descargar HTML con los datos actuales ----------
+document.getElementById('btnExport').addEventListener('click', () => {
+  // 1) Volcar el valor visible de cada input al atributo "value". Los inputs
+  //    guardan lo que se escribe en la propiedad .value, que NO se serializa al
+  //    clonar: sin esto el archivo saldría con todos los campos en cero.
+  document.querySelectorAll('input[data-role]').forEach(inp => {
+    inp.setAttribute('value', inp.value);
+  });
+  document.getElementById('anio').setAttribute('value', document.getElementById('anio').value);
+  document.querySelectorAll('#mes option').forEach(o => {
+    if (o.value === mesSel.value) o.setAttribute('selected', 'selected');
+    else o.removeAttribute('selected');
+  });
+
+  // 2) Clonar el documento y marcarlo como "solo lectura": así el archivo que se
+  //    descarga se ve limpio (sin botones de Importar/Limpiar/Descargar ni el
+  //    formulario de Cargar zona) y muestra el reporte directo al abrirlo,
+  //    sin afectar la vista editable que seguís usando acá.
+  const clone = document.documentElement.cloneNode(true);
+  clone.classList.add('view-only');
+
+  // 3) Embeber una copia de los datos. El script del archivo se vuelve a
+  //    ejecutar al abrirlo, y sin esto leería el localStorage de la máquina de
+  //    quien lo abre: los montos volverían a cero y las zonas desaparecerían.
+  const snapshot = {
+    mes: mesSel.value,
+    anio: document.getElementById('anio').value,
+    inputs: {},
+    zonas: zonaData,
+    generado: new Date().toISOString()
+  };
+  document.querySelectorAll('input[data-role]').forEach(i => {
+    snapshot.inputs[i.getAttribute('data-role')] = i.dataset.value;
+  });
+  const snapEl = document.createElement('script');
+  snapEl.id = 'alasSnapshot';
+  snapEl.type = 'application/json';
+  // Evita que un nombre de zona con una etiqueta de cierre de script corte el documento.
+  snapEl.textContent = JSON.stringify(snapshot).replace(/<\//g, '<\\/');
+  clone.querySelector('head').appendChild(snapEl);
+
+  // 4) Serializar el clon y descargarlo como archivo .html
+  const htmlContent = '<!DOCTYPE html>\n' + clone.outerHTML;
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const periodo = mesSel.value + '_' + document.getElementById('anio').value;
+  a.href = url;
+  a.download = 'ALAS_Reporte_' + periodo + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('HTML descargado', 'Se generó "ALAS_Reporte_' + periodo + '.html" con los datos que ves ahora. Podés enviarlo directamente por mail.', 'ok');
+});
+
+
+const confirmBackdrop = document.getElementById('confirmBackdrop');
+function openConfirm(text, onConfirm){
+  document.getElementById('confirmText').textContent = text;
+  confirmBackdrop.classList.add('is-open');
+  const cleanup = () => confirmBackdrop.classList.remove('is-open');
+  const okBtn = document.getElementById('confirmOk');
+  const cancelBtn = document.getElementById('confirmCancel');
+  const onOk = () => { cleanup(); onConfirm(); okBtn.removeEventListener('click', onOk); };
+  const onCancel = () => { cleanup(); okBtn.removeEventListener('click', onOk); };
+  okBtn.addEventListener('click', onOk);
+  cancelBtn.addEventListener('click', onCancel, { once: true });
+}
+confirmBackdrop.addEventListener('click', (e) => { if (e.target === confirmBackdrop) confirmBackdrop.classList.remove('is-open'); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') confirmBackdrop.classList.remove('is-open'); });
+
+// ---------- Modal de guía de importación ----------
+const guideBackdrop = document.getElementById('guideBackdrop');
+function openGuide(opts){
+  document.getElementById('guideTitle').textContent = opts.title;
+  document.getElementById('guideBody').innerHTML = opts.bodyHtml;
+  document.getElementById('guideOk').textContent = opts.okLabel || 'Seleccionar archivo';
+  guideBackdrop.classList.add('is-open');
+  const okBtn = document.getElementById('guideOk');
+  const cancelBtn = document.getElementById('guideCancel');
+  const cleanup = () => guideBackdrop.classList.remove('is-open');
+  const onOk = () => { cleanup(); opts.onOk(); okBtn.removeEventListener('click', onOk); };
+  const onCancel = () => { cleanup(); okBtn.removeEventListener('click', onOk); };
+  okBtn.addEventListener('click', onOk);
+  cancelBtn.addEventListener('click', onCancel, { once: true });
+}
+guideBackdrop.addEventListener('click', (e) => { if (e.target === guideBackdrop) guideBackdrop.classList.remove('is-open'); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') guideBackdrop.classList.remove('is-open'); });
+
+// ---------- Limpiar ----------
+document.getElementById('btnClear').addEventListener('click', () => {
+  const periodo = mesSel.value + ' ' + document.getElementById('anio').value;
+  openConfirm('¿Seguro que querés borrar los datos cargados de ' + periodo + '? Esta acción no se puede deshacer.', () => {
+    try { localStorage.removeItem(storageKey()); } catch(e){}
+    loadState();
+  });
+});
+
+// ---------- Monto por zona (carga dinámica) ----------
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let zonaData = []; // { id, label, monto, peso, incidencia }
+let incSortDir = 1; // 1 = ascendente, -1 = descendente
+
+function zonaStorageKey(){ return 'alas_zonas_' + mesSel.value + '_' + document.getElementById('anio').value; }
+function saveZonas(){
+  if (IS_EXPORT) return; // el archivo descargado es una foto: no se guarda nada
+  try { localStorage.setItem(zonaStorageKey(), JSON.stringify(zonaData)); } catch(e){}
+}
+function loadZonas(){
+  if (IS_EXPORT) {
+    zonaData = Array.isArray(SNAP.zonas) ? SNAP.zonas : [];
+  } else {
+    try { const raw = localStorage.getItem(zonaStorageKey()); zonaData = raw ? JSON.parse(raw) : []; } catch(e){ zonaData = []; }
+  }
+  renderZonaTable();
+  renderZonaChart();
+}
+
+function renderZonaChart(){
+  const chartWrap = document.getElementById('zonaChart');
+  chartWrap.innerHTML = '';
+  if (zonaData.length === 0) {
+    chartWrap.innerHTML = '<div class="zona-empty">Todavía no cargaste ninguna zona. Usá el formulario de arriba.</div>';
+    return;
+  }
+  const sorted = [...zonaData].sort((a, b) => b.monto - a.monto);
+  const max = Math.max(1, ...sorted.map(z => z.monto));
+  const total = sorted.reduce((s, z) => s + z.monto, 0) || 1;
+
+  const rows = sorted.map((z, i) => {
+    const row = document.createElement('div');
+    row.className = 'zbar-row';
+    row.setAttribute('data-rank', i + 1);
+    row.innerHTML =
+      '<div class="zbar-rank">' + (i + 1) + '</div>' +
+      '<div class="zbar-main">' +
+        '<div class="zbar-top">' +
+          '<span class="zbar-label">' + escapeHtml(z.label) + '</span>' +
+          '<span class="zbar-value mono">Gs. 0</span>' +
+        '</div>' +
+        '<div class="zbar-track"><div class="zbar-fill"><span class="zbar-shine"></span><span class="zbar-pct"></span></div></div>' +
+      '</div>';
+    chartWrap.appendChild(row);
+    return { row, z, pct: (z.monto / max) * 100, share: (z.monto / total) * 100 };
+  });
+
+  if (!window.gsap) {
+    // Sin GSAP: mostramos el resultado final directamente, sin animación.
+    rows.forEach(({ row, z, pct, share }) => {
+      row.querySelector('.zbar-fill').style.width = pct + '%';
+      row.querySelector('.zbar-value').textContent = 'Gs. ' + fmtGs(z.monto);
+      const pctEl = row.querySelector('.zbar-pct');
+      pctEl.textContent = fmtPct(share) + '%';
+      pctEl.style.opacity = 1;
+    });
+    return;
+  }
+
+  gsap.set(rows.map(r => r.row), { opacity: 0, x: -18 });
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  tl.to(rows.map(r => r.row), { opacity: 1, x: 0, duration: 0.45, stagger: 0.09 });
+
+  rows.forEach(({ row, z, pct, share }, i) => {
+    const fill = row.querySelector('.zbar-fill');
+    const shine = row.querySelector('.zbar-shine');
+    const pctEl = row.querySelector('.zbar-pct');
+    const valueEl = row.querySelector('.zbar-value');
+    const startDelay = i * 0.09;
+    const counter = { val: 0 };
+
+    tl.to(fill, { width: pct + '%', duration: 0.85, ease: 'power3.out' }, startDelay + 0.05);
+    tl.to(counter, {
+      val: z.monto, duration: 0.85, ease: 'power2.out',
+      onUpdate: () => { valueEl.textContent = 'Gs. ' + fmtGs(Math.round(counter.val)); }
+    }, startDelay + 0.05);
+    tl.to(pctEl, { opacity: 1, duration: 0.3 }, startDelay + 0.55)
+      .call(() => { pctEl.textContent = fmtPct(share) + '%'; }, null, startDelay + 0.55);
+    tl.fromTo(shine, { xPercent: -140 }, { xPercent: 380, duration: 0.7, ease: 'power1.inOut' }, startDelay + 0.15);
+  });
+}
+
+function renderZonaTable(){
+  const tbody = document.getElementById('zonaTableBody');
+  tbody.innerHTML = '';
+  document.getElementById('incArrow').textContent = incSortDir === 1 ? '▲' : '▼';
+  if (zonaData.length === 0) {
+    tbody.innerHTML = '<tr class="zona-empty-row"><td colspan="5">Todavía no cargaste ninguna zona.</td></tr>';
+    return;
+  }
+  const sorted = [...zonaData].sort((a, b) => (a.incidencia - b.incidencia) * incSortDir);
+  sorted.forEach(z => {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="zt-label">' + escapeHtml(z.label) + '</td>' +
+      '<td><input data-id="' + z.id + '" data-field="monto" value="' + fmtGs(z.monto) + '"></td>' +
+      '<td><input data-id="' + z.id + '" data-field="peso" value="' + fmtGs(z.peso) + '"><span class="unit">Kg</span></td>' +
+      '<td><input data-id="' + z.id + '" data-field="incidencia" value="' + fmtPct(z.incidencia) + '"><span class="unit">%</span></td>' +
+      '<td class="zt-del"><button class="zt-del-btn" data-id="' + z.id + '" title="Quitar zona">✕</button></td>';
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.zt-del-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const z = zonaData.find(zz => zz.id === id);
+      openConfirm('¿Quitar la zona "' + (z ? z.label : '') + '" de este mes?', () => {
+        zonaData = zonaData.filter(zz => zz.id !== id);
+        saveZonas();
+        renderZonaTable();
+        renderZonaChart();
+      });
+    });
+  });
+}
+
+// Edición en vivo dentro de la tabla (por delegación, sin perder el foco al tipear).
+document.getElementById('zonaTableBody').addEventListener('input', (e) => {
+  const el = e.target;
+  const id = el.getAttribute('data-id'), field = el.getAttribute('data-field');
+  if (!id || !field) return;
+  const z = zonaData.find(zz => zz.id === id);
+  if (!z) return;
+  if (field === 'incidencia') {
+    let raw = el.value.replace(/[^\d,.\-]/g, '').replace(',', '.');
+    let num = raw === '' || raw === '-' ? 0 : parseFloat(raw);
+    if (isNaN(num)) num = 0;
+    z.incidencia = num;
+  } else {
+    let raw = el.value.replace(/[^\d-]/g, '');
+    const neg = raw.indexOf('-') === 0;
+    raw = raw.replace(/-/g, '');
+    let num = raw === '' ? 0 : parseInt(raw, 10);
+    if (neg) num = -num;
+    z[field] = num;
+    const digits = Math.abs(num).toString();
+    el.value = (neg ? '-' : '') + digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  saveZonas();
+  if (field === 'monto') renderZonaChart();
+}, true);
+document.getElementById('zonaTableBody').addEventListener('blur', (e) => {
+  const el = e.target;
+  if (el.getAttribute && el.getAttribute('data-field') === 'incidencia') {
+    const z = zonaData.find(zz => zz.id === el.getAttribute('data-id'));
+    if (z) el.value = fmtPct(z.incidencia) ;
+  }
+}, true);
+
+document.getElementById('thIncidencia').addEventListener('click', () => {
+  incSortDir *= -1;
+  renderZonaTable();
+});
+
+// ---------- Formulario "Cargar zona" ----------
+function formatGsFormInput(el){
+  el.addEventListener('input', () => {
+    let raw = el.value.replace(/[^\d-]/g, '');
+    const neg = raw.indexOf('-') === 0;
+    raw = raw.replace(/-/g, '');
+    el.value = (neg ? '-' : '') + raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  });
+}
+['zfMonto', 'zfPeso'].forEach(id => formatGsFormInput(document.getElementById(id)));
+document.getElementById('zfIncidencia').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/[^\d,]/g, '');
+});
+
+function addZonaFromForm(){
+  const nombreEl = document.getElementById('zfNombre');
+  const montoEl = document.getElementById('zfMonto');
+  const pesoEl = document.getElementById('zfPeso');
+  const incEl = document.getElementById('zfIncidencia');
+  const label = nombreEl.value.trim();
+  if (!label) {
+    showToast('Falta el nombre', 'Escribí el nombre de la zona antes de agregarla.', 'warn');
+    nombreEl.focus();
+    return;
+  }
+  const monto = parseInt(montoEl.value.replace(/\./g, ''), 10) || 0;
+  const peso = parseInt(pesoEl.value.replace(/\./g, ''), 10) || 0;
+  const incidencia = parseFloat(incEl.value.replace(',', '.')) || 0;
+  zonaData.push({ id: 'z_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), label, monto, peso, incidencia });
+  saveZonas();
+  renderZonaTable();
+  renderZonaChart();
+  nombreEl.value = ''; montoEl.value = ''; pesoEl.value = ''; incEl.value = '';
+  nombreEl.focus();
+  showToast('Zona agregada', '"' + label + '" se agregó a la tabla y al gráfico.', 'ok');
+}
+document.getElementById('btnAddZona').addEventListener('click', addZonaFromForm);
+['zfNombre', 'zfMonto', 'zfPeso', 'zfIncidencia'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') addZonaFromForm(); });
+});
+
+// ---------- Importar Excel de zonas ----------
+function parseIncidenciaCell(v){
+  if (typeof v === 'number') return Math.abs(v) <= 1 ? v * 100 : v;
+  if (typeof v === 'string') {
+    let s = v.replace(/%/g, '').trim().replace(',', '.');
+    const num = parseFloat(s);
+    return isNaN(num) ? 0 : num;
+  }
+  return 0;
+}
+
+document.getElementById('btnImportZonas').addEventListener('click', () => {
+  openGuide({
+    title: 'Cómo importar el Excel de zonas',
+    bodyHtml:
+      '<p>Primera fila con estos encabezados (cualquier orden), una fila por zona debajo:</p>' +
+      '<div class="guide-fields">' +
+        '<div>ZONA</div><div>MONTO</div><div>PESO</div><div>INCIDENCIA</div>' +
+      '</div>' +
+      '<div class="guide-note">Importar <b>reemplaza</b> las zonas de este mes.</div>',
+    okLabel: 'Seleccionar archivo',
+    onOk: () => document.getElementById('fileImportZonas').click(),
+  });
+});
+
+document.getElementById('fileImportZonas').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!window.XLSX) { showToast('No se pudo importar', 'La librería de lectura de Excel no cargó (revisá tu conexión a internet).', 'warn'); return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = new Uint8Array(ev.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      if (!rows.length) throw new Error('vacío');
+
+      const headerRow = rows[0].map(h => String(h || '').trim().toUpperCase());
+      const idxZona = headerRow.findIndex(h => ['ZONA', 'NOMBRE'].includes(h));
+      const idxMonto = headerRow.findIndex(h => h === 'MONTO');
+      const idxPeso = headerRow.findIndex(h => h === 'PESO');
+      const idxInc = headerRow.findIndex(h => h.indexOf('INCIDENCIA') === 0);
+
+      if (idxZona === -1) {
+        showToast('No pude importar', 'No encontré una columna llamada "Zona" en la primera fila del archivo.', 'warn');
+        e.target.value = '';
+        return;
+      }
+
+      const nuevas = [];
+      rows.slice(1).forEach(row => {
+        if (!row || !row[idxZona]) return;
+        const label = String(row[idxZona]).trim();
+        if (!label) return;
+        const monto = idxMonto > -1 ? parseExcelValue(row[idxMonto]) : 0;
+        const peso = idxPeso > -1 ? parseExcelValue(row[idxPeso]) : 0;
+        const incidencia = idxInc > -1 ? parseIncidenciaCell(row[idxInc]) : 0;
+        nuevas.push({ id: 'z_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), label, monto, peso, incidencia });
+      });
+
+      if (!nuevas.length) {
+        showToast('No pude importar', 'No encontré filas con datos de zona debajo del encabezado.', 'warn');
+        e.target.value = '';
+        return;
+      }
+
+      zonaData = nuevas;
+      saveZonas();
+      renderZonaTable();
+      renderZonaChart();
+      showToast('Excel de zonas importado', nuevas.length + ' zonas cargadas desde "' + file.name + '".', 'ok');
+    } catch (err) {
+      showToast('Error al importar', 'No se pudo leer el archivo. Verificá que tenga las columnas Zona/Monto/Peso/Incidencia.', 'warn');
+    }
+    e.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+// ---------- Entrada (curvas ALAS Motion: page=420ms, module=680ms, spring) ----------
+window.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  if (window.gsap) {
+    gsap.set('.panel, .ch-card, .hero-bar', { y: 14 });
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.to('#shell', { opacity: 1, duration: 0.42 })
+      .from('.report-header .brand img', { opacity: 0, scale: 0.85, duration: 0.42, ease: 'back.out(1.5)' }, '-=0.2')
+      .from('.header-actions > *', { opacity: 0, y: -6, duration: 0.28, stagger: 0.05 }, '-=0.2')
+      .to('.hero-bar', { opacity: 1, y: 0, duration: 0.42 }, '-=0.1')
+      .to('.ch-card', { opacity: 1, y: 0, duration: 0.45, stagger: 0.1 }, '-=0.2')
+      .to('.panel', { opacity: 1, y: 0, duration: 0.42, stagger: 0.08 }, '-=0.28');
+  } else {
+    document.getElementById('shell').style.opacity = 1;
+    document.querySelectorAll('[data-anim]').forEach(c => c.style.opacity = 1);
+  }
+});
+</script>
+</body>
+</html>
