@@ -93,6 +93,22 @@
   /* ── ESTADO ── */
   var LS_KEY = 'alas_tablero_fact_v3';
   var D = null, holidays = [], hoyOverride = null;
+  var MT = {};   // 'anio-mes' -> {t,f,h}: total de cada mes según su propio snapshot
+  function cargarMT() {
+    if (!(window.TableroDB && TableroDB.ready && TableroDB.monthTotals)) return Promise.resolve();
+    return TableroDB.monthTotals().then(function (rows) { MT = {}; rows.forEach(function (r) { MT[r.anio + '-' + r.mes] = r; }); }).catch(function () {});
+  }
+  // Facturación 2026 por mes: histórico del Excel + meses cerrados guardados en la nube
+  function v26Completo(arr, campo) {
+    var out = (arr || []).slice(), y = D.cur_year;
+    for (var i = 0; i < 12; i++) {
+      if (i === D.cur_month - 1) continue;                    // el mes en curso sale del propio snapshot
+      if (i > D.cur_month - 1) { out[i] = out[i] || 0; continue; }
+      var m = MT[y + '-' + (i + 1)];
+      if ((!out[i] || Math.abs(out[i]) < 1) && m && m[campo]) out[i] = m[campo];
+    }
+    return out;
+  }
   var SCOPE = 'tot', pedView = 'almacen', fAlm = 'todos', fEt = 'todos';
   var dataOrigin = 'nube', updatedInfo = null, charts = {}, currentView = 'principal';
   var availableMonths = [];
@@ -113,6 +129,23 @@
   function fmtHoy(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
   function dOf(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
   function isHol(y, m, d) { var s = y + '-' + pad(m + 1) + '-' + pad(d); return holidays.some(function (h) { return h.date === s; }); }
+  // Cuánto "vale" un sábado frente a un día de semana, según lo que se factura de verdad.
+  // Con pocos datos usa 0,25 (promedio real ago–nov 2026: 26 %).
+  function pesoSabado(daily) {
+    var sa = [], se = [];
+    (daily || []).forEach(function (x) { var w = dOf(x[0]).getDay(); if (w === 6) sa.push(x[1]); else if (w !== 0) se.push(x[1]); });
+    if (sa.length < 2 || se.length < 5) return 0.25;
+    var av = function (a) { return a.reduce(function (p, c) { return p + c; }, 0) / a.length; };
+    var f = av(sa) / av(se);
+    return Math.max(0.1, Math.min(1, f));
+  }
+  function pesoDia(dt, ps) { return dt.getDay() === 6 ? ps : 1; }
+  // días hábiles PONDERADOS (el sábado cuenta como fracción) — para proyecciones y ritmo
+  function bdW(y, m, hoy, ps) {
+    var tot = 0, el = 0, days = new Date(y, m + 1, 0).getDate();
+    for (var d = 1; d <= days; d++) { var dt = new Date(y, m, d), w = dt.getDay(); if (w === 0 || isHol(y, m, d)) continue; var p = pesoDia(dt, ps); tot += p; if (hoy && dt <= hoy) el += p; }
+    return { tot: tot, el: el };
+  }
   function bdaysMonth(y, m) { var tot = 0, days = new Date(y, m + 1, 0).getDate(), fds = 0, fer = 0; for (var d = 1; d <= days; d++) { var w = new Date(y, m, d).getDay(); if (w === 0) { fds++; continue; } if (isHol(y, m, d)) { fer++; continue; } tot++; } return { tot: tot, days: days, fds: fds, fer: fer }; }
   function bdaysElapsed(y, m, hoy) { var n = 0, days = new Date(y, m + 1, 0).getDate(); for (var d = 1; d <= days; d++) { var dt = new Date(y, m, d), w = dt.getDay(); if (w === 0) continue; if (isHol(y, m, d)) continue; if (dt <= hoy) n++; } return n; }
   function bdaysYear(y) { var n = 0, end = new Date(y, 11, 31); for (var dt = new Date(y, 0, 1); dt <= end; dt.setDate(dt.getDate() + 1)) { var w = dt.getDay(); if (w !== 0) n++; } return n; }
@@ -130,21 +163,43 @@
     return last.getTime() < now.getTime();
   }
   function scoped(sc) {
-    if (sc === 'fer') return { v26: D.v2026_fer, v25: D.v2025_fer, meta: D.meta_ldal, daily: D.daily_fer, prev: D.last_bd_prevyear_fer, label: '· Ferretería' };
-    if (sc === 'hie') return { v26: D.v2026_hie, v25: D.v2025_hie, meta: D.meta_ldfa, daily: D.daily_hie, prev: D.last_bd_prevyear_hie, label: '· Hierros' };
-    return { v26: D.v2026, v25: D.v2025, meta: D.meta_tot, daily: D.daily, prev: D.last_bd_prevyear, label: '' };
+    if (sc === 'fer') return { v26: v26Completo(D.v2026_fer, 'f'), v25: D.v2025_fer, meta: D.meta_ldal, daily: D.daily_fer, dprev: D.daily_prev_fer, prev: D.last_bd_prevyear_fer, label: '· Ferretería' };
+    if (sc === 'hie') return { v26: v26Completo(D.v2026_hie, 'h'), v25: D.v2025_hie, meta: D.meta_ldfa, daily: D.daily_hie, dprev: D.daily_prev_hie, prev: D.last_bd_prevyear_hie, label: '· Hierros' };
+    return { v26: v26Completo(D.v2026, 't'), v25: D.v2025, meta: D.meta_tot, daily: D.daily, dprev: D.daily_prev, prev: D.last_bd_prevyear, label: '' };
   }
   function lastBD(daily, hoy) { var bd = daily.filter(function (x) { var d = dOf(x[0]); return d.getDay() !== 0 && d <= hoy; }); return bd.length ? { val: bd[bd.length - 1][1], date: bd[bd.length - 1][0] } : { val: 0, date: null }; }
   function kpis(sc) {
     var S = scoped(sc), mi = D.cur_month - 1, y = D.cur_year, hoy = hoyDate();
     var bm = bdaysMonth(y, mi), bd_tot = bm.tot, bd_el = Math.min(bdaysElapsed(y, mi, hoy), bd_tot), bd_rest = bd_tot - bd_el;
-    var fact = S.v26[mi], meta = S.meta[mi], proyMes = bd_el > 0 ? fact / bd_el * bd_tot : fact;
-    var mesYoY = S.v25[mi], varYoY = pct(fact - mesYoY, mesYoY);
+    var ps = pesoSabado(S.daily), w = bdW(y, mi, hoy, ps);
+    var fact = S.v26[mi], meta = S.meta[mi], proyMes = w.el > 0 ? fact / w.el * w.tot : fact;
+    // 2) Mes vs 2025 AL MISMO DÍA HÁBIL (no contra el mes completo)
+    var mesYoYFull = S.v25[mi], mesYoY, yoyExacto = false;
+    if (S.dprev && S.dprev.length) {
+      var bdPrev = S.dprev.filter(function (x) { return dOf(x[0]).getDay() !== 0; }), n = Math.min(bd_el, bdPrev.length);
+      mesYoY = 0; for (var bi = 0; bi < n; bi++) mesYoY += bdPrev[bi][1];
+      // días no hábiles intercalados (domingos con alguna factura) hasta esa fecha
+      var lim = n ? bdPrev[n - 1][0] : null; if (lim) S.dprev.forEach(function (x) { if (dOf(x[0]).getDay() === 0 && x[0] <= lim) mesYoY += x[1]; });
+      yoyExacto = true;
+    } else {
+      // snapshot viejo sin el diario de 2025: se estima con la misma proporción de días hábiles
+      mesYoY = w.tot > 0 ? mesYoYFull * w.el / w.tot : mesYoYFull;
+    }
+    var varYoY = pct(fact - mesYoY, mesYoY);
     var lb = lastBD(S.daily, hoy), varDia = pct(lb.val - S.prev, S.prev);
     var metaAnual = S.meta.reduce(function (a, b) { return a + b; }, 0);
-    var ytd = 0; for (var i = 0; i <= mi; i++) ytd += S.v26[i];
-    var yEl = bdaysYearElapsed(y, hoy), yTot = bdaysYear(y), proyAnio = yEl > 0 ? ytd / yEl * yTot : ytd;
-    return { mi: mi, y: y, bd_tot: bd_tot, bd_el: bd_el, bd_rest: bd_rest, fact: fact, meta: meta, proyMes: proyMes, mesYoY: mesYoY, varYoY: varYoY, varDia: varDia, metaAnual: metaAnual, ytd: ytd, proyAnio: proyAnio, daysMonth: bm.days, fds: bm.fds, fer: bm.fer, lastCur: lb.val, lastDate: lb.date, prev: S.prev, label: S.label };
+    var ytd = 0; for (var i = 0; i <= mi; i++) ytd += S.v26[i] || 0;
+    // 4) Meta acumulada a hoy: meses cerrados completos + el mes en curso según días transcurridos
+    var metaYtd = 0; for (var j = 0; j < mi; j++) metaYtd += S.meta[j] || 0;
+    metaYtd += w.tot > 0 ? (S.meta[mi] || 0) * w.el / w.tot : 0;
+    var cumplYtd = pct(ytd, metaYtd);
+    // 1) Proyección fin de año: lo facturado + metas que faltan × cumplimiento del año
+    var metaResto = (S.meta[mi] || 0) * (w.tot > 0 ? (w.tot - w.el) / w.tot : 0); for (var r = mi + 1; r < 12; r++) metaResto += S.meta[r] || 0;
+    var proyAnio = ytd + metaResto * (metaYtd > 0 ? ytd / metaYtd : 1);
+    // 4) Cobertura: lo que falta para la meta del mes vs lo que ya está en pedidos pendientes
+    var pend = pedResumen(sc).total, faltaMes = Math.max(0, meta - fact);
+    return { ps: ps, wTot: w.tot, wEl: w.el, mesYoYFull: mesYoYFull, yoyExacto: yoyExacto, metaYtd: metaYtd, cumplYtd: cumplYtd, pend: pend, faltaMes: faltaMes, cobertura: faltaMes > 0 ? pct(pend, faltaMes) : null,
+      mi: mi, y: y, bd_tot: bd_tot, bd_el: bd_el, bd_rest: bd_rest, fact: fact, meta: meta, proyMes: proyMes, mesYoY: mesYoY, varYoY: varYoY, varDia: varDia, metaAnual: metaAnual, ytd: ytd, proyAnio: proyAnio, daysMonth: bm.days, fds: bm.fds, fer: bm.fer, lastCur: lb.val, lastDate: lb.date, prev: S.prev, label: S.label };
   }
   function pedResumen(sc) { var L = D.ped_lines; if (sc === 'fer') L = L.filter(function (l) { return l[0] === 'Ferretería'; }); else if (sc === 'hie') L = L.filter(function (l) { return l[0] === 'Hierros'; }); var total = 0, peso = 0, docs = {}; L.forEach(function (l) { total += l[7]; peso += l[6]; docs[l[9]] = 1; }); return { lineas: L.length, pedidos: Object.keys(docs).length, total: total, peso: peso }; }
   function pedFiltered() { return D.ped_lines.filter(function (l) { return (fAlm === 'todos' || l[0] === fAlm) && (fEt === 'todos' || l[1] === fEt); }); }
@@ -226,6 +281,7 @@
       // mismo Nº de día hábil del año anterior (no el último del mes)
       var nthPrevBD = function (o) { var b = Object.keys(o).sort().filter(function (ds) { var w = dOf(ds).getDay(); return w !== 0; }); if (!b.length) return 0; var i = Nbd > 0 ? Math.min(Nbd, b.length) - 1 : b.length - 1; return o[b[i]]; };
       d.last_bd_prevyear = nthPrevBD(pd.tot); d.last_bd_prevyear_fer = nthPrevBD(pd.fer); d.last_bd_prevyear_hie = nthPrevBD(pd.hie);
+      d.daily_prev = srt(pd.tot); d.daily_prev_fer = srt(pd.fer); d.daily_prev_hie = srt(pd.hie);   // 2025 día a día del mismo mes
     }
     var ps = S('BASE PEDIDOS PEND. DE FACTURAR');
     if (ps) {
@@ -261,9 +317,11 @@
     '</div>' +
     '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-bottom:18px">' +
     '<div class="card"><h3>Facturado acumulado</h3><div class="big"><span class="u">₲</span><span id="kFact">–</span></div><div class="sub2">Meta: <b id="kMeta">–</b></div><div style="margin-top:9px"><span class="chip flat" id="kFalta">–</span></div></div>' +
-    '<div class="card"><h3>Proyección fin de mes</h3><div class="big"><span class="u">₲</span><span id="kProy">–</span></div><div class="sub2">Ritmo diario × días hábiles del mes</div><div style="margin-top:9px"><span class="chip" id="kProyPct">–</span> <span class="mini">vs meta</span></div></div>' +
-    '<div class="card"><h3>Mes actual vs mismo mes año pasado</h3><div class="big"><span class="u">₲</span><span id="kMes">–</span></div><div class="sub2" id="kMesPrevL">–</div><div style="margin-top:9px"><span class="chip" id="kMesVar">–</span></div></div>' +
-    '<div class="card"><h3>Proyección fin de año</h3><div class="big"><span class="u">₲</span><span id="kAnio">–</span></div><div class="sub2">Acum. año + ritmo meses restantes</div><div style="margin-top:9px"><span class="chip" id="kAnioPct">–</span> <span class="mini">de meta anual</span></div></div>' +
+    '<div class="card"><h3>Proyección fin de mes</h3><div class="big"><span class="u">₲</span><span id="kProy">–</span></div><div class="sub2">Ritmo diario × días hábiles (sábado = <span id="kPs">¼</span> día)</div><div style="margin-top:9px"><span class="chip" id="kProyPct">–</span> <span class="mini">vs meta</span></div></div>' +
+    '<div class="card"><h3>Mes actual vs año pasado <span class="mini">al mismo día hábil</span></h3><div class="big"><span class="u">₲</span><span id="kMes">–</span></div><div class="sub2" id="kMesPrevL">–</div><div style="margin-top:9px"><span class="chip" id="kMesVar">–</span> <span class="mini" id="kMesFull"></span></div></div>' +
+    '<div class="card"><h3>Proyección fin de año</h3><div class="big"><span class="u">₲</span><span id="kAnio">–</span></div><div class="sub2">Facturado + metas que faltan × cumplimiento del año</div><div style="margin-top:9px"><span class="chip" id="kAnioPct">–</span> <span class="mini">de meta anual</span></div></div>' +
+    '<div class="card"><h3>Cumplimiento del año</h3><div class="big"><span id="kYtdPct">–</span></div><div class="sub2">Facturado ₲ <b id="kYtd">–</b> de una meta a hoy de ₲ <b id="kYtdMeta">–</b></div><div style="margin-top:9px"><span class="chip" id="kYtdChip">–</span></div></div>' +
+    '<div class="card"><h3>Lo que falta vs pedidos pendientes</h3><div class="big"><span id="kCob">–</span></div><div class="sub2">Faltan ₲ <b id="kCobFalta">–</b> · en pedidos ₲ <b id="kCobPend">–</b></div><div style="margin-top:9px"><span class="chip" id="kCobChip">–</span></div></div>' +
     '<div class="card"><h3>Días hábiles del mes</h3><div class="big"><span id="kBdEl">–</span><span class="u" style="font-size:16px"> / </span><span id="kBdTot">–</span></div><div class="sub2">Transcurridos / totales (L-S, sin feriados)</div><div style="margin-top:9px"><span class="chip flat" id="kBdRest">–</span></div></div>' +
     '</div>' +
     '<div class="grid g2" style="margin-bottom:16px">' +
@@ -320,7 +378,7 @@
     if (btn) btn.classList.add('is-busy');
     if (window.gsap && icon) { gsap.set(icon, { transformOrigin: '50% 50%' }); spin = gsap.to(icon, { rotation: '+=360', duration: .8, ease: 'none', repeat: -1 }); }
     var minD = new Promise(function (r) { setTimeout(r, 700); });
-    Promise.all([TableroDB.pullFeriados(), TableroDB.pullSnapshotFor(D.cur_year, D.cur_month), TableroDB.listMonths(), minD])
+    Promise.all([TableroDB.pullFeriados(), TableroDB.pullSnapshotFor(D.cur_year, D.cur_month), TableroDB.listMonths(), minD, cargarMT()])
       .then(function (res) {
         holidays = (res[0] || []).map(function (r) { return { date: r.fecha, name: r.descripcion || '' }; });
         availableMonths = res[2] || [];
@@ -452,16 +510,30 @@
     T('kDiaFecha', 'Último día hábil · ' + (k.lastDate ? k.lastDate.split('-').reverse().join('/') : '—'));
     animCount(q('#kDiaPrev'), k.prev, function (v) { return fmt(v); }, 1.1);
     // Objetivo del día DINÁMICO: ritmo requerido = meta restante ÷ días hábiles que faltan
-    var remMeta = Math.max(0, k.meta - k.fact), remDays = Math.max(0, k.bd_rest);
-    var reqDaily = remDays > 0 ? remMeta / remDays : remMeta;
-    var pctObj = remMeta <= 0 ? 100 : pct(k.lastCur, reqDaily);
+    var remMeta = Math.max(0, k.meta - k.fact), remDays = Math.max(0, k.bd_rest), remW = Math.max(0, k.wTot - k.wEl);
+    var reqDaily = remW > 0 ? remMeta / remW : remMeta;   // por día de semana completo
+    var ultSab = k.lastDate && dOf(k.lastDate).getDay() === 6;
+    var pctObj = remMeta <= 0 ? 100 : pct(k.lastCur, ultSab ? reqDaily * k.ps : reqDaily);
     animCount(q('#kDiaObjPct'), pctObj, function (v) { return Math.round(v) + '%'; }, 1.1);
     animCount(q('#kDiaObj'), reqDaily, function (v) { return fmt(v); }, 1.1);
     animCount(q('#kDiaObjDays'), remDays, function (v) { return Math.round(v); }, .8);
     var ob = q('#kDiaObjBar'); if (ob) { if (ob.parentNode) ob.parentNode.classList.toggle('over', pctObj >= 100); if (window.gsap) { ob.style.transition = 'none'; gsap.fromTo(ob, { width: '0%' }, { width: Math.min(pctObj, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else ob.style.width = Math.min(pctObj, 100) + '%'; }
     var dv = q('#kDiaVar'); if (dv) { var _cls = chipCls(k.varDia); dv.className = 'acc-trend ' + _cls; dv.innerHTML = trendArrow(_cls) + fp(k.varDia); if (window.gsap) gsap.fromTo(dv, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)', delay: .4, clearProps: 'all' }); }
     if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.acc-top'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-foot'), { y: 10, opacity: 0, duration: .5, delay: .22, ease: 'power2.out', clearProps: 'all' }); } }
-    animCount(q('#kMes'), k.fact, function (v) { return fmt(v); }, 1); T('kMesPrevL', D.meses[k.mi] + ' ' + (k.y - 1) + ': ₲ ' + fmt(k.mesYoY));
+    animCount(q('#kMes'), k.fact, function (v) { return fmt(v); }, 1);
+    T('kMesPrevL', D.meses[k.mi] + ' ' + (k.y - 1) + ' al día hábil ' + k.bd_el + ': ₲ ' + fmt(k.mesYoY) + (k.yoyExacto ? '' : ' (estimado)'));
+    T('kMesFull', 'mes completo ' + (k.y - 1) + ': ₲ ' + fmtM(k.mesYoYFull));
+    T('kPs', (Math.round(k.ps * 100)) + ' %');
+    animCount(q('#kYtdPct'), k.cumplYtd, function (v) { return v.toFixed(1) + '%'; }, 1);
+    T('kYtd', fmtM(k.ytd)); T('kYtdMeta', fmtM(k.metaYtd));
+    var yc = q('#kYtdChip'); if (yc) { var dY = k.ytd - k.metaYtd; yc.textContent = (dY >= 0 ? '▲ +₲ ' : '▼ −₲ ') + fmtM(Math.abs(dY)) + (dY >= 0 ? ' sobre la meta' : ' bajo la meta'); yc.className = 'chip ' + (k.cumplYtd >= 100 ? 'up' : k.cumplYtd >= 90 ? 'flat' : 'down'); }
+    var cb = q('#kCob'), cc = q('#kCobChip');
+    if (k.cobertura == null) { if (cb) cb.textContent = 'Meta cumplida'; T('kCobFalta', '0'); T('kCobPend', fmtM(k.pend)); if (cc) { cc.textContent = '● sin faltante'; cc.className = 'chip up'; } }
+    else {
+      animCount(cb, k.cobertura, function (v) { return v.toFixed(0) + '%'; }, 1);
+      T('kCobFalta', fmtM(k.faltaMes)); T('kCobPend', fmtM(k.pend));
+      if (cc) { var okC = k.cobertura >= 100; cc.textContent = okC ? '▲ con lo pendiente alcanza' : '▼ hace falta vender ₲ ' + fmtM(k.faltaMes - k.pend) + ' más'; cc.className = 'chip ' + (okC ? 'up' : k.cobertura >= 60 ? 'flat' : 'down'); }
+    }
     var mv = q('#kMesVar'); if (mv) { mv.textContent = arrow(k.varYoY) + ' ' + fp(k.varYoY); mv.className = 'chip ' + chipCls(k.varYoY); }
     animCount(q('#kAnio'), k.proyAnio, function (v) { return fmt(v); }, 1); var ap = q('#kAnioPct'), av2 = pct(k.proyAnio, k.metaAnual); if (ap) { ap.textContent = arrow(av2 - 100) + ' ' + av2.toFixed(1) + '%'; ap.className = 'chip ' + (av2 >= 100 ? 'up' : av2 >= 90 ? 'flat' : 'down'); }
     animCount(q('#kBdEl'), k.bd_el, function (v) { return Math.round(v); }, .8); animCount(q('#kBdTot'), k.bd_tot, function (v) { return Math.round(v); }, .8); var br = q('#kBdRest'); if (br) { br.textContent = 'Faltan ' + k.bd_rest + ' días hábiles'; br.className = 'chip flat'; }
@@ -646,7 +718,7 @@
           }).then(function (diff) {
             D = newSnap; dataOrigin = 'actualizado'; updatedInfo = { updated_at: new Date().toISOString() };
             if (!availableMonths.some(function (m) { return m.anio === anio && m.mes === mes; })) { availableMonths.push({ anio: anio, mes: mes }); availableMonths.sort(function (a, b) { return a.anio - b.anio || a.mes - b.mes; }); }
-            cacheSave(); finishUpload(diff);
+            cacheSave(); cargarMT().then(function () { finishUpload(diff); });
           }).catch(function (err) { console.error(err); failUpload('No se pudo publicar en la nube'); });
         } catch (err) { console.error(err); failUpload('No se pudo leer el archivo. Verificá que sea la planilla correcta.'); }
       }, 80);
@@ -1063,6 +1135,7 @@
       if (snap && snap.snapshot) { D = snap.snapshot; dataOrigin = 'nube'; updatedInfo = { updated_at: snap.updated_at, updated_by: snap.updated_by }; }
       else { var c = cacheLoad(); if (c) { D = c; dataOrigin = 'guardado'; } }
     }).catch(function (e) { console.error('[Tablero] boot', e); var c = cacheLoad(); if (c) { D = c; dataOrigin = 'guardado'; } })
+      .then(cargarMT)
       .then(function () { if (D) renderShell(); else renderEmpty(); });
   }
 

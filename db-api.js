@@ -80,6 +80,17 @@
         .then(function (r) { if (r.error) throw r.error; });
     },
 
+    // Total facturado de cada mes guardado, tomado de SU propio snapshot
+    // (sirve para completar los meses que el histórico del Excel todavía no trae).
+    monthTotals: function () {
+      if (!sb) return Promise.resolve([]);
+      return sb.from('tablero_snapshot').select('anio,mes,t:snapshot->v2026,f:snapshot->v2026_fer,h:snapshot->v2026_hie')
+        .then(function (r) {
+          if (r.error) { console.error('[TableroDB] monthTotals', r.error); return []; }
+          return (r.data || []).map(function (x) { var i = x.mes - 1; return { anio: x.anio, mes: x.mes, t: (x.t || [])[i] || 0, f: (x.f || [])[i] || 0, h: (x.h || [])[i] || 0 }; });
+        });
+    },
+
     pullFeriados: function () {
       if (!sb) return Promise.resolve([]);
       return sb.from('feriados').select('id,fecha,descripcion').order('fecha', { ascending: true })
