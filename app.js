@@ -311,20 +311,7 @@
     '<section class="page on" id="principal">' +
     '<div class="p4" id="p4">' +
     '<div class="p4-l">' +
-    '<div class="card hero"><h3 class="h-hd">Meta mensual · avance <span id="hScope" style="font-weight:600"></span><em class="h-st" id="hSt"></em><em class="h-pr" id="hPr"></em></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;font-weight:700">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="h-barw"><div class="bar"><span id="hBar" style="width:0%"></span></div><i class="h-mk" id="hMk"><em>proyección</em></i></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
-    '<div class="p2-tiles p2-tiles--s p2-tiles--g">' +
-      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M6 15l4-4 3 3 5-6"/><path d="M15 8h3v3"/></svg></i><span>Cierre estimado del mes</span><em class="p2-c" id="stProy"></em></div><b class="p2-big" id="kProyPct">–</b><div class="p2-tbar"><span id="kProyBar"></span></div><small>₲ <span id="kProy">–</span> de la meta</small></div>' +
-      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg></i><span>Contra el año pasado</span><em class="p2-c" id="stMes"></em></div><b class="p2-big" id="kMesVar">–</b><div class="p2-tbar p2-tbar--x"></div><small id="kMesPrevL">–</small></div>' +
-      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></i><span>Meta del año a hoy</span><em class="p2-c" id="stYtd"></em></div><b class="p2-big" id="kYtdPct">–</b><div class="p2-tbar"><span id="kYtdBar"></span></div><small>₲ <span id="kYtd">–</span> facturado</small></div>' +
-      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1.5 11a2 2 0 01-2 1.7H7.5a2 2 0 01-2-1.7z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg></i><span>Lo que falta, ya en pedidos</span><em class="p2-c" id="stCob"></em></div><b class="p2-big" id="kCob">–</b><div class="p2-tbar"><span id="kCobBar"></span></div><small>₲ <span id="kCobPend">–</span> de ₲ <span id="kCobFalta">–</span></small><a href="#" class="p2-go" data-go="pedidos">Ver pedidos <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>' +
-    '</div>' +
-      '<div class="p4-two">' +
-        '<div class="card"><div class="p2-h"><h3>Facturado por almacén</h3></div><div id="almBox"></div></div>' +
-        '<div class="card p2-ped"><div class="p2-h"><h3>Pedidos pendientes de facturar <span id="pScope"></span></h3><a href="#" class="p2-go" data-go="pedidos">Ver pedidos <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>' +
-          '<div class="p2-ped__g"><div><b id="pgTot">–</b><span>monto ₲</span></div><div><b id="pgPed">–</b><span>pedidos</span></div><div><b id="pgLin">–</b><span>líneas</span></div><div><b id="pgPeso">–</b><span>kg</span></div></div></div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="p4-r">' +
+    '<div class="card hero"><h3 class="h-hd">Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;font-weight:700">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="bar"><span id="hBar" style="width:0%"></span></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
     '<div class="card accent" id="cardDia">' +
     '<div class="acc-top"><div class="acc-topx"><span class="acc-lbl">Facturación del día</span><span class="acc-sub" id="kDiaFecha">—</span></div></div>' +
     '<div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
@@ -332,6 +319,18 @@
     '<div class="acc-foot"><span class="acc-trend flat" id="kDiaVar">—</span><span class="acc-vs">vs mismo día hábil del año anterior · <b>₲ <span id="kDiaPrev">–</span></b></span></div>' +
     '<div class="acc-pending"><span class="acc-pending-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M9 14.5h6"/></svg></span><div class="acc-pending-t">Sin registros de hoy</div><div class="acc-pending-s">Cargá la planilla del <b id="accPendDate">—</b> para ver la facturación del día</div></div>' +
     '</div>' +
+    '<div class="p2-tiles p2-tiles--s p2-tiles--g">' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M6 15l4-4 3 3 5-6"/><path d="M15 8h3v3"/></svg></i><span>Cierre estimado del mes</span><em class="p2-c" id="stProy"></em></div><b class="p2-big" id="kProyPct">–</b><div class="p2-tbar"><span id="kProyBar"></span></div><small>₲ <span id="kProy">–</span> de la meta</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg></i><span>Contra el año pasado</span><em class="p2-c" id="stMes"></em></div><b class="p2-big" id="kMesVar">–</b><div class="p2-tbar p2-tbar--x"></div><small id="kMesPrevL">–</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></i><span>Meta del año a hoy</span><em class="p2-c" id="stYtd"></em></div><b class="p2-big" id="kYtdPct">–</b><div class="p2-tbar"><span id="kYtdBar"></span></div><small>₲ <span id="kYtd">–</span> facturado</small></div>' +
+      '<div class="p2-t p2-t--ped"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1.5 11a2 2 0 01-2 1.7H7.5a2 2 0 01-2-1.7z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg></i><span>Pedidos pendientes <b id="pScope"></b></span><em class="p2-c" id="stCob"></em></div>' +
+        '<b class="p2-big">₲ <span id="pgTot">–</span></b><div class="p2-tbar"><span id="kCobBar"></span></div>' +
+        '<div class="p2-ped__f"><small><b id="kCob">–</b> de lo que falta · <span id="pgPed">–</span> pedidos</small>' +
+        '<a href="#" class="p2-go" data-go="pedidos">Ver pedidos <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div></div>' +
+    '</div>' +
+        '<div class="card p2-alm"><div class="p2-h"><h3>Facturado por almacén</h3></div><div id="almBox"></div></div>' +
+    '</div>' +
+    '<div class="p4-r">' +
       '<div class="card p2-daily"><div class="p2-h"><h3>Facturación día por día <span id="dScope"></span></h3><span class="p2-leg"><i></i>superó el objetivo del día</span></div><div class="p2-dl" id="dailyTbl"></div></div>' +
     '</div>' +
     '</div>' +
@@ -611,7 +610,7 @@
     var hM = q('#hMk'); if (hM) { hM.style.left = Math.min(pvH, 100) + '%'; if (window.gsap) gsap.fromTo(hM, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: .45, delay: 1, ease: 'back.out(2)' }); }
     ajustarP4();
     if (window.gsap) {
-      gsap.from('#principal .p4-l > *, #principal .p4-two > *', { opacity: 0, y: 14, duration: .45, stagger: .07, delay: .08, ease: 'power3.out', clearProps: 'transform,opacity' });
+      gsap.from('#principal .p4-l > *, #principal .p2-tiles--g > *', { opacity: 0, y: 14, duration: .45, stagger: .07, delay: .08, ease: 'power3.out', clearProps: 'transform,opacity' });
       gsap.from('#principal .p4-r > *', { opacity: 0, x: 18, duration: .5, stagger: .08, delay: .12, ease: 'power3.out', clearProps: 'transform,opacity' });
       gsap.from('#principal .card.hero .gauge', { scale: .85, opacity: 0, duration: .6, delay: .15, ease: 'back.out(1.6)', clearProps: 'transform,opacity' });
       gsap.from('#principal .h-st, #principal .h-pr', { opacity: 0, x: -8, duration: .4, stagger: .08, delay: .35, ease: 'power2.out', clearProps: 'transform,opacity' });
@@ -651,8 +650,8 @@
     big('kYtdPct', k.cumplYtd, est(k.cumplYtd)); animCount(q('#kYtd'), k.ytd, fmt, 1);
     var yb = q('#kYtdBar'); if (yb) { yb.className = est(k.cumplYtd); yb.dataset.w = Math.min(k.cumplYtd, 100); }
     var cbr = q('#kCobBar');
-    if (k.cobertura == null) { big('kCob', 100, 'ok', function () { return 'Meta cumplida'; }); if (cbr) { cbr.className = 'ok'; cbr.dataset.w = 100; } }
-    else { var cv = k.cobertura; big('kCob', cv, cv >= 100 ? 'ok' : cv >= 60 ? 'warn' : 'bad', function (v) { return Math.round(v) + '%'; }); if (cbr) { cbr.className = cv >= 100 ? 'ok' : cv >= 60 ? 'warn' : 'bad'; cbr.dataset.w = Math.min(cv, 100); } }
+    if (k.cobertura == null) { T('kCob', '100%'); if (cbr) { cbr.className = 'ok'; cbr.dataset.w = 100; } }
+    else { var cv = k.cobertura; animCount(q('#kCob'), cv, function (v) { return Math.round(v) + '%'; }, 1); if (cbr) { cbr.className = cv >= 100 ? 'ok' : cv >= 60 ? 'warn' : 'bad'; cbr.dataset.w = Math.min(cv, 100); } }
     animCount(q('#kCobFalta'), k.faltaMes, fmt, 1); animCount(q('#kCobPend'), k.pend, fmt, 1);
     var chip = function (id, cls, txt) { var c2 = q('#' + id); if (c2) { c2.className = 'p2-c ' + cls; c2.innerHTML = '<i></i>' + txt; } };
     var TX = { ok: 'En meta', warn: 'Cerca', bad: 'Por debajo' };
@@ -680,11 +679,11 @@
     var fa = D.fact_almacen || {}, fer = fa['Ferretería'] || 0, hie = fa['Hierros'] || 0, otros = 0;
     Object.keys(fa).forEach(function (kk) { if (kk !== 'Ferretería' && kk !== 'Hierros') otros += fa[kk]; });
     var neta = fer + hie + otros, maxA = Math.max(Math.abs(fer), Math.abs(hie), Math.abs(otros), 1), ah = '';
-    [['Ferretería', fer, 'var(--azul-3)'], ['Hierros', hie, 'var(--azul)'], ['Otros', otros, '#94A3B8']].forEach(function (e) {
+    [['Ferretería', fer, 'var(--azul-3)'], ['Hierros', hie, 'var(--azul)']].forEach(function (e) {
       ah += '<div class="p2-a"><div class="p2-a__h"><span><i style="background:' + e[2] + '"></i>' + e[0] + '</span><b>₲ ' + fmt(e[1]) + '</b><em>' + (neta ? P(e[1] / neta * 100) : '0%') + '</em></div><div class="p2-a__b"><span data-w="' + (Math.abs(e[1]) / maxA * 100).toFixed(1) + '" style="background:' + e[2] + '"></span></div></div>';
     });
     var dev = Math.abs(D.devoluciones || 0), bru = D.fact_bruta || 0;
-    ah += '<div class="p2-a__t"><span>Facturación neta</span><b>₲ ' + fmt(neta) + '</b></div><div class="p2-a__d"><span>Devoluciones incluidas</span><b>₲ ' + fmt(dev) + ' · ' + (bru ? P(dev / bru * 100) : '0%') + ' del bruto</b></div>';
+    ah += '<div class="p2-a__t"><span>Facturación neta</span><b>₲ ' + fmt(neta) + '</b></div><div class="p2-a__d"><span>Otros almacenes ₲ ' + fmt(otros) + '</span><b>Devoluciones ₲ ' + fmt(dev) + ' · ' + (bru ? P(dev / bru * 100) : '0%') + '</b></div>';
     H('almBox', ah);
     qa('#almBox .p2-a__b span').forEach(function (sp) { if (G) gsap.fromTo(sp, { width: '0%' }, { width: sp.dataset.w + '%', duration: .9, delay: .2, ease: 'power3.out' }); else sp.style.width = sp.dataset.w + '%'; });
 

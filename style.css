@@ -917,3 +917,52 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 @media(max-width:1600px){.tb3__right .upd-chip>span{display:none}}
 @media(max-width:1180px){.tbd-toolbar.tb3{grid-template-columns:1fr;justify-items:start}.tb3__mid,.tb3__right{justify-content:flex-start}.tb3__right{flex-wrap:wrap}}
 .tbd-toolbar.tb3 #scopeSlot{order:0;flex:none;margin:0;width:auto;justify-content:center}
+
+/* ═════════ Principal v5: día debajo de la meta · día por día a todo el alto ═════════ */
+.tbd .p4{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+.tbd .p4.fit .p4-r .p2-daily{height:100%}
+/* números sin rojo: el color va en el chip y la barra */
+.tbd .p2-big,.tbd .p2-big.ok,.tbd .p2-big.warn,.tbd .p2-big.bad{color:#0B3E6E}
+/* Facturación del día compacta, en dos columnas */
+.tbd .p4-l .card.accent{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"top top" "num obj" "foot foot";column-gap:28px;row-gap:10px;align-items:center;padding:16px 22px;min-height:0;border-radius:16px}
+.tbd .p4-l .card.accent .acc-top{grid-area:top}
+.tbd .p4-l .card.accent .acc-num{grid-area:num;font-size:30px;margin:0}
+.tbd .p4-l .card.accent .acc-obj{grid-area:obj;margin:0}
+.tbd .p4-l .card.accent .acc-obj-bar{height:10px}
+.tbd .p4-l .card.accent .acc-foot{grid-area:foot}
+.tbd .p4-l .card.accent .acc-trend{font-size:12.5px;padding:4px 11px;border-radius:999px}
+.tbd .p4-l .card.accent.is-pending{display:flex;min-height:0;padding:14px 22px}
+.tbd .p4-l .card.accent.is-pending .acc-pending{flex-direction:row;gap:16px;text-align:left;justify-content:flex-start}
+.tbd .p4-l .card.accent.is-pending .acc-pending-ic{width:46px;height:46px}
+/* pendientes unificado */
+.tbd .p2-t--ped small b{color:var(--azul-2)}
+.tbd .p2-t--ped .p2-t__h b{font-weight:800;color:var(--gris)}
+.tbd .p2-t--ped .p2-go{margin-top:2px}
+.tbd .p2-alm{padding:16px 20px}
+.tbd .p2-alm .p2-a__d{gap:12px;flex-wrap:wrap}
+.tbd .p2-alm .p2-a__d span{color:var(--gris)}
+/* barras de los KPI con destello azul */
+.tbd .p2-tbar span{overflow:hidden}
+.tbd .p2-tbar span::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:p2Shine 4s ease-in-out 1.4s infinite}
+@media (prefers-reduced-motion: reduce){.tbd .p2-tbar span::after{animation:none}}
+.tbd .p2-ped__f{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tbd .p2-ped__f .p2-go{margin:0}
+.tbd .p2-alm #almBox{display:grid;grid-template-columns:1fr 1fr;column-gap:18px}
+.tbd .p2-alm .p2-a{margin-bottom:6px}
+.tbd .p2-alm .p2-a__t,.tbd .p2-alm .p2-a__d{grid-column:1/-1}
+.tbd .p2-alm .p2-h{margin-bottom:8px}
+.tbd .p2-alm{padding:14px 20px}
+.tbd .p4-l .card.accent.is-pending .acc-top{display:none}
+.tbd .p4-l .p2-tiles--g .p2-t{padding:12px 16px;gap:5px}
+.tbd .p4-l .card.hero{padding:16px 22px}
+.tbd .p4-l .card.hero .gauge{width:124px;height:124px}
+.tbd .p4-l .card.hero .gauge .pc .v{font-size:27px}
+
+/* ═════════ Actualizar datos: centrado y ordenado ═════════ */
+.tbd.up-page{grid-template-columns:1fr 1fr;grid-template-areas:"drop drop" "rules hist";max-width:1080px;width:100%;margin:auto;gap:16px;align-content:center;flex:1}
+.tbd.up-page .up-drop{grid-area:drop;min-height:270px}
+.tbd.up-page .up-side{display:contents}
+.tbd.up-page .up-rules{grid-area:rules;height:100%}
+.tbd.up-page .up-hist{grid-area:hist;height:100%;max-height:none}
+#stage > .tbd.up-page{min-height:calc(100% - 80px)}
+@media(max-width:1000px){.tbd.up-page{grid-template-columns:1fr;grid-template-areas:"drop" "rules" "hist"}}
