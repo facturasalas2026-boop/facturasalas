@@ -306,9 +306,20 @@
   var SECTIONS_HTML =
     '<section class="page on" id="principal">' +
     '<div class="grid g2" style="margin-bottom:18px">' +
-    '<div class="card hero"><h3>Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;font-weight:700">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="bar"><span id="hBar" style="width:0%"></span></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
+    '<div class="p3-hero" id="p3Hero">' +
+      '<div class="p3-lbl"><span>Meta mensual · avance <b id="hScope"></b></span><em class="p3-st" id="p3St"></em><em class="p3-gap" id="p3Gap"></em></div>' +
+      '<div class="p3-body">' +
+        '<div class="p3-ring"><svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" id="p3Ring" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"/></svg><div class="p3-ring__c"><b id="gPct">–</b><span>de la meta</span></div></div>' +
+        '<div class="p3-main">' +
+          '<span class="p3-k">Meta del mes</span>' +
+          '<b class="p3-meta"><span class="u">₲</span><span id="hMeta">–</span></b>' +
+          '<div class="p3-bar"><span id="hBar"></span><i id="p3Mk" title="Proyección de fin de mes"><em>proyección</em></i></div>' +
+          '<div class="p3-bl"><span>Facturado <b id="hFact">–</b></span><span>Falta <b id="hFalta">–</b></span></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
     '<div class="card accent" id="cardDia">' +
-    '<div class="acc-top"><div class="acc-topx"><span class="acc-lbl">Facturación del día</span><span class="acc-sub" id="kDiaFecha">—</span></div></div>' +
+    '<div class="acc-top"><span class="acc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h3"/></svg></span><div class="acc-topx"><span class="acc-lbl">Facturación del día</span><span class="acc-sub" id="kDiaFecha">—</span></div></div>' +
     '<div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
     '<div class="acc-obj"><div class="acc-obj-hd"><span>Objetivo del día hábil</span><b id="kDiaObjPct">–</b></div><div class="acc-obj-bar"><span id="kDiaObjBar"></span></div><div class="acc-obj-sub">Necesario ₲ <span id="kDiaObj">–</span>/día en los <span id="kDiaObjDays">–</span> días hábiles que faltan</div></div>' +
     '<div class="acc-foot"><span class="acc-trend flat" id="kDiaVar">—</span><span class="acc-vs">vs mismo día hábil del año anterior · <b>₲ <span id="kDiaPrev">–</span></b></span></div>' +
@@ -332,8 +343,17 @@
     '</section>' +
 
     '<section class="page" id="mesames">' +
-    '<div class="grid g2" style="margin-bottom:16px"><div class="card"><h3>Facturación mensual · 2026 vs 2025</h3><div class="chartbox"><canvas id="chTrend"></canvas></div></div><div class="card"><h3>Acumulado del año · 2026 vs 2025</h3><div class="chartbox"><canvas id="chAcum"></canvas></div></div></div>' +
-    '<div class="card"><h3>Facturación mes a mes · acumulado vs año pasado</h3><div style="overflow-x:auto"><table id="tblMM"><thead><tr><th>Mes</th><th>Acum. 2025</th><th>Acum. 2026</th><th>Var. acum. %</th><th>Meta 2026 (mes)</th><th>Cumpl. mes</th></tr></thead><tbody></tbody></table></div></div>' +
+    '<div class="p2-tiles mm-tiles">' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg></i><span>Acumulado vs año pasado</span><em class="p2-c" id="mmVar">–</em></div><b class="p2-t__v">₲ <span id="mmYtd">–</span></b><div class="p2-t__s">contra ₲ <span id="mmYtd25">–</span></div><small id="mmYtdL">–</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg></i><span>Cumplimiento del año</span><em class="p2-c" id="mmCum">–</em></div><b class="p2-t__v">₲ <span id="mmMetaYtd">–</span></b><div class="p2-tbar"><span id="mmCumBar"></span></div><small>meta a hoy · meta anual ₲ <span id="mmMetaAn">–</span></small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg></i><span>Mejor mes del año</span><em class="p2-c ok" id="mmBestP">–</em></div><b class="p2-t__v" id="mmBest">–</b><small id="mmBestS">–</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2.6 17.3A2 2 0 004.3 20h15.4a2 2 0 001.7-2.7L13.7 3.9a2 2 0 00-3.4 0z"/></svg></i><span>Mes más flojo</span><em class="p2-c bad" id="mmWorstP">–</em></div><b class="p2-t__v" id="mmWorst">–</b><small id="mmWorstS">–</small></div>' +
+    '</div>' +
+    '<div class="mm-charts">' +
+      '<div class="card"><div class="p2-h"><h3>Facturación por mes</h3><span class="mm-leg"><span><i class="b"></i>2026</span><span><i class="g"></i>2025</span><span><i class="m"></i>Meta</span></span></div><div class="chartbox mm-box"><canvas id="chTrend"></canvas></div></div>' +
+      '<div class="card"><div class="p2-h"><h3>Acumulado del año</h3><span class="mm-leg"><span><i class="b"></i>2026</span><span><i class="g"></i>2025</span><span><i class="m"></i>Meta</span></span></div><div class="chartbox mm-box"><canvas id="chAcum"></canvas></div></div>' +
+    '</div>' +
+    '<div class="card"><div class="p2-h"><h3>Mes a mes</h3><span class="p2-leg"><i></i>alcanzó la meta del mes</span></div><div class="mm-tbl"><table id="tblMM"><thead><tr><th>Mes</th><th class="r">2026</th><th class="r">2025</th><th class="r">Var. vs 2025</th><th class="r">Meta</th><th>Cumplimiento</th><th class="r">Acumulado 2026</th></tr></thead><tbody></tbody></table></div></div>' +
     '</section>' +
 
     '<section class="page" id="pedidos">' +
@@ -491,15 +511,20 @@
     var k = kpis(SCOPE), S = scoped(SCOPE);
     T('hScope', k.label); T('dScope', k.label); T('pScope', k.label);
     var av = pct(k.fact, k.meta);
-    mk('gauge', { type: 'doughnut', data: { datasets: [{ data: [Math.min(av, 100), Math.max(0, 100 - av)], backgroundColor: ['#fff', 'rgba(255,255,255,.22)'], borderWidth: 0, circumference: 360, cutout: '78%' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { animateRotate: true } } });
-    // Meta mensual · avance — animado con GSAP
-    if (window.gsap) gsap.fromTo('#principal .hero .gauge', { scale: .88, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.6)', clearProps: 'all' });
-    animCount(q('#gPct'), av, function (v) { return v.toFixed(1) + '%'; }, 1);
-    animCount(q('#hMeta'), k.meta, function (v) { return '₲ ' + fmt(v); }, 1.1);
-    var hb = q('#hBar');
-    if (hb) { if (window.gsap) { hb.style.transition = 'none'; gsap.fromTo(hb, { width: '0%' }, { width: Math.min(av, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else hb.style.width = Math.min(av, 100) + '%'; }
-    animCount(q('#hFact'), k.fact, function (v) { return 'Facturado ₲ ' + fmt(v); }, 1.1);
-    animCount(q('#hFalta'), Math.max(0, k.meta - k.fact), function (v) { return 'Falta ₲ ' + fmt(v); }, 1.1);
+    var G0 = !!window.gsap, pvH = pct(k.proyMes, k.meta);
+    var stH = av >= 100 ? ['ok', 'Meta cumplida'] : pvH >= 100 ? ['ok', 'En camino a la meta'] : pvH >= 90 ? ['warn', 'Cerca de la meta'] : ['bad', 'Por debajo del ritmo'];
+    var hero = q('#p3Hero'); if (hero) hero.className = 'p3-hero st-' + stH[0];
+    var stE = q('#p3St'); if (stE) { stE.className = 'p3-st ' + stH[0]; stE.innerHTML = '<i></i>' + stH[1]; }
+    var gp = q('#p3Gap'); if (gp) gp.innerHTML = 'Proyección <b>' + pvH.toFixed(1).replace('.', ',') + '%</b>';
+    var rg = q('#p3Ring'), offH = 314.16 * (1 - Math.min(av, 100) / 100);
+    if (rg) { if (G0) gsap.fromTo(rg, { attr: { 'stroke-dashoffset': 314.16 } }, { attr: { 'stroke-dashoffset': offH }, duration: 1.2, ease: 'power3.out' }); else rg.setAttribute('stroke-dashoffset', offH); }
+    animCount(q('#gPct'), av, function (v) { return v.toFixed(1).replace('.', ',') + '%'; }, 1.1);
+    animCount(q('#hMeta'), k.meta, fmt, 1.1);
+    var hb = q('#hBar'); if (hb) { if (G0) gsap.fromTo(hb, { width: '0%' }, { width: Math.min(av, 100) + '%', duration: 1.1, delay: .15, ease: 'power3.out' }); else hb.style.width = Math.min(av, 100) + '%'; }
+    var mk3 = q('#p3Mk'); if (mk3) { mk3.style.left = Math.min(pvH, 100) + '%'; if (G0) gsap.from(mk3, { opacity: 0, y: -6, duration: .4, delay: .9, ease: 'power2.out', clearProps: 'transform,opacity' }); }
+    animCount(q('#hFact'), k.fact, function (v) { return '₲ ' + fmt(v); }, 1.1);
+    animCount(q('#hFalta'), Math.max(0, k.meta - k.fact), function (v) { return '₲ ' + fmt(v); }, 1.1);
+    if (G0) { gsap.from('#p3Hero', { opacity: 0, y: 14, duration: .5, ease: 'power3.out', clearProps: 'transform,opacity' }); gsap.from('#p3Hero .p3-ring', { scale: .85, opacity: 0, duration: .6, delay: .1, ease: 'back.out(1.6)', clearProps: 'transform,opacity' }); gsap.from('#cardDia .acc-ico', { scale: 0, rotate: -20, duration: .5, delay: .2, ease: 'back.out(2.4)', clearProps: 'transform' }); }
     animCount(q('#kFact'), k.fact, function (v) { return fmt(v); }, 1); animCount(q('#kMeta'), k.meta, function (v) { return '₲ ' + fmt(v); }, 1);
     var falta = k.meta - k.fact, cf = q('#kFalta'); if (cf) { cf.textContent = falta > 0 ? 'Falta ₲ ' + fmt(falta) : 'Meta superada +₲ ' + fmt(-falta); cf.className = 'chip ' + (falta > 0 ? 'flat' : 'up'); }
     animCount(q('#kProy'), k.proyMes, function (v) { return fmt(v); }, 1); var pp = q('#kProyPct'), pv = pct(k.proyMes, k.meta); if (pp) { pp.textContent = arrow(pv - 100) + ' ' + pv.toFixed(1) + '%'; pp.className = 'chip ' + (pv >= 100 ? 'up' : pv >= 90 ? 'flat' : 'down'); }
@@ -577,18 +602,71 @@
 
   /* ── RENDER: MES A MES ── */
   function renderMesAMes() {
-    var meses3 = D.meses.map(function (m) { return m.slice(0, 3); }), S = scoped(SCOPE);
-    var v25 = S.v25, v26 = S.v26.map(function (v) { return v || null; });
-    mk('chTrend', { type: 'line', data: { labels: meses3, datasets: [{ label: '2025', data: v25, borderColor: GRAY, backgroundColor: 'transparent', borderWidth: 2, tension: .35, pointRadius: 2, borderDash: [5, 4] }, { label: '2026', data: v26, borderColor: AZ, backgroundColor: 'rgba(20,102,176,.08)', borderWidth: 3, fill: true, tension: .35, pointRadius: 3 }] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ₲ ' + fmt(c.raw); } } } }, scales: { y: { ticks: gsTick, grid: { color: '#EEF2F7' } }, x: { grid: { display: false } } } } });
-    var a25 = 0, a26 = 0, ac25 = [], ac26 = [];
-    for (var i = 0; i < 12; i++) { a25 += v25[i]; ac25.push(a25); if (v26[i] != null) { a26 += v26[i]; ac26.push(a26); } else ac26.push(null); }
-    mk('chAcum', { type: 'line', data: { labels: meses3, datasets: [{ label: 'Acum. 2025', data: ac25, borderColor: GRAY, borderWidth: 2, tension: .3, pointRadius: 0, borderDash: [5, 4] }, { label: 'Acum. 2026', data: ac26, borderColor: AZ, backgroundColor: 'rgba(20,102,176,.10)', fill: true, borderWidth: 3, tension: .3, pointRadius: 2 }] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ₲ ' + fmt(c.raw); } } } }, scales: { y: { ticks: gsTick, grid: { color: '#EEF2F7' } }, x: { grid: { display: false } } } } });
-    var meta = S.meta, tb = q('#tblMM tbody'); if (!tb) return; var html = ''; a25 = 0; a26 = 0;
-    for (var j = 0; j < 12; j++) { var has = v26[j] != null; a25 += v25[j]; if (has) a26 += v26[j]; var va = has ? pct(a26 - a25, a25) : null, cu = has ? pct(v26[j], meta[j]) : null; html += '<tr><td>' + D.meses[j] + '</td><td>' + fmt(a25) + '</td><td>' + (has ? fmt(a26) : '–') + '</td><td class="' + (va > 0 ? 'pos' : 'neg') + '">' + (has ? fp(va) : '–') + '</td><td class="mini">' + fmt(meta[j]) + '</td><td class="' + (cu >= 100 ? 'pos' : cu >= 90 ? '' : 'neg') + '">' + (has ? cu.toFixed(0) + '%' : '–') + '</td></tr>'; }
-    var totM = meta.reduce(function (a, b) { return a + b; }, 0);
-    html += '<tr class="tot"><td>TOTAL</td><td>' + fmt(a25) + '</td><td>' + fmt(a26) + '</td><td class="' + (a26 > a25 ? 'pos' : 'neg') + '">' + fp(pct(a26 - a25, a25)) + '</td><td>' + fmt(totM) + '</td><td>' + pct(a26, totM).toFixed(0) + '%</td></tr>';
+    var S = scoped(SCOPE), k = kpis(SCOPE), mi = k.mi, G = !!window.gsap;
+    var P = function (v) { return v.toFixed(1).replace('.', ',') + '%'; };
+    var est = function (p) { return p >= 100 ? 'ok' : p >= 90 ? 'warn' : 'bad'; };
+    var v25 = S.v25, meta = S.meta, v26 = S.v26.map(function (v, i) { return i <= mi ? (v || 0) : null; });
+    // Acumulado vs 2025 en el MISMO período (meses cerrados completos + mes en curso al mismo día hábil)
+    var y25 = k.mesYoY; for (var i = 0; i < mi; i++) y25 += v25[i] || 0;
+    var vv = pct(k.ytd - y25, y25), ve = q('#mmVar'); if (ve) { ve.textContent = fp(vv); ve.className = 'p2-c ' + (vv >= 0.5 ? 'ok' : vv <= -0.5 ? 'bad' : 'na'); }
+    animCount(q('#mmYtd'), k.ytd, fmt, 1); animCount(q('#mmYtd25'), y25, fmt, 1);
+    T('mmYtdL', 'enero a ' + D.meses[mi].toLowerCase() + ' ' + (k.y - 1) + ' al mismo día hábil' + (k.yoyExacto ? '' : ' (estimado)'));
+    var ce = q('#mmCum'); if (ce) { ce.textContent = P(k.cumplYtd) + ' de la meta'; ce.className = 'p2-c ' + est(k.cumplYtd); }
+    animCount(q('#mmMetaYtd'), k.metaYtd, fmt, 1); animCount(q('#mmMetaAn'), k.metaAnual, fmt, 1);
+    var cb = q('#mmCumBar'); if (cb) { cb.className = est(k.cumplYtd); cb.dataset.w = Math.min(k.cumplYtd, 100); }
+    // mejor y peor mes cerrado según cumplimiento de su meta
+    var cer = []; for (var j = 0; j < mi; j++) if (v26[j] && meta[j]) cer.push({ i: j, p: pct(v26[j], meta[j]) });
+    cer.sort(function (a, b) { return b.p - a.p; });
+    if (cer.length) {
+      var be = cer[0], wo = cer[cer.length - 1];
+      T('mmBest', D.meses[be.i]); T('mmBestP', P(be.p) + ' de la meta'); T('mmBestS', '₲ ' + fmt(v26[be.i]) + ' de ₲ ' + fmt(meta[be.i]));
+      T('mmWorst', D.meses[wo.i]); T('mmWorstP', P(wo.p) + ' de la meta'); T('mmWorstS', '₲ ' + fmt(v26[wo.i]) + ' de ₲ ' + fmt(meta[wo.i]));
+      var bp = q('#mmBestP'); if (bp) bp.className = 'p2-c ' + est(be.p); var wp = q('#mmWorstP'); if (wp) wp.className = 'p2-c ' + est(wo.p);
+    }
+    qa('#mesames .p2-tbar span').forEach(function (sp) { if (G) gsap.fromTo(sp, { width: '0%' }, { width: sp.dataset.w + '%', duration: 1, delay: .2, ease: 'power3.out' }); else sp.style.width = sp.dataset.w + '%'; });
+
+    // Gráfico por mes: barras 2026 (color según la meta), línea 2025 y meta
+    var COL = { ok: '#16A34A', warn: '#D97706', bad: '#DC2626', cur: '#1466B0' };
+    var barCol = v26.map(function (v, i) { if (v == null) return 'transparent'; if (i === mi) return COL.cur; return COL[est(pct(v, meta[i]))]; });
+    var labels = D.meses.slice();
+    var tip = { callbacks: { label: function (c) { return c.dataset.label + ': ₲ ' + fmt(c.parsed.y); } } };
+    mk('chTrend', { type: 'bar', data: { labels: labels, datasets: [
+      { type: 'bar', label: '2026', data: v26, backgroundColor: barCol, borderRadius: 7, maxBarThickness: 34, order: 3 },
+      { type: 'line', label: '2025', data: v25, borderColor: '#B8C4D0', borderWidth: 2, borderDash: [5, 4], pointRadius: 2, tension: .35, order: 2 },
+      { type: 'line', label: 'Meta', data: meta, borderColor: '#0B4F8A', borderWidth: 0, pointStyle: 'line', pointRadius: 11, pointBorderWidth: 3, pointBorderColor: '#0B4F8A', showLine: false, order: 1 }
+    ] }, options: { maintainAspectRatio: false, animation: { duration: 900, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: tip }, scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 } } }, y: { beginAtZero: true, ticks: gsTick, grid: { color: '#EEF2F7' } } } } });
+    // Acumulado: 2026 vs 2025 vs meta
+    var a25 = [], a26 = [], am = [], s25 = 0, s26 = 0, sm = 0;
+    for (var m = 0; m < 12; m++) { s25 += v25[m] || 0; sm += meta[m] || 0; a25.push(s25); am.push(sm); if (v26[m] != null) { s26 += v26[m]; a26.push(s26); } else a26.push(null); }
+    mk('chAcum', { type: 'line', data: { labels: labels, datasets: [
+      { label: '2026', data: a26, borderColor: '#1466B0', backgroundColor: 'rgba(20,102,176,.10)', fill: true, borderWidth: 3, tension: .3, pointRadius: 3, pointBackgroundColor: '#1466B0' },
+      { label: '2025', data: a25, borderColor: '#B8C4D0', borderWidth: 2, borderDash: [5, 4], tension: .3, pointRadius: 0 },
+      { label: 'Meta', data: am, borderColor: '#0B4F8A', borderWidth: 1.5, borderDash: [2, 3], tension: .3, pointRadius: 0 }
+    ] }, options: { maintainAspectRatio: false, animation: { duration: 900, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: tip }, scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 } } }, y: { ticks: gsTick, grid: { color: '#EEF2F7' } } } } });
+
+    // Tabla
+    var tb = q('#tblMM tbody'); if (!tb) return;
+    var html = '', ac = 0;
+    for (var r = 0; r < 12; r++) {
+      var has = v26[r] != null, cur = r === mi;
+      if (has) ac += v26[r];
+      var cmp = cur ? k.mesYoY : v25[r], va = has ? pct(v26[r] - cmp, cmp) : null, cu = has && meta[r] ? pct(v26[r], meta[r]) : null;
+      html += '<tr class="' + (cur ? 'cur' : '') + (has ? '' : ' fut') + '"><td><b>' + D.meses[r] + '</b>' + (cur ? '<em class="mm-cur">en curso</em>' : '') + '</td>' +
+        '<td class="r b">' + (has ? fmt(v26[r]) : '–') + '</td><td class="r">' + fmt(v25[r]) + '</td>' +
+        '<td class="r">' + (va == null ? '–' : '<em class="p2-c ' + (va >= 0.5 ? 'ok' : va <= -0.5 ? 'bad' : 'na') + '">' + fp(va) + '</em>' + (cur ? '<small class="mm-n">al día ' + k.bd_el + '</small>' : '')) + '</td>' +
+        '<td class="r">' + fmt(meta[r]) + '</td>' +
+        '<td>' + (cu == null ? '–' : '<div class="mm-cu"><span class="mm-cu__b"><i class="' + (cur ? 'cur' : est(cu)) + '" data-w="' + Math.min(cu, 100).toFixed(1) + '"></i></span><b class="' + (cur ? '' : est(cu)) + '">' + P(cu) + '</b></div>') + '</td>' +
+        '<td class="r">' + (has ? fmt(ac) : '–') + '</td></tr>';
+    }
+    var totM = meta.reduce(function (x, y) { return x + y; }, 0), tot25 = v25.reduce(function (x, y) { return x + y; }, 0);
+    html += '<tr class="tot"><td><b>Total del año</b></td><td class="r b">' + fmt(ac) + '</td><td class="r">' + fmt(tot25) + '</td><td></td><td class="r">' + fmt(totM) + '</td><td><b>' + P(pct(ac, totM)) + '</b> <small class="mm-n">de la meta anual</small></td><td></td></tr>';
     tb.innerHTML = html;
-    if (window.gsap) gsap.from(qa('#tblMM tbody tr'), { opacity: 0, x: -8, duration: .3, stagger: .03, ease: 'power2.out', clearProps: 'all' });
+    qa('#tblMM .mm-cu__b i').forEach(function (i2) { if (G) gsap.fromTo(i2, { width: '0%' }, { width: i2.dataset.w + '%', duration: .9, delay: .2, ease: 'power3.out' }); else i2.style.width = i2.dataset.w + '%'; });
+    if (G) {
+      gsap.from(qa('#tblMM tbody tr'), { opacity: 0, y: 6, duration: .3, stagger: .025, delay: .15, ease: 'power2.out', clearProps: 'transform,opacity' });
+      gsap.from('#mesames .p2-t', { opacity: 0, y: 12, duration: .45, stagger: .06, ease: 'power3.out', clearProps: 'transform,opacity' });
+      gsap.from('#mesames .p2-t__h i', { scale: 0, rotate: -20, duration: .5, stagger: .06, delay: .1, ease: 'back.out(2.4)', clearProps: 'transform' });
+    }
   }
 
   /* ── RENDER: PEDIDOS ── */
