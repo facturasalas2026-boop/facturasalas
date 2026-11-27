@@ -1026,7 +1026,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .dz-days{font-size:11.5px;color:var(--gris)}
 .tbd .dz-days b{font-weight:800;color:var(--tinta)}
 .tbd .card.accent.is-pending .dz{display:none}
-.tbd .p4.fit .p4-l .card.accent{height:auto;min-height:250px}
+.tbd .p4.fit .p4-l .card.accent{height:178px;min-height:178px;padding-top:14px;padding-bottom:14px}
+.tbd .p4.fit .p4-l .card.accent .dz{gap:8px}
+.tbd .p4.fit .dz-body{grid-template-columns:116px minmax(0,1fr);gap:18px}
+.tbd .p4.fit .dz-ring{width:116px;height:116px}
+.tbd .p4.fit .dz-main{gap:5px}
+.tbd .p4.fit .dz-main-lbl{font-size:10.5px}
+.tbd .p4.fit .dz .acc-num{font-size:28px}
+.tbd .p4.fit .dz .acc-obj-bar{height:12px}
+.tbd .p4.fit .dz-objectives{font-size:10.5px;gap:4px 12px}
+.tbd .p4.fit .dz-target b,.tbd .p4.fit .dz-gap b{font-size:11.5px}
+.tbd .p4.fit .dz-days{font-size:10px}
 @media(max-width:760px){
   .tbd .p4-l .card.accent{padding:16px 18px}
   .tbd .dz-hd{align-items:flex-start}
