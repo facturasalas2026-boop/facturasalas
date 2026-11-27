@@ -314,11 +314,15 @@
     '<div class="card hero"><h3 class="h-hd">Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;font-weight:700">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="bar"><span id="hBar" style="width:0%"></span></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
     '<div class="card accent" id="cardDia">' +
     '<div class="dz">' +
-      '<div class="dz-l"><div class="dz-hd"><span class="acc-lbl">Facturación del día</span><span class="dz-f" id="kDiaFecha">—</span></div>' +
-        '<div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
-        '<span class="acc-trend flat" id="kDiaVar" title="">—</span><span class="dz-vs">vs año pasado · ₲ <span id="kDiaPrev">–</span></span></div>' +
-      '<div class="dz-r"><div class="dz-ring"><svg viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="27"/><circle class="fg" id="kDiaRing" cx="32" cy="32" r="27" stroke-dasharray="169.65" stroke-dashoffset="169.65"/></svg><b id="kDiaObjPct">–</b></div>' +
-        '<div class="dz-o"><span>del objetivo del día</span><b>₲ <span id="kDiaObj">–</span></b><div class="acc-obj-bar"><span id="kDiaObjBar"></span></div><small>faltan <span id="kDiaObjDays">–</span> días hábiles</small></div></div>' +
+      '<div class="dz-hd"><span>Facturación del día</span><i>·</i><span class="dz-f" id="kDiaFecha">—</span></div>' +
+      '<div class="dz-body">' +
+        '<div class="dz-ring" role="img" aria-label="Avance del objetivo diario"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="bg" cx="32" cy="32" r="27"/><circle class="fg" id="kDiaRing" cx="32" cy="32" r="27" stroke-dasharray="169.65" stroke-dashoffset="169.65"/></svg><div class="dz-ring-center"><b id="kDiaObjPct">–</b><span>del objetivo</span></div></div>' +
+        '<div class="dz-main"><span class="dz-main-lbl">Facturación del día</span><div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
+          '<div class="acc-obj-bar" id="kDiaObjProgress" role="progressbar" aria-label="Avance del objetivo diario" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="kDiaObjBar"></span></div>' +
+          '<div class="dz-objectives"><span class="dz-target">Objetivo <b>₲ <span id="kDiaObj">–</span></b></span><span class="dz-gap" id="kDiaObjGap"><span id="kDiaObjGapLabel">Faltan</span> <b>₲ <span id="kDiaObjResta">–</span></b></span></div></div>' +
+      '</div>' +
+      '<div class="dz-foot"><div class="dz-compare"><span class="acc-trend flat" id="kDiaVar" title="">—</span><span class="dz-vs">vs año pasado · ₲ <b id="kDiaPrev">–</b></span></div>' +
+        '<div class="dz-days">faltan <b><span id="kDiaObjDays">–</span> <span id="kDiaObjDaysUnit">días hábiles</span></b></div></div>' +
     '</div>' +
     '<div class="acc-pending"><span class="acc-pending-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M9 14.5h6"/></svg></span><div class="acc-pending-t">Sin registros de hoy</div><div class="acc-pending-s">Cargá la planilla del <b id="accPendDate">—</b> para ver la facturación del día</div></div>' +
     '</div>' +
@@ -634,15 +638,20 @@
     var remMeta = Math.max(0, k.meta - k.fact), remDays = Math.max(0, k.bd_rest);
     var reqDaily = remDays > 0 ? remMeta / remDays : remMeta;
     var pctObj = remMeta <= 0 ? 100 : pct(k.lastCur, reqDaily);
+    var objGap = reqDaily - k.lastCur, objGapDone = remMeta <= 0 || objGap <= 0;
+    T('kDiaObjGapLabel', remMeta <= 0 ? 'Meta mensual cumplida' : objGap > 0 ? 'Faltan' : objGap < 0 ? 'Superó por' : 'Objetivo cumplido');
+    animCount(q('#kDiaObjResta'), remMeta <= 0 ? 0 : Math.abs(objGap), function (v) { return fmt(v); }, 1.1);
+    var gapNode = q('#kDiaObjGap'); if (gapNode) { gapNode.classList.toggle('is-met', objGapDone); gapNode.classList.toggle('is-month-done', remMeta <= 0); }
     animCount(q('#kDiaObjPct'), pctObj, function (v) { return Math.round(v) + '%'; }, 1.1);
     animCount(q('#kDiaObj'), reqDaily, function (v) { return fmt(v); }, 1.1);
     animCount(q('#kDiaObjDays'), remDays, function (v) { return Math.round(v); }, .8);
-    var dr = q('#kDiaRing'), drOff = 169.65 * (1 - Math.min(pctObj, 100) / 100), cdR = q('#cardDia');
+    T('kDiaObjDaysUnit', remDays === 1 ? 'día hábil' : 'días hábiles');
+    var pctFill = Math.max(0, Math.min(pctObj, 100)), dr = q('#kDiaRing'), drOff = 169.65 * (1 - pctFill / 100), cdR = q('#cardDia');
     if (cdR) cdR.classList.toggle('dz-ok', pctObj >= 100);
     if (dr) { if (window.gsap) gsap.fromTo(dr, { attr: { 'stroke-dashoffset': 169.65 } }, { attr: { 'stroke-dashoffset': drOff }, duration: 1.1, delay: .2, ease: 'power3.out' }); else dr.setAttribute('stroke-dashoffset', drOff); }
-    var ob = q('#kDiaObjBar'); if (ob) { if (ob.parentNode) ob.parentNode.classList.toggle('over', pctObj >= 100); if (window.gsap) { ob.style.transition = 'none'; gsap.fromTo(ob, { width: '0%' }, { width: Math.min(pctObj, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else ob.style.width = Math.min(pctObj, 100) + '%'; }
+    var ob = q('#kDiaObjBar'), op = q('#kDiaObjProgress'); if (op) op.setAttribute('aria-valuenow', pctFill.toFixed(0)); if (ob) { if (ob.parentNode) ob.parentNode.classList.toggle('over', pctObj >= 100); if (window.gsap) { ob.style.transition = 'none'; gsap.fromTo(ob, { width: '0%' }, { width: pctFill + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else ob.style.width = pctFill + '%'; }
     var dv = q('#kDiaVar'); if (dv) { var _cls = chipCls(k.varDia); dv.className = 'acc-trend ' + _cls; dv.innerHTML = trendArrow(_cls) + fp(k.varDia); if (window.gsap) gsap.fromTo(dv, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)', delay: .4, clearProps: 'all' }); }
-    if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.acc-top'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-foot'), { y: 10, opacity: 0, duration: .5, delay: .22, ease: 'power2.out', clearProps: 'all' }); } }
+    if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.dz-hd'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.dz-main .acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.dz-foot'), { y: 10, opacity: 0, duration: .5, delay: .22, ease: 'power2.out', clearProps: 'all' }); } }
     // ── Tarjetas: un dato grande, una barra, una línea ──
     var G = !!window.gsap, P = function (v) { return v.toFixed(1).replace('.', ',') + '%'; };
     var est = function (p) { return p >= 100 ? 'ok' : p >= 90 ? 'warn' : 'bad'; };
