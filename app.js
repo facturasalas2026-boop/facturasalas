@@ -784,14 +784,14 @@
     // ── Gráficos estilo tarjeta azul (v2): proyección del mes en curso, meta visible, cruz al pasar el mouse ──
     var MS = D.meses.map(function (m) { return m.slice(0, 3).toUpperCase(); });
     var enCurso = k.bd_rest > 0 && v26[mi] != null;            // el mes visible todavía no terminó
-    var grad = function (c) { var ch = c.chart, ar = ch.chartArea; if (!ar) return 'rgba(255,255,255,.2)'; var g2 = ch.ctx.createLinearGradient(0, ar.top, 0, ar.bottom); g2.addColorStop(0, 'rgba(255,255,255,.40)'); g2.addColorStop(1, 'rgba(255,255,255,0)'); return g2; };
-    var cruz = { id: 'cruz', afterDatasetsDraw: function (ch) { var t = ch.tooltip; if (!t || !t.getActiveElements().length) return; var x = t.getActiveElements()[0].element.x, ar = ch.chartArea, c2 = ch.ctx; c2.save(); c2.strokeStyle = 'rgba(255,255,255,.45)'; c2.lineWidth = 1; c2.setLineDash([3, 3]); c2.beginPath(); c2.moveTo(x, ar.top); c2.lineTo(x, ar.bottom); c2.stroke(); c2.restore(); } };
+    var grad = function (c) { var ch = c.chart, ar = ch.chartArea; if (!ar) return 'rgba(255,255,255,.2)'; var g2 = ch.ctx.createLinearGradient(0, ar.top, 0, ar.bottom); g2.addColorStop(0, 'rgba(20,102,176,.22)'); g2.addColorStop(1, 'rgba(20,102,176,0)'); return g2; };
+    var cruz = { id: 'cruz', afterDatasetsDraw: function (ch) { var t = ch.tooltip; if (!t || !t.getActiveElements().length) return; var x = t.getActiveElements()[0].element.x, ar = ch.chartArea, c2 = ch.ctx; c2.save(); c2.strokeStyle = 'rgba(11,79,138,.35)'; c2.lineWidth = 1; c2.setLineDash([3, 3]); c2.beginPath(); c2.moveTo(x, ar.top); c2.lineTo(x, ar.bottom); c2.stroke(); c2.restore(); } };
     var opt = function (zero) { return { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
       animation: { duration: 900, easing: 'easeOutCubic', delay: function (c) { return c.type === 'data' && c.mode === 'default' ? c.dataIndex * 70 + c.datasetIndex * 120 : 0; } },
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(255,255,255,.97)', titleColor: '#0B3E6E', titleFont: { weight: '800' }, bodyColor: '#334155', borderColor: '#D3E4F5', borderWidth: 1, padding: 11, cornerRadius: 12, boxPadding: 5, usePointStyle: true, filter: function (it) { return it.parsed.y != null; },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(11,62,110,.96)', titleColor: '#fff', titleFont: { weight: '800' }, bodyColor: 'rgba(255,255,255,.9)', borderColor: 'rgba(255,255,255,.1)', borderWidth: 1, padding: 11, cornerRadius: 12, boxPadding: 5, usePointStyle: true, filter: function (it) { return it.parsed.y != null; },
         callbacks: { title: function (it) { return D.meses[it[0].dataIndex] + (enCurso && it[0].dataIndex === mi ? ' · en curso' : ''); }, label: function (c) { return ' ' + c.dataset.label + ': ₲ ' + fmt(c.parsed.y); } } } },
-      scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: 'rgba(255,255,255,.72)', font: { size: 10, weight: '700' }, maxRotation: 0, autoSkip: false } }, y: { display: false, beginAtZero: zero } } }; };
-    var bajo = function (vals, metas) { return vals.map(function (v, j) { return v != null && metas[j] && v < metas[j] ? '#FCA5A5' : '#fff'; }); };
+      scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: '#64748B', font: { size: 10, weight: '700' }, maxRotation: 0, autoSkip: false } }, y: { display: true, beginAtZero: zero, border: { display: false }, grid: { color: '#EEF2F7' }, ticks: { color: '#94A3B8', font: { size: 10 }, maxTicksLimit: 5, callback: function (v) { return fmtM(v); } } } } }; };
+    var bajo = function (vals, metas) { return vals.map(function (v, j) { return v != null && metas[j] && v < metas[j] ? '#DC2626' : '#16A34A'; }); };
     // datos de la línea real (sin el mes en curso) + tramo proyectado
     var real = v26.map(function (v, j) { return enCurso && j === mi ? null : v; });
     var proy = v26.map(function () { return null; }); if (enCurso && mi > 0) { proy[mi - 1] = v26[mi - 1]; proy[mi] = k.proyMes; }
@@ -803,13 +803,16 @@
     var cerr = v26.filter(function (v, j) { return v != null && !(enCurso && j === mi); }), prom = cerr.length ? cerr.reduce(function (x, y) { return x + y; }, 0) / cerr.length : 0;
     var mejorI = 0; v26.forEach(function (v, j) { if (v != null && !(enCurso && j === mi) && v > (v26[mejorI] || 0)) mejorI = j; });
     H('mmTS', '<span><small>' + D.meses[ultimo] + '</small><b>₲ ' + fmt(v26[ultimo] || 0) + '</b></span><span><small>Promedio mensual</small><b>₲ ' + fmt(prom) + '</b></span><span><small>Mejor mes</small><b>' + D.meses[mejorI] + '</b></span>' + (enCurso ? '<span class="pr"><small>Cierre estimado ' + D.meses[mi].toLowerCase() + '</small><b>₲ ' + fmt(k.proyMes) + '</b></span>' : ''));
-    mk('chTrend', { type: 'line', plugins: [cruz], data: { labels: MS, datasets: [
-      { label: String(k.y), data: real, borderColor: '#fff', backgroundColor: grad, fill: true, borderWidth: 2.6, tension: .35, pointRadius: 4, pointHoverRadius: 7, pointBackgroundColor: bajo(real, meta), pointBorderColor: 'rgba(255,255,255,.5)', pointBorderWidth: 2.5 },
-      { label: 'Proyección', data: proy, borderColor: 'rgba(255,255,255,.85)', borderDash: [6, 5], borderWidth: 2.2, tension: .35, pointRadius: function (c) { return c.dataIndex === mi ? 6 : 0; }, pointBackgroundColor: 'rgba(255,255,255,.25)', pointBorderColor: '#fff', pointBorderWidth: 2, fill: false },
-      { label: 'Facturado a hoy', data: parcial, showLine: false, pointRadius: 4, pointBackgroundColor: '#93C5FD', pointBorderColor: '#fff', pointBorderWidth: 1.5 },
-      { label: String(k.y - 1), data: v25, borderColor: 'rgba(255,255,255,.35)', borderDash: [5, 4], borderWidth: 1.5, tension: .35, pointRadius: 0, fill: false },
-      { label: 'Meta', data: meta, borderColor: 'rgba(253,230,138,.95)', borderWidth: 2, tension: .35, pointRadius: 0, fill: false }
-    ] }, options: opt(false) });
+    var barBg = function (c) { var ch = c.chart, ar = ch.chartArea; if (!ar) return '#1466B0'; var g3 = ch.ctx.createLinearGradient(0, ar.bottom, 0, ar.top); g3.addColorStop(0, '#5FA3DD'); g3.addColorStop(1, '#0B4F8A'); return g3; };
+    var barras = v26.map(function (v, j) { return enCurso && j === mi ? null : v; });
+    var barProy = v26.map(function (v, j) { return enCurso && j === mi ? k.proyMes : null; });
+    mk('chTrend', { type: 'bar', plugins: [cruz], data: { labels: MS, datasets: [
+      { type: 'bar', label: String(k.y), data: barras, backgroundColor: barBg, hoverBackgroundColor: '#0B3E6E', borderRadius: 8, borderSkipped: false, maxBarThickness: 34, categoryPercentage: .62, barPercentage: .9, order: 3, stack: 'a' },
+      { type: 'bar', label: 'Proyección', data: barProy, backgroundColor: 'rgba(20,102,176,.12)', borderColor: '#1466B0', borderWidth: 1.5, borderDash: [5, 4], borderRadius: 8, borderSkipped: false, maxBarThickness: 34, categoryPercentage: .62, barPercentage: .9, order: 3, stack: 'a' },
+      { type: 'line', label: 'Facturado a hoy', data: parcial, showLine: false, pointRadius: 5, pointBackgroundColor: '#1466B0', pointBorderColor: '#fff', pointBorderWidth: 2, order: 1 },
+      { type: 'line', label: String(k.y - 1), data: v25, borderColor: '#94A3B8', borderDash: [5, 4], borderWidth: 1.6, tension: .35, pointRadius: 2.5, pointBackgroundColor: '#94A3B8', fill: false, order: 2 },
+      { type: 'line', label: 'Meta', data: meta, showLine: false, pointStyle: 'line', pointRadius: 13, pointBorderWidth: 3, pointBorderColor: '#F59E0B', pointHoverRadius: 13, order: 0 }
+    ] }, options: Object.assign(opt(true), { scales: Object.assign(opt(true).scales, { x: Object.assign(opt(true).scales.x, { stacked: true }), y: Object.assign(opt(true).scales.y, { stacked: false }) }) }) });
     // acumulado
     var a25 = [], a26 = [], am = [], ap = [], s25 = 0, s26 = 0, sm = 0;
     for (var m2 = 0; m2 < 12; m2++) { s25 += v25[m2] || 0; sm += meta[m2] || 0; a25.push(s25); am.push(sm); if (v26[m2] != null && !(enCurso && m2 === mi)) { s26 += v26[m2]; a26.push(s26); } else a26.push(null); ap.push(null); }
@@ -818,10 +821,10 @@
     var faltaA = Math.max(0, k.metaYtd - k.ytd);
     H('mmAS', '<span><small>Facturado en el año</small><b>₲ ' + fmt(k.ytd) + '</b></span><span><small>Meta a hoy</small><b>₲ ' + fmt(k.metaYtd) + '</b></span><span class="' + (faltaA > 0 ? 'neg' : 'pos') + '"><small>' + (faltaA > 0 ? 'Bajo la meta' : 'Sobre la meta') + '</small><b>₲ ' + fmt(Math.abs(k.metaYtd - k.ytd)) + '</b></span>');
     mk('chAcum', { type: 'line', plugins: [cruz], data: { labels: MS, datasets: [
-      { label: String(k.y), data: a26, borderColor: '#fff', backgroundColor: grad, fill: true, borderWidth: 2.6, tension: .3, pointRadius: 4, pointHoverRadius: 7, pointBackgroundColor: bajo(a26, am), pointBorderColor: 'rgba(255,255,255,.5)', pointBorderWidth: 2.5 },
-      { label: 'Proyección', data: ap, borderColor: 'rgba(255,255,255,.85)', borderDash: [6, 5], borderWidth: 2.2, tension: .3, pointRadius: function (c) { return c.dataIndex === mi ? 6 : 0; }, pointBackgroundColor: 'rgba(255,255,255,.25)', pointBorderColor: '#fff', pointBorderWidth: 2, fill: false },
-      { label: String(k.y - 1), data: a25, borderColor: 'rgba(255,255,255,.35)', borderDash: [5, 4], borderWidth: 1.5, tension: .3, pointRadius: 0, fill: false },
-      { label: 'Meta', data: am, borderColor: 'rgba(253,230,138,.95)', borderWidth: 2, tension: .3, pointRadius: 0, fill: false }
+      { label: String(k.y), data: a26, borderColor: '#1466B0', backgroundColor: grad, fill: true, borderWidth: 3, tension: .3, pointRadius: 4.5, pointHoverRadius: 7, pointBackgroundColor: '#1466B0', pointBorderColor: '#fff', pointBorderWidth: 2 },
+      { label: 'Proyección', data: ap, borderColor: '#1466B0', borderDash: [6, 5], borderWidth: 2.2, tension: .3, pointRadius: function (c) { return c.dataIndex === mi ? 6 : 0; }, pointBackgroundColor: '#fff', pointBorderColor: '#1466B0', pointBorderWidth: 2.5, fill: false },
+      { label: String(k.y - 1), data: a25, borderColor: '#94A3B8', borderDash: [5, 4], borderWidth: 1.5, tension: .3, pointRadius: 0, fill: false },
+      { label: 'Meta', data: am, borderColor: '#F59E0B', borderWidth: 2, tension: .3, pointRadius: 0, fill: false }
     ] }, options: opt(true) });
     if (G) {
       gsap.from('#mesames .mm-bc', { opacity: 0, y: 14, duration: .5, stagger: .08, ease: 'power3.out', clearProps: 'transform,opacity' });
