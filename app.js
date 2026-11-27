@@ -375,11 +375,21 @@
     '</section>' +
 
     '<section class="page" id="config">' +
-    '<div class="grid g2" style="margin-bottom:16px">' +
-    '<div class="card"><h3>Cálculo de días hábiles</h3><div class="stat-row"><span class="k">Mes analizado</span><span class="v" id="cfMes">–</span></div><div class="stat-row"><span class="k">Días del mes</span><span class="v" id="cfDias">–</span></div><div class="stat-row"><span class="k">Domingos</span><span class="v" id="cfFds">–</span></div><div class="stat-row"><span class="k">Feriados cargados</span><span class="v" id="cfFer">–</span></div><div class="stat-row"><span class="k">Días hábiles (L-S, netos)</span><span class="v" id="cfHab">–</span></div><div class="stat-row"><span class="k">Transcurridos hasta hoy</span><span class="v" id="cfTrans">–</span></div><div class="stat-row"><span class="k">Que faltan</span><span class="v" id="cfFalt">–</span></div></div>' +
-    '<div class="card"><h3>Feriados (excepciones manuales)</h3><div class="holiday-in" id="ferAddRow"><div class="fld"><label>Fecha del feriado</label><input type="date" id="ferDate"></div><div class="fld"><label>Descripción (opcional)</label><input type="text" id="ferName" placeholder="Ej: Día del trabajador"></div><button class="btn" id="btnAddFer" style="background:var(--azul);color:#fff">+ Agregar</button></div><div id="ferList"></div><div class="note" style="margin-top:14px">Los feriados se descuentan de los días hábiles y recalculan las proyecciones para todo el equipo.</div></div>' +
+    '<div class="p2-tiles">' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></i><span>Días hábiles del mes</span></div><b class="p2-t__v" id="cfHab">–</b><small>lunes a sábado, sin feriados · <span id="cfMes">–</span></small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></i><span>Transcurridos</span></div><b class="p2-t__v" id="cfTrans">–</b><div class="p2-tbar"><span id="cfBar"></span></div><small>hasta la última fecha con datos</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></i><span>Faltan</span></div><b class="p2-t__v" id="cfFalt">–</b><small><span id="cfFds">–</span> domingos · <span id="cfFer">–</span> feriados en el mes</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M7 15v-4M12 15V8M17 15v-6"/></svg></i><span>Valor del sábado</span></div><b class="p2-t__v" id="cfSab">–</b><small>de un día de semana, según lo facturado</small></div>' +
     '</div>' +
-    '<div class="card"><h3>Fecha de referencia ("hoy")</h3><div class="holiday-in" style="margin-bottom:0"><div class="fld"><label>Simular fecha (para proyecciones)</label><input type="date" id="hoyInput"></div><button class="btn" id="btnHoy" style="background:var(--azul-tenue);color:var(--azul)">Aplicar</button><button class="btn" id="btnHoyReset" style="background:#eef1f5;color:var(--gris)">Volver a la última fecha con datos</button></div></div>' +
+    '<div class="cf-grid">' +
+      '<div class="card"><div class="p2-h"><h3>Calendario del mes</h3><span class="cf-leg"><span><i class="h"></i>hábil</span><span><i class="p"></i>transcurrido</span><span><i class="s"></i>sábado</span><span><i class="f"></i>feriado</span></span></div><div class="cf-cal" id="cfCal"></div></div>' +
+      '<div class="card"><div class="p2-h"><h3>Feriados</h3><small class="cf-n" id="cfFerN">–</small></div>' +
+        '<div class="cf-add" id="ferAddRow"><input type="date" id="ferDate"><input type="text" id="ferName" placeholder="Descripción (opcional)"><button class="btn cf-btn" id="btnAddFer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Agregar</button></div>' +
+        '<div class="cf-fer" id="ferList"></div>' +
+        '<div class="cf-note">Los feriados se descuentan de los días hábiles y recalculan las proyecciones para todo el equipo.</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="card cf-ref"><div class="p2-h"><h3>Fecha de referencia</h3><small class="cf-n">para simular proyecciones</small></div><div class="cf-add"><input type="date" id="hoyInput"><button class="btn cf-btn" id="btnHoy">Aplicar</button><button class="btn" id="btnHoyReset">Volver a la última fecha con datos</button></div></div>' +
     '</section>';
 
   /* ── Filtro de segmento (Almacén) para la toolbar ── */
@@ -736,17 +746,45 @@
 
   /* ── RENDER: CONFIG ── */
   function renderConfig() {
-    var k = kpis('tot');
-    T('cfMes', D.meses[k.mi] + ' ' + k.y);
-    var _d = function (v) { return Math.round(v) + ' días'; };
-    animCount(q('#cfDias'), k.daysMonth, function (v) { return Math.round(v); }, .8); animCount(q('#cfFds'), k.fds, _d, .8); animCount(q('#cfFer'), k.fer, _d, .8); animCount(q('#cfHab'), k.bd_tot, _d, .8); animCount(q('#cfTrans'), k.bd_el, _d, .8); animCount(q('#cfFalt'), k.bd_rest, _d, .8);
+    var k = kpis('tot'), G = !!window.gsap, y = k.y, m = k.mi, hoy = hoyDate();
+    T('cfMes', D.meses[m] + ' ' + y);
+    var _d = function (v) { return Math.round(v) + (Math.round(v) === 1 ? ' día' : ' días'); };
+    animCount(q('#cfHab'), k.bd_tot, _d, .8); animCount(q('#cfTrans'), k.bd_el, _d, .8); animCount(q('#cfFalt'), k.bd_rest, _d, .8);
+    T('cfFds', k.fds); T('cfFer', k.fer); T('cfSab', Math.round(k.ps * 100) + ' %');
+    var cb = q('#cfBar'); if (cb) { var w = k.bd_tot ? k.bd_el / k.bd_tot * 100 : 0; if (G) gsap.fromTo(cb, { width: '0%' }, { width: w + '%', duration: 1, delay: .2, ease: 'power3.out' }); else cb.style.width = w + '%'; }
+    // calendario
+    var cal = q('#cfCal');
+    if (cal) {
+      var first = new Date(y, m, 1), days = new Date(y, m + 1, 0).getDate(), off = (first.getDay() + 6) % 7, h = '';
+      ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].forEach(function (n) { h += '<span class="cf-dn">' + n + '</span>'; });
+      for (var i = 0; i < off; i++) h += '<span class="cf-d vac"></span>';
+      var fac = {}; (D.daily || []).forEach(function (x) { fac[x[0]] = x[1]; });
+      for (var dd = 1; dd <= days; dd++) {
+        var dt = new Date(y, m, dd), wd = dt.getDay(), ds = fmtHoy(dt), fer = isHol(y, m, dd), cls = 'cf-d';
+        if (wd === 0) cls += ' dom'; else if (fer) cls += ' fer'; else { cls += ' hab'; if (wd === 6) cls += ' sab'; if (dt <= hoy) cls += ' pas'; }
+        if (ds === fmtHoy(hoy)) cls += ' hoy';
+        var hol = fer ? holidays.filter(function (x) { return x.date === ds; })[0] : null;
+        h += '<span class="' + cls + '" title="' + (hol ? 'Feriado' + (hol.name ? ': ' + esc(hol.name) : '') : fac[ds] != null ? 'Facturado ₲ ' + fmt(fac[ds]) : '') + '"><b>' + dd + '</b>' + (fac[ds] != null && wd !== 0 ? '<em>' + fmtM(fac[ds]) + '</em>' : fer ? '<em>feriado</em>' : '') + '</span>';
+      }
+      cal.innerHTML = h;
+      if (G) gsap.from(qa('.cf-d:not(.vac)', cal), { opacity: 0, scale: .85, duration: .3, stagger: .012, ease: 'back.out(1.8)', clearProps: 'transform,opacity' });
+    }
     renderFerList();
     var hi = q('#hoyInput'); if (hi) hi.value = fmtHoy(hoyDate());
+    if (G) { gsap.from('#config .p2-t', { opacity: 0, y: 12, duration: .45, stagger: .06, ease: 'power3.out', clearProps: 'transform,opacity' }); gsap.from('#config .p2-t__h i', { scale: 0, rotate: -20, duration: .5, stagger: .06, delay: .1, ease: 'back.out(2.4)', clearProps: 'transform' }); }
   }
   function renderFerList() {
     var list = q('#ferList'); if (!list) return; var admin = isAdmin();
-    list.innerHTML = holidays.length ? holidays.map(function (h) { return '<span class="tag">' + esc(h.date) + (h.name ? ' · ' + esc(h.name) : '') + (admin ? ' <button data-delfer="' + esc(h.date) + '">×</button>' : '') + '</span>'; }).join('') : '<span class="mini">Sin feriados cargados.</span>';
+    var MES3 = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'], DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    var hs = holidays.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }), hoyS = fmtHoy(new Date());
+    var prox = (hs.filter(function (h) { return h.date >= hoyS; })[0] || {}).date;
+    T('cfFerN', hs.length + (hs.length === 1 ? ' cargado' : ' cargados'));
+    list.innerHTML = hs.length ? hs.map(function (h) {
+      var dt = dOf(h.date), pas = h.date < hoyS;
+      return '<div class="cf-fd' + (pas ? ' pas' : '') + (h.date === prox ? ' prox' : '') + '"><div class="cf-fd__c"><span>' + MES3[dt.getMonth()] + '</span><b>' + pad(dt.getDate()) + '</b></div><div class="cf-fd__t"><b>' + esc(h.name || DIAS[dt.getDay()]) + '</b><small>' + (h.date === prox ? 'Próximo feriado' : DIAS[dt.getDay()] + ' ' + dt.getFullYear()) + '</small></div>' + (admin ? '<button class="cf-fd__x" data-delfer="' + esc(h.date) + '" title="Quitar">×</button>' : '') + '</div>';
+    }).join('') : '<div class="pq-empty">Sin feriados cargados.</div>';
     qa('[data-delfer]', list).forEach(function (b) { b.addEventListener('click', function () { delFer(b.dataset.delfer); }); });
+    if (window.gsap) gsap.from(qa('.cf-fd', list), { opacity: 0, y: 8, duration: .3, stagger: .03, ease: 'power2.out', clearProps: 'transform,opacity' });
   }
   function addFer() {
     var d = q('#ferDate').value; if (!d) { toast('Elegí una fecha', true); return; }
