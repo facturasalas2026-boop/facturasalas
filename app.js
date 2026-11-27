@@ -313,10 +313,13 @@
     '<div class="p4-l">' +
     '<div class="card hero"><h3 class="h-hd">Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;font-weight:700">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="bar"><span id="hBar" style="width:0%"></span></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
     '<div class="card accent" id="cardDia">' +
-    '<div class="acc-top"><div class="acc-topx"><span class="acc-lbl">Facturación del día</span><span class="acc-sub" id="kDiaFecha">—</span></div></div>' +
-    '<div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
-    '<div class="acc-obj"><div class="acc-obj-hd"><span>Objetivo del día hábil</span><b id="kDiaObjPct">–</b></div><div class="acc-obj-bar"><span id="kDiaObjBar"></span></div><div class="acc-obj-sub">Necesario ₲ <span id="kDiaObj">–</span>/día en los <span id="kDiaObjDays">–</span> días hábiles que faltan</div></div>' +
-    '<div class="acc-foot"><span class="acc-trend flat" id="kDiaVar">—</span><span class="acc-vs">vs mismo día hábil del año anterior · <b>₲ <span id="kDiaPrev">–</span></b></span></div>' +
+    '<div class="dz">' +
+      '<div class="dz-l"><div class="dz-hd"><span class="acc-lbl">Facturación del día</span><span class="dz-f" id="kDiaFecha">—</span></div>' +
+        '<div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
+        '<span class="acc-trend flat" id="kDiaVar" title="">—</span><span class="dz-vs">vs año pasado · ₲ <span id="kDiaPrev">–</span></span></div>' +
+      '<div class="dz-r"><div class="dz-ring"><svg viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="27"/><circle class="fg" id="kDiaRing" cx="32" cy="32" r="27" stroke-dasharray="169.65" stroke-dashoffset="169.65"/></svg><b id="kDiaObjPct">–</b></div>' +
+        '<div class="dz-o"><span>del objetivo del día</span><b>₲ <span id="kDiaObj">–</span></b><div class="acc-obj-bar"><span id="kDiaObjBar"></span></div><small>faltan <span id="kDiaObjDays">–</span> días hábiles</small></div></div>' +
+    '</div>' +
     '<div class="acc-pending"><span class="acc-pending-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M9 14.5h6"/></svg></span><div class="acc-pending-t">Sin registros de hoy</div><div class="acc-pending-s">Cargá la planilla del <b id="accPendDate">—</b> para ver la facturación del día</div></div>' +
     '</div>' +
     '<div class="p2-tiles p2-tiles--s p2-tiles--g">' +
@@ -625,7 +628,7 @@
     var _pend = todayPending(), _cd0 = q('#cardDia'); if (_cd0) _cd0.classList.toggle('is-pending', _pend);
     if (_pend) { var _n = hoyOverride ? new Date(hoyOverride.getTime()) : new Date(); T('accPendDate', pad(_n.getDate()) + '/' + pad(_n.getMonth() + 1) + '/' + _n.getFullYear()); if (window.gsap) gsap.from('#cardDia .acc-pending', { opacity: 0, y: 10, scale: .96, duration: .5, ease: 'back.out(1.5)', clearProps: 'all' }); }
     animCount(q('#kDia'), k.lastCur, function (v) { return fmt(v); }, 1.1);
-    T('kDiaFecha', 'Último día hábil · ' + (k.lastDate ? k.lastDate.split('-').reverse().join('/') : '—'));
+    T('kDiaFecha', k.lastDate ? ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][dOf(k.lastDate).getDay()] + ' ' + k.lastDate.slice(8) + '/' + k.lastDate.slice(5, 7) : '—');
     animCount(q('#kDiaPrev'), k.prev, function (v) { return fmt(v); }, 1.1);
     // Objetivo del día DINÁMICO: ritmo requerido = meta restante ÷ días hábiles que faltan
     var remMeta = Math.max(0, k.meta - k.fact), remDays = Math.max(0, k.bd_rest);
@@ -634,6 +637,9 @@
     animCount(q('#kDiaObjPct'), pctObj, function (v) { return Math.round(v) + '%'; }, 1.1);
     animCount(q('#kDiaObj'), reqDaily, function (v) { return fmt(v); }, 1.1);
     animCount(q('#kDiaObjDays'), remDays, function (v) { return Math.round(v); }, .8);
+    var dr = q('#kDiaRing'), drOff = 169.65 * (1 - Math.min(pctObj, 100) / 100), cdR = q('#cardDia');
+    if (cdR) cdR.classList.toggle('dz-ok', pctObj >= 100);
+    if (dr) { if (window.gsap) gsap.fromTo(dr, { attr: { 'stroke-dashoffset': 169.65 } }, { attr: { 'stroke-dashoffset': drOff }, duration: 1.1, delay: .2, ease: 'power3.out' }); else dr.setAttribute('stroke-dashoffset', drOff); }
     var ob = q('#kDiaObjBar'); if (ob) { if (ob.parentNode) ob.parentNode.classList.toggle('over', pctObj >= 100); if (window.gsap) { ob.style.transition = 'none'; gsap.fromTo(ob, { width: '0%' }, { width: Math.min(pctObj, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else ob.style.width = Math.min(pctObj, 100) + '%'; }
     var dv = q('#kDiaVar'); if (dv) { var _cls = chipCls(k.varDia); dv.className = 'acc-trend ' + _cls; dv.innerHTML = trendArrow(_cls) + fp(k.varDia); if (window.gsap) gsap.fromTo(dv, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)', delay: .4, clearProps: 'all' }); }
     if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.acc-top'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-foot'), { y: 10, opacity: 0, duration: .5, delay: .22, ease: 'power2.out', clearProps: 'all' }); } }
