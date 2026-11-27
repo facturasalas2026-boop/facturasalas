@@ -1117,3 +1117,44 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .cf-d.pas:hover{transform:translateY(-2px);box-shadow:0 10px 20px -10px rgba(11,79,138,.7)}
 .tbd .cf-dn{font-size:11px;padding-bottom:4px}
 @media(max-width:1100px){.tbd .cf-grid{grid-template-columns:1fr}.tbd .cf-d em{font-size:10.5px}}
+
+/* ═════════ Celular / tablet: todo en una columna ═════════ */
+@media(max-width:1100px){
+  .tbd .p4,.tbd .p4.fit{display:flex;flex-direction:column;height:auto !important;gap:14px}
+  .tbd .p4 .p4-l,.tbd .p4.fit .p4-l{display:flex;flex-direction:column;gap:12px;overflow:visible}
+  .tbd .p4 .p4-r{display:block}
+  .tbd .p4 .p2-daily{height:auto}
+  .tbd .p4 .p2-dl{max-height:none;overflow:visible}
+}
+@media(max-width:760px){
+  .tbd .p4 .card.hero,.tbd .p4.fit .p4-l .card.hero{height:auto;padding:16px}
+  .tbd .p4 .card.hero .gaugewrap{flex-direction:row;align-items:center;gap:14px;flex-wrap:nowrap}
+  .tbd .p4 .card.hero .gauge{width:96px;height:96px}
+  .tbd .p4 .card.hero .gauge .pc .v{font-size:21px}
+  .tbd .p4 .card.hero .gauge .pc .l{font-size:8.5px}
+  .tbd .p4 .card.hero .barwrap{min-width:0}
+  .tbd .p4 .card.hero .med{font-size:20px;white-space:nowrap}
+  .tbd .p4 .card.hero .barwrap .lbls{flex-direction:column;gap:2px;font-size:12px}
+  .tbd .p4 .card.accent,.tbd .p4.fit .p4-l .card.accent{height:auto;padding:16px}
+  .tbd .dz{grid-template-columns:1fr;gap:14px}
+  .tbd .dz-r{border-left:0;padding-left:0;border-top:1px solid var(--linea);padding-top:12px}
+  .tbd .dz .acc-num,.tbd .p4-l .card.accent .dz .acc-num{font-size:28px}
+  .tbd .dz-ring{width:72px;height:72px}
+  .tbd .p2-tiles--g{grid-template-columns:1fr 1fr;gap:10px}
+  .tbd .p2-tiles--g .p2-t{padding:12px;min-width:0}
+  .tbd .p2-tiles--g .p2-t__h span{white-space:normal;font-size:9.5px;line-height:1.25}
+  .tbd .p2-tiles--g .p2-t__h i{display:none}
+  .tbd .p2-tiles--g .p2-big{font-size:21px;word-break:break-all}
+  .tbd .p2-tiles--g small{font-size:10.5px;word-break:break-word}
+  .tbd .p2-t--ped .p2-big{font-size:17px}
+  .tbd .p2-ped__f{flex-direction:column;align-items:flex-start;gap:8px}
+  .tbd .p2-alm #almBox{grid-template-columns:1fr}
+  .tbd .p2-a__h{flex-wrap:wrap}
+  .tbd .p2-a__d,.tbd .p2-a__t{flex-direction:column;align-items:flex-start;gap:2px}
+  .tbd .p2-h{flex-wrap:wrap}
+  .tbd .p2-d{grid-template-columns:78px 1fr 108px;gap:8px}
+  .tbd .p2-d__f{font-size:10px}
+  .tbd .p2-d__v{font-size:11.5px}
+  .tbd .p2-leg{font-size:10px}
+}
+@media(max-width:400px){.tbd .p2-tiles--g{grid-template-columns:1fr}}
