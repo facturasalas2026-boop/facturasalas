@@ -786,9 +786,30 @@
     var enCurso = k.bd_rest > 0 && v26[mi] != null;            // el mes visible todavía no terminó
     var grad = function (c) { var ch = c.chart, ar = ch.chartArea; if (!ar) return 'rgba(255,255,255,.2)'; var g2 = ch.ctx.createLinearGradient(0, ar.top, 0, ar.bottom); g2.addColorStop(0, 'rgba(20,102,176,.22)'); g2.addColorStop(1, 'rgba(20,102,176,0)'); return g2; };
     var cruz = { id: 'cruz', afterDatasetsDraw: function (ch) { var t = ch.tooltip; if (!t || !t.getActiveElements().length) return; var x = t.getActiveElements()[0].element.x, ar = ch.chartArea, c2 = ch.ctx; c2.save(); c2.strokeStyle = 'rgba(11,79,138,.35)'; c2.lineWidth = 1; c2.setLineDash([3, 3]); c2.beginPath(); c2.moveTo(x, ar.top); c2.lineTo(x, ar.bottom); c2.stroke(); c2.restore(); } };
-    var opt = function (zero) { return { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+    // Ficha propia al pasar el mouse: mes, facturado, meta con % cumplido y comparación con el año pasado
+    var tipExt = function (kind) { return function (ctx) {
+      var ch = ctx.chart, t = ctx.tooltip, host = ch.canvas.parentNode, el2 = host.querySelector('.mm-tip');
+      if (!el2) { el2 = document.createElement('div'); el2.className = 'mm-tip'; host.appendChild(el2); }
+      if (!t || t.opacity === 0 || !t.dataPoints || !t.dataPoints.length) { el2.style.opacity = 0; return; }
+      var i = t.dataPoints[0].dataIndex, cur = enCurso && i === mi, P2 = function (v) { return v.toFixed(1).replace('.', ',') + '%'; };
+      var val, ant, met, tit = D.meses[i] + ' ' + k.y, rows = '';
+      if (kind === 'tr') { val = v26[i]; ant = cur ? k.mesYoY : v25[i]; met = meta[i]; }
+      else { val = cur ? k.ytd : a26[i]; ant = cur ? y25 : a25[i]; met = cur ? k.metaYtd : am[i]; tit = 'Enero a ' + D.meses[i].toLowerCase() + ' ' + k.y; }
+      if (val == null) { tit += ' · sin datos'; }
+      var cump = val != null && met ? val / met * 100 : null, vs = val != null && ant ? (val - ant) / ant * 100 : null;
+      var est = cump == null ? '' : cump >= 100 ? 'ok' : cump >= 90 ? 'warn' : 'bad';
+      rows += '<div class="mm-tip__r"><span><i class="a"></i>' + (cur ? 'Facturado a hoy' : (kind === 'tr' ? 'Facturado' : 'Acumulado')) + '</span><b>' + (val == null ? '—' : '₲ ' + fmt(val)) + '</b></div>';
+      if (cur) rows += '<div class="mm-tip__r"><span><i class="p"></i>Cierre estimado</span><b>₲ ' + fmt(kind === 'tr' ? k.proyMes : (a26[i - 1] || 0) + k.proyMes) + '</b></div>';
+      rows += '<div class="mm-tip__r"><span><i class="m"></i>Meta' + (kind === 'ac' ? (cur ? ' a hoy' : ' acumulada') : '') + '</span><b>₲ ' + fmt(met || 0) + '</b></div>';
+      if (cump != null) rows += '<div class="mm-tip__bar ' + est + '"><i style="width:' + Math.min(cump, 100).toFixed(1) + '%"></i></div><div class="mm-tip__c ' + est + '">' + P2(cump) + ' de la meta' + (cump < 100 ? ' · faltan ₲ ' + fmt(met - val) : ' · cumplida') + '</div>';
+      rows += '<div class="mm-tip__r mm-tip__y"><span><i class="b"></i>' + (k.y - 1) + (cur ? ' al mismo día' : '') + '</span><b>₲ ' + fmt(ant || 0) + (vs == null ? '' : ' <em class="' + (vs >= 0 ? 'up' : 'down') + '">' + (vs >= 0 ? '▲ +' : '▼ ') + P2(vs) + '</em>') + '</b></div>';
+      el2.innerHTML = '<div class="mm-tip__t">' + tit + (cur ? ' <em>en curso</em>' : '') + '</div>' + rows;
+      var W = host.clientWidth, w = el2.offsetWidth || 260, x = t.caretX + 16; if (x + w > W - 4) x = t.caretX - w - 16;
+      el2.style.left = Math.max(4, x) + 'px'; el2.style.top = Math.max(4, Math.min(t.caretY - 40, host.clientHeight - (el2.offsetHeight || 160) - 4)) + 'px'; el2.style.opacity = 1;
+    }; };
+    var opt = function (zero, kind) { return { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
       animation: { duration: 900, easing: 'easeOutCubic', delay: function (c) { return c.type === 'data' && c.mode === 'default' ? c.dataIndex * 70 + c.datasetIndex * 120 : 0; } },
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(11,62,110,.96)', titleColor: '#fff', titleFont: { weight: '800' }, bodyColor: 'rgba(255,255,255,.9)', borderColor: 'rgba(255,255,255,.1)', borderWidth: 1, padding: 11, cornerRadius: 12, boxPadding: 5, usePointStyle: true, filter: function (it) { return it.parsed.y != null; },
+      plugins: { legend: { display: false }, tooltip: kind ? { enabled: false, mode: 'index', intersect: false, external: tipExt(kind) } : { backgroundColor: 'rgba(11,62,110,.96)', titleColor: '#fff', titleFont: { weight: '800' }, bodyColor: 'rgba(255,255,255,.9)', borderColor: 'rgba(255,255,255,.1)', borderWidth: 1, padding: 11, cornerRadius: 12, boxPadding: 5, usePointStyle: true, filter: function (it) { return it.parsed.y != null; },
         callbacks: { title: function (it) { return D.meses[it[0].dataIndex] + (enCurso && it[0].dataIndex === mi ? ' · en curso' : ''); }, label: function (c) { return ' ' + c.dataset.label + ': ₲ ' + fmt(c.parsed.y); } } } },
       scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: '#64748B', font: { size: 10, weight: '700' }, maxRotation: 0, autoSkip: false } }, y: { display: true, beginAtZero: zero, border: { display: false }, grid: { color: '#EEF2F7' }, ticks: { color: '#94A3B8', font: { size: 10 }, maxTicksLimit: 5, callback: function (v) { return fmtM(v); } } } } }; };
     var bajo = function (vals, metas) { return vals.map(function (v, j) { return v != null && metas[j] && v < metas[j] ? '#DC2626' : '#16A34A'; }); };
@@ -812,7 +833,7 @@
       { type: 'line', label: 'Facturado a hoy', data: parcial, showLine: false, pointRadius: 5, pointBackgroundColor: '#1466B0', pointBorderColor: '#fff', pointBorderWidth: 2, order: 1 },
       { type: 'line', label: String(k.y - 1), data: v25, borderColor: '#94A3B8', borderDash: [5, 4], borderWidth: 1.6, tension: .35, pointRadius: 2.5, pointBackgroundColor: '#94A3B8', fill: false, order: 2 },
       { type: 'line', label: 'Meta', data: meta, showLine: false, pointStyle: 'line', pointRadius: 13, pointBorderWidth: 3, pointBorderColor: '#F59E0B', pointHoverRadius: 13, order: 0 }
-    ] }, options: Object.assign(opt(true), { scales: Object.assign(opt(true).scales, { x: Object.assign(opt(true).scales.x, { stacked: true }), y: Object.assign(opt(true).scales.y, { stacked: false }) }) }) });
+    ] }, options: Object.assign(opt(true, 'tr'), { scales: Object.assign(opt(true).scales, { x: Object.assign(opt(true).scales.x, { stacked: true }), y: Object.assign(opt(true).scales.y, { stacked: false }) }) }) });
     // acumulado
     var a25 = [], a26 = [], am = [], ap = [], s25 = 0, s26 = 0, sm = 0;
     for (var m2 = 0; m2 < 12; m2++) { s25 += v25[m2] || 0; sm += meta[m2] || 0; a25.push(s25); am.push(sm); if (v26[m2] != null && !(enCurso && m2 === mi)) { s26 += v26[m2]; a26.push(s26); } else a26.push(null); ap.push(null); }
@@ -825,7 +846,7 @@
       { label: 'Proyección', data: ap, borderColor: '#1466B0', borderDash: [6, 5], borderWidth: 2.2, tension: .3, pointRadius: function (c) { return c.dataIndex === mi ? 6 : 0; }, pointBackgroundColor: '#fff', pointBorderColor: '#1466B0', pointBorderWidth: 2.5, fill: false },
       { label: String(k.y - 1), data: a25, borderColor: '#94A3B8', borderDash: [5, 4], borderWidth: 1.5, tension: .3, pointRadius: 0, fill: false },
       { label: 'Meta', data: am, borderColor: '#F59E0B', borderWidth: 2, tension: .3, pointRadius: 0, fill: false }
-    ] }, options: opt(true) });
+    ] }, options: opt(true, 'ac') });
     if (G) {
       gsap.from('#mesames .mm-bc', { opacity: 0, y: 14, duration: .5, stagger: .08, ease: 'power3.out', clearProps: 'transform,opacity' });
       gsap.from('#mesames .mm-bc__k', { opacity: 0, x: -10, duration: .45, stagger: .08, delay: .15, ease: 'power2.out', clearProps: 'transform,opacity' });
