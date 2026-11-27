@@ -495,7 +495,14 @@
     var d = new Date(updatedInfo.updated_at);
     if (isNaN(d)) return '';
     var s = pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-    return '<span class="upd-chip" title="Última carga del Excel' + (updatedInfo.updated_by ? ' · ' + esc(updatedInfo.updated_by) : '') + '"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span>Última actualización</span> <b>' + s + '</b></span>';
+    var who = (updatedInfo.updated_by || '').toString().trim();
+    var initials = who.split(/\s+/).filter(Boolean).slice(0, 2).map(function (part) { return part.charAt(0).toUpperCase(); }).join('') || '?';
+    var person = who
+      ? '<span class="upd-tip__person"><span class="upd-tip__avatar">' + esc(initials) + '</span><span class="upd-tip__identity"><small>Cargada por</small><strong>' + esc(who) + '</strong></span></span>'
+      : '<span class="upd-tip__unknown">No se registró el usuario que hizo esta carga.</span>';
+    return '<span class="upd-chip upd-tip" tabindex="0" aria-describedby="updTipPanel" aria-label="Última actualización ' + esc(s) + (who ? ', cargada por ' + esc(who) : '') + '"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span class="upd-chip__label">Última actualización</span> <b>' + esc(s) + '</b>' +
+      '<span class="upd-tip__panel" id="updTipPanel" role="tooltip"><span class="upd-tip__eyebrow"><i></i>Información de la carga</span><strong class="upd-tip__title">Última planilla publicada</strong>' + person +
+        '<span class="upd-tip__time"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>' + esc(s) + '</b></span><span class="upd-tip__foot">Facturación diaria · ALAS</span></span></span>';
   }
 
   function gotoMonth(m) {
@@ -1038,15 +1045,15 @@
           if (!newSnap.daily || !newSnap.daily.length) { failUpload('La hoja «x monto de fc fecha» no tiene facturación con fecha. Revisá que sea la planilla del día.'); return; }
           setProg(60, 'Comparando con lo cargado…');
           var anio = newSnap.cur_year, mes = newSnap.cur_month;
+          var user = (window.AlasAuthClient && AlasAuthClient.getCurrentUser && AlasAuthClient.getCurrentUser()) || null;
           var oldP = (window.TableroDB && TableroDB.ready) ? TableroDB.pullSnapshotFor(anio, mes) : Promise.resolve((D && D.cur_year === anio && D.cur_month === mes) ? { snapshot: D } : null);
           oldP.then(function (row) {
             var oldSnap = row && row.snapshot ? row.snapshot : null, diff = diffSnapshots(oldSnap, newSnap);
             setProg(82, 'Publicando…');
-            var user = (window.AlasAuthClient && AlasAuthClient.getCurrentUser && AlasAuthClient.getCurrentUser()) || null;
             var pushP = (window.TableroDB && TableroDB.ready) ? TableroDB.pushSnapshot(newSnap, user) : Promise.resolve();
             return pushP.then(function () { return diff; });
           }).then(function (diff) {
-            D = newSnap; dataOrigin = 'actualizado'; updatedInfo = { updated_at: new Date().toISOString() };
+            D = newSnap; dataOrigin = 'actualizado'; updatedInfo = { updated_at: new Date().toISOString(), updated_by: user };
             if (!availableMonths.some(function (m) { return m.anio === anio && m.mes === mes; })) { availableMonths.push({ anio: anio, mes: mes }); availableMonths.sort(function (a, b) { return a.anio - b.anio || a.mes - b.mes; }); }
             cacheSave(); cargarMT().then(function () { finishUpload(diff); });
           }).catch(function (err) { console.error(err); failUpload('No se pudo publicar en la nube'); });
