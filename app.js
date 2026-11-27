@@ -315,20 +315,20 @@
     '<div class="acc-pending"><span class="acc-pending-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M9 14.5h6"/></svg></span><div class="acc-pending-t">Sin registros de hoy</div><div class="acc-pending-s">Cargá la planilla del <b id="accPendDate">—</b> para ver la facturación del día</div></div>' +
     '</div>' +
     '</div>' +
-    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-bottom:18px">' +
-    '<div class="card"><h3>Facturado acumulado</h3><div class="big"><span class="u">₲</span><span id="kFact">–</span></div><div class="sub2">Meta: <b id="kMeta">–</b></div><div style="margin-top:9px"><span class="chip flat" id="kFalta">–</span></div></div>' +
-    '<div class="card"><h3>Proyección fin de mes</h3><div class="big"><span class="u">₲</span><span id="kProy">–</span></div><div class="sub2">Ritmo diario × días hábiles (sábado = <span id="kPs">¼</span> día)</div><div style="margin-top:9px"><span class="chip" id="kProyPct">–</span> <span class="mini">vs meta</span></div></div>' +
-    '<div class="card"><h3>Mes actual vs año pasado <span class="mini">al mismo día hábil</span></h3><div class="big"><span class="u">₲</span><span id="kMes">–</span></div><div class="sub2" id="kMesPrevL">–</div><div style="margin-top:9px"><span class="chip" id="kMesVar">–</span> <span class="mini" id="kMesFull"></span></div></div>' +
-    '<div class="card"><h3>Proyección fin de año</h3><div class="big"><span class="u">₲</span><span id="kAnio">–</span></div><div class="sub2">Facturado + metas que faltan × cumplimiento del año</div><div style="margin-top:9px"><span class="chip" id="kAnioPct">–</span> <span class="mini">de meta anual</span></div></div>' +
-    '<div class="card"><h3>Cumplimiento del año</h3><div class="big"><span id="kYtdPct">–</span></div><div class="sub2">Facturado ₲ <b id="kYtd">–</b> de una meta a hoy de ₲ <b id="kYtdMeta">–</b></div><div style="margin-top:9px"><span class="chip" id="kYtdChip">–</span></div></div>' +
-    '<div class="card"><h3>Lo que falta vs pedidos pendientes</h3><div class="big"><span id="kCob">–</span></div><div class="sub2">Faltan ₲ <b id="kCobFalta">–</b> · en pedidos ₲ <b id="kCobPend">–</b></div><div style="margin-top:9px"><span class="chip" id="kCobChip">–</span></div></div>' +
-    '<div class="card"><h3>Días hábiles del mes</h3><div class="big"><span id="kBdEl">–</span><span class="u" style="font-size:16px"> / </span><span id="kBdTot">–</span></div><div class="sub2">Transcurridos / totales (L-S, sin feriados)</div><div style="margin-top:9px"><span class="chip flat" id="kBdRest">–</span></div></div>' +
+    '<div class="p2-tiles">' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M6 15l4-4 3 3 5-6"/><path d="M15 8h3v3"/></svg></i><span>Proyección fin de mes</span><em class="p2-c" id="kProyPct">–</em></div><b class="p2-t__v">₲ <span id="kProy">–</span></b><div class="p2-tbar"><span id="kProyBar"></span><i id="kProyMk"></i></div><small>Al ritmo actual · sábado = <span id="kPs">–</span> de un día</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg></i><span>Mes vs año pasado</span><em class="p2-c" id="kMesVar">–</em></div><b class="p2-t__v">₲ <span id="kMes">–</span></b><div class="p2-t__s">contra ₲ <span id="kMesPrev">–</span></div><small id="kMesPrevL">–</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></i><span>Cumplimiento del año</span><em class="p2-c" id="kYtdPct">–</em></div><b class="p2-t__v">₲ <span id="kYtd">–</span></b><div class="p2-tbar"><span id="kYtdBar"></span></div><small>Meta a hoy ₲ <span id="kYtdMeta">–</span> · cierre estimado ₲ <span id="kAnio">–</span></small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1.5 11a2 2 0 01-2 1.7H7.5a2 2 0 01-2-1.7z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg></i><span>Lo que falta vs pendientes</span><em class="p2-c" id="kCob">–</em></div><b class="p2-t__v">₲ <span id="kCobPend">–</span></b><div class="p2-tbar"><span id="kCobBar"></span></div><small>en pedidos, de ₲ <span id="kCobFalta">–</span> que faltan · <a href="#" class="p2-link" data-go="pedidos">ver pedidos</a></small></div>' +
     '</div>' +
-    '<div class="grid g2" style="margin-bottom:16px">' +
-    '<div class="card"><h3>Facturación diaria del mes <span id="dScope" style="font-weight:600;color:var(--gris)"></span></h3><div class="scrolltbl" id="dailyTbl"></div></div>' +
-    '<div class="card"><h3>Facturado por almacén</h3><div id="almBox"></div></div>' +
+    '<div class="p2-row">' +
+      '<div class="card p2-daily"><div class="p2-h"><h3>Facturación día por día <span id="dScope"></span></h3><span class="p2-leg"><i></i>superó el objetivo del día</span></div><div class="p2-dl" id="dailyTbl"></div></div>' +
+      '<div class="p2-col">' +
+        '<div class="card"><div class="p2-h"><h3>Facturado por almacén</h3></div><div id="almBox"></div></div>' +
+        '<div class="card p2-ped"><div class="p2-h"><h3>Pedidos pendientes de facturar <span id="pScope"></span></h3><a href="#" class="p2-link" data-go="pedidos">Ver detalle →</a></div>' +
+          '<div class="p2-ped__g"><div><b id="pgTot">–</b><span>monto ₲</span></div><div><b id="pgPed">–</b><span>pedidos</span></div><div><b id="pgLin">–</b><span>líneas</span></div><div><b id="pgPeso">–</b><span>kg</span></div></div></div>' +
+      '</div>' +
     '</div>' +
-    '<div class="card"><h3>Pedidos pendientes de facturar · resumen <span id="pScope" style="font-weight:600;color:var(--gris)"></span></h3><div class="grid g4"><div class="stat-row" style="border:none;flex-direction:column;align-items:flex-start"><span class="k">Líneas</span><span class="v" id="pgLin">–</span></div><div class="stat-row" style="border:none;flex-direction:column;align-items:flex-start"><span class="k">Pedidos</span><span class="v" id="pgPed">–</span></div><div class="stat-row" style="border:none;flex-direction:column;align-items:flex-start"><span class="k">Monto total ₲</span><span class="v" id="pgTot">–</span></div><div class="stat-row" style="border:none;flex-direction:column;align-items:flex-start"><span class="k">Peso total (kg)</span><span class="v" id="pgPeso">–</span></div></div></div>' +
     '</section>' +
 
     '<section class="page" id="mesames">' +
@@ -520,42 +520,59 @@
     var ob = q('#kDiaObjBar'); if (ob) { if (ob.parentNode) ob.parentNode.classList.toggle('over', pctObj >= 100); if (window.gsap) { ob.style.transition = 'none'; gsap.fromTo(ob, { width: '0%' }, { width: Math.min(pctObj, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else ob.style.width = Math.min(pctObj, 100) + '%'; }
     var dv = q('#kDiaVar'); if (dv) { var _cls = chipCls(k.varDia); dv.className = 'acc-trend ' + _cls; dv.innerHTML = trendArrow(_cls) + fp(k.varDia); if (window.gsap) gsap.fromTo(dv, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)', delay: .4, clearProps: 'all' }); }
     if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.acc-top'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-foot'), { y: 10, opacity: 0, duration: .5, delay: .22, ease: 'power2.out', clearProps: 'all' }); } }
-    animCount(q('#kMes'), k.fact, function (v) { return fmt(v); }, 1);
-    T('kMesPrevL', D.meses[k.mi] + ' ' + (k.y - 1) + ' al día hábil ' + k.bd_el + ': ₲ ' + fmt(k.mesYoY) + (k.yoyExacto ? '' : ' (estimado)'));
-    T('kMesFull', 'mes completo ' + (k.y - 1) + ': ₲ ' + fmtM(k.mesYoYFull));
-    T('kPs', (Math.round(k.ps * 100)) + ' %');
-    animCount(q('#kYtdPct'), k.cumplYtd, function (v) { return v.toFixed(1) + '%'; }, 1);
-    T('kYtd', fmtM(k.ytd)); T('kYtdMeta', fmtM(k.metaYtd));
-    var yc = q('#kYtdChip'); if (yc) { var dY = k.ytd - k.metaYtd; yc.textContent = (dY >= 0 ? '▲ +₲ ' : '▼ −₲ ') + fmtM(Math.abs(dY)) + (dY >= 0 ? ' sobre la meta' : ' bajo la meta'); yc.className = 'chip ' + (k.cumplYtd >= 100 ? 'up' : k.cumplYtd >= 90 ? 'flat' : 'down'); }
-    var cb = q('#kCob'), cc = q('#kCobChip');
-    if (k.cobertura == null) { if (cb) cb.textContent = 'Meta cumplida'; T('kCobFalta', '0'); T('kCobPend', fmtM(k.pend)); if (cc) { cc.textContent = '● sin faltante'; cc.className = 'chip up'; } }
-    else {
-      animCount(cb, k.cobertura, function (v) { return v.toFixed(0) + '%'; }, 1);
-      T('kCobFalta', fmtM(k.faltaMes)); T('kCobPend', fmtM(k.pend));
-      if (cc) { var okC = k.cobertura >= 100; cc.textContent = okC ? '▲ con lo pendiente alcanza' : '▼ hace falta vender ₲ ' + fmtM(k.faltaMes - k.pend) + ' más'; cc.className = 'chip ' + (okC ? 'up' : k.cobertura >= 60 ? 'flat' : 'down'); }
-    }
-    var mv = q('#kMesVar'); if (mv) { mv.textContent = arrow(k.varYoY) + ' ' + fp(k.varYoY); mv.className = 'chip ' + chipCls(k.varYoY); }
-    animCount(q('#kAnio'), k.proyAnio, function (v) { return fmt(v); }, 1); var ap = q('#kAnioPct'), av2 = pct(k.proyAnio, k.metaAnual); if (ap) { ap.textContent = arrow(av2 - 100) + ' ' + av2.toFixed(1) + '%'; ap.className = 'chip ' + (av2 >= 100 ? 'up' : av2 >= 90 ? 'flat' : 'down'); }
-    animCount(q('#kBdEl'), k.bd_el, function (v) { return Math.round(v); }, .8); animCount(q('#kBdTot'), k.bd_tot, function (v) { return Math.round(v); }, .8); var br = q('#kBdRest'); if (br) { br.textContent = 'Faltan ' + k.bd_rest + ' días hábiles'; br.className = 'chip flat'; }
-    // tabla diaria
-    var UMBRAL = 2e9, h = '<table><thead><tr><th>Día</th><th>Facturación ₲</th></tr></thead><tbody>', tt = 0;
-    S.daily.forEach(function (x) { var ds = x[0], v = x[1]; tt += v; var wd = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][dOf(ds).getDay()]; h += '<tr class="' + (v >= UMBRAL ? 'green' : '') + '"><td>' + ds.slice(8) + '/' + ds.slice(5, 7) + ' · ' + wd + '</td><td>' + fmt(v) + '</td></tr>'; });
-    h += '<tr class="tot"><td>Total del mes</td><td>' + fmt(tt) + '</td></tr></tbody></table>';
+    // ── Tarjetas (diseño nuevo) ──
+    var G = !!window.gsap, P = function (v) { return v.toFixed(1).replace('.', ',') + '%'; };
+    var est = function (p) { return p >= 100 ? 'ok' : p >= 90 ? 'warn' : 'bad'; };
+    var pv2 = pct(k.proyMes, k.meta), ppc = q('#kProyPct'); if (ppc) { ppc.textContent = P(pv2) + ' de la meta'; ppc.className = 'p2-c ' + est(pv2); }
+    var pb = q('#kProyBar'); if (pb) { pb.className = est(pv2); pb.dataset.w = Math.min(pv2, 100); }
+    T('kPs', Math.round(k.ps * 100) + ' %');
+    var mv = q('#kMesVar'); if (mv) { mv.textContent = fp(k.varYoY); mv.className = 'p2-c ' + (k.varYoY >= 0.5 ? 'ok' : k.varYoY <= -0.5 ? 'bad' : 'na'); }
+    animCount(q('#kMes'), k.fact, fmt, 1); animCount(q('#kMesPrev'), k.mesYoY, fmt, 1);
+    T('kMesPrevL', D.meses[k.mi] + ' ' + (k.y - 1) + ' al día hábil ' + k.bd_el + (k.yoyExacto ? '' : ' (estimado)') + ' · mes completo ₲ ' + fmt(k.mesYoYFull));
+    var yp = q('#kYtdPct'); if (yp) { yp.textContent = P(k.cumplYtd) + ' de la meta'; yp.className = 'p2-c ' + est(k.cumplYtd); }
+    var yb = q('#kYtdBar'); if (yb) { yb.className = est(k.cumplYtd); yb.dataset.w = Math.min(k.cumplYtd, 100); }
+    animCount(q('#kYtd'), k.ytd, fmt, 1); animCount(q('#kYtdMeta'), k.metaYtd, fmt, 1); animCount(q('#kAnio'), k.proyAnio, fmt, 1);
+    var cbp = q('#kCob'), cbr = q('#kCobBar');
+    if (k.cobertura == null) { if (cbp) { cbp.textContent = 'Meta cumplida'; cbp.className = 'p2-c ok'; } if (cbr) { cbr.className = 'ok'; cbr.dataset.w = 100; } }
+    else { if (cbp) { cbp.textContent = Math.round(k.cobertura) + '% cubierto'; cbp.className = 'p2-c ' + (k.cobertura >= 100 ? 'ok' : k.cobertura >= 60 ? 'warn' : 'bad'); } if (cbr) { cbr.className = k.cobertura >= 100 ? 'ok' : k.cobertura >= 60 ? 'warn' : 'bad'; cbr.dataset.w = Math.min(k.cobertura, 100); } }
+    animCount(q('#kCobFalta'), k.faltaMes, fmt, 1); animCount(q('#kCobPend'), k.pend, fmt, 1);
+    qa('#principal .p2-tbar span').forEach(function (sp) { if (G) gsap.fromTo(sp, { width: '0%' }, { width: sp.dataset.w + '%', duration: 1, delay: .25, ease: 'power3.out' }); else sp.style.width = sp.dataset.w + '%'; });
+
+    // ── Día por día: barra + marca del objetivo del día (meta ÷ días hábiles, sábado ponderado) ──
+    var objBase = k.wTot > 0 ? k.meta / k.wTot : 0, maxD = Math.max.apply(null, S.daily.map(function (x) { return x[1]; }).concat([objBase, 1])), tt = 0, h = '';
+    var WD = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    S.daily.forEach(function (x) {
+      var dt = dOf(x[0]), v = x[1], obj = dt.getDay() === 6 ? objBase * k.ps : objBase, ok = obj > 0 && v >= obj; tt += v;
+      h += '<div class="p2-d' + (ok ? ' ok' : '') + '" title="Objetivo del día ₲ ' + fmt(obj) + '"><span class="p2-d__f"><b>' + x[0].slice(8) + '</b>' + WD[dt.getDay()] + '</span>' +
+        '<span class="p2-d__b"><i data-w="' + (Math.max(0, v) / maxD * 100).toFixed(1) + '"></i><em style="left:' + Math.min(100, obj / maxD * 100).toFixed(1) + '%"></em></span>' +
+        '<span class="p2-d__v">' + fmt(v) + '</span></div>';
+    });
+    h += '<div class="p2-d tot"><span class="p2-d__f"><b>Total</b></span><span></span><span class="p2-d__v">' + fmt(tt) + '</span></div>';
     H('dailyTbl', h);
-    if (window.gsap) gsap.from(qa('#dailyTbl tbody tr'), { opacity: 0, x: -8, duration: .3, stagger: .025, ease: 'power2.out', clearProps: 'all' });
-    // por almacén
-    var entries = Object.keys(D.fact_almacen).map(function (kk) { return [kk, D.fact_almacen[kk]]; });
-    var pos = entries.filter(function (e) { return e[1] >= 0; }).sort(function (a, b) { return b[1] - a[1]; });
-    var negSum = entries.filter(function (e) { return e[1] < 0; }).reduce(function (a, e) { return a + e[1]; }, 0);
-    var rws = pos.slice(); if (negSum < 0) rws.push(['Devoluciones (depósitos)', negSum]);
-    var maxA = Math.max.apply(null, rws.map(function (e) { return Math.abs(e[1]); }).concat([1])), ah = '';
-    rws.forEach(function (e) { var n = e[0], v = e[1], w = Math.abs(v) / maxA * 100; ah += '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span style="font-weight:600">' + esc(n) + '</span><span style="font-weight:700;color:' + (v < 0 ? 'var(--neg)' : 'var(--tinta)') + '">₲ ' + fmt(v) + '</span></div><div class="bar" style="background:#EEF2F7;height:10px"><span style="width:' + w + '%;background:' + (v < 0 ? 'var(--neg)' : 'linear-gradient(90deg,#1466B0,#3B8FD4)') + '"></span></div></div>'; });
-    var neta = entries.reduce(function (a, e) { return a + e[1]; }, 0);
-    ah += '<div style="border-top:1px solid #E2E8F0;margin-top:4px;padding-top:10px;font-size:12.5px"><div style="display:flex;justify-content:space-between"><span style="font-weight:700">Facturación neta</span><span style="font-weight:800">₲ ' + fmt(neta) + '</span></div><div style="display:flex;justify-content:space-between;margin-top:6px;color:var(--gris)"><span>Incluye NC/devol. facturadas (ZDEV·ZDCS·ZNCV)</span><span style="color:var(--neg);font-weight:600">₲ ' + fmt(D.devoluciones || 0) + '</span></div></div>';
+    var dbars = qa('#dailyTbl .p2-d__b i'); dbars.forEach(function (i) { i.style.width = i.dataset.w + '%'; });
+    if (G) gsap.fromTo(dbars, { scaleX: 0 }, { scaleX: 1, transformOrigin: '0% 50%', duration: .7, stagger: .02, delay: .2, ease: 'power3.out', clearProps: 'transform' });
+
+    // ── Por almacén: Ferretería, Hierros y Otros ──
+    var fa = D.fact_almacen || {}, fer = fa['Ferretería'] || 0, hie = fa['Hierros'] || 0, otros = 0;
+    Object.keys(fa).forEach(function (kk) { if (kk !== 'Ferretería' && kk !== 'Hierros') otros += fa[kk]; });
+    var neta = fer + hie + otros, maxA = Math.max(Math.abs(fer), Math.abs(hie), Math.abs(otros), 1), ah = '';
+    [['Ferretería', fer, 'var(--azul-3)'], ['Hierros', hie, 'var(--azul)'], ['Otros', otros, '#94A3B8']].forEach(function (e) {
+      ah += '<div class="p2-a"><div class="p2-a__h"><span><i style="background:' + e[2] + '"></i>' + e[0] + '</span><b>₲ ' + fmt(e[1]) + '</b><em>' + (neta ? P(e[1] / neta * 100) : '0%') + '</em></div><div class="p2-a__b"><span data-w="' + (Math.abs(e[1]) / maxA * 100).toFixed(1) + '" style="background:' + e[2] + '"></span></div></div>';
+    });
+    var dev = Math.abs(D.devoluciones || 0), bru = D.fact_bruta || 0;
+    ah += '<div class="p2-a__t"><span>Facturación neta</span><b>₲ ' + fmt(neta) + '</b></div><div class="p2-a__d"><span>Devoluciones incluidas</span><b>₲ ' + fmt(dev) + ' · ' + (bru ? P(dev / bru * 100) : '0%') + ' del bruto</b></div>';
     H('almBox', ah);
-    if (window.gsap) { var _asp = qa('#almBox .bar>span'); _asp.forEach(function (s) { s.style.transition = 'none'; }); gsap.from(_asp, { width: 0, duration: .9, ease: 'power2.out', stagger: .08, delay: .1 }); }
-    // resumen pedidos
-    var g = pedResumen(SCOPE); animCount(q('#pgLin'), g.lineas, function (v) { return fmt(v); }, .9); animCount(q('#pgPed'), g.pedidos, function (v) { return fmt(v); }, .9); animCount(q('#pgTot'), g.total, function (v) { return fmt(v); }, .9); animCount(q('#pgPeso'), g.peso, function (v) { return fmt(v); }, .9);
+    qa('#almBox .p2-a__b span').forEach(function (sp) { if (G) gsap.fromTo(sp, { width: '0%' }, { width: sp.dataset.w + '%', duration: .9, delay: .2, ease: 'power3.out' }); else sp.style.width = sp.dataset.w + '%'; });
+
+    // ── Pendientes ──
+    var g = pedResumen(SCOPE); animCount(q('#pgLin'), g.lineas, fmt, .9); animCount(q('#pgPed'), g.pedidos, fmt, .9); animCount(q('#pgTot'), g.total, fmt, .9); animCount(q('#pgPeso'), g.peso, fmt, .9);
+    qa('#principal [data-go]').forEach(function (a2) { a2.onclick = function (e) { e.preventDefault(); go(a2.dataset.go); }; });
+
+    if (G) {
+      gsap.from('#principal .p2-t', { opacity: 0, y: 12, duration: .45, stagger: .06, delay: .1, ease: 'power3.out', clearProps: 'transform,opacity' });
+      gsap.from('#principal .p2-t__h i', { scale: 0, rotate: -20, duration: .5, stagger: .06, delay: .2, ease: 'back.out(2.4)', clearProps: 'transform' });
+      gsap.from('#principal .p2-row > *', { opacity: 0, y: 14, duration: .45, stagger: .08, delay: .2, ease: 'power3.out', clearProps: 'transform,opacity' });
+    }
   }
 
   /* ── RENDER: MES A MES ── */
