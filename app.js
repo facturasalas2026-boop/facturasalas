@@ -214,9 +214,7 @@
     vext: { title: 'Top vendedores externos', cols: ['Vendedor externo', 'Monto ₲', 'Peso (kg)', 'Líneas'], bar: false, rows: function (L) { return arrSort(grp(L.filter(esExt), function (l) { return l[2]; })).slice(0, 15); } },
     vint: { title: 'Vendedor interno / call center', cols: ['Vendedor interno', 'Monto ₲', 'Peso (kg)', 'Líneas'], bar: false, rows: function (L) { return arrSort(grp(L.filter(function (l) { return !esExt(l) && l[3] !== 'Sin asignar'; }), function (l) { return l[3]; })).slice(0, 15); } },
     prod: { title: 'Producción / Importados', cols: ['Origen', 'Monto ₲', 'Peso (kg)', 'Líneas'], bar: false, rows: function (L) { return arrSort(grp(L, function (l) { return l[8]; })); } },
-    fecha: { title: 'Por fecha de autorización', cols: ['Fecha', 'Monto ₲', 'Peso (kg)', 'Líneas'], bar: true, rows: function (L) { var o = grp(L, function (l) { return l[4] || 'Sin fecha'; }); return Object.keys(o).map(function (k) { return [k, o[k][0], o[k][1], o[k][2]]; }).sort(function (a, b) { return a[0] < b[0] ? -1 : 1; }); } },
-    hora: { title: 'Por hora de creación del pedido', cols: ['Hora', 'Monto ₲', '', 'Líneas'], bar: true, rows: function (L) { var o = grp(L, function (l) { return l[5] >= 0 ? l[5] : null; }); return Object.keys(o).map(function (k) { return [String(k).padStart(2, '0') + ':00', o[k][0], null, o[k][2]]; }).sort(function (a, b) { return a[0] < b[0] ? -1 : 1; }); } },
-    peso: { title: 'Por rango de peso', cols: ['Rango', 'Monto ₲', 'Peso (kg)', 'Líneas'], bar: false, rows: function (L) { var b = {}; pesoLbl.forEach(function (l) { b[l] = [0, 0, 0]; }); L.forEach(function (l) { var bi = pesoBucket(l[6]); b[pesoLbl[bi]][0] += l[7]; b[pesoLbl[bi]][1] += l[6]; b[pesoLbl[bi]][2]++; }); return pesoLbl.map(function (l) { return [l, b[l][0], b[l][1], b[l][2]]; }); } },
+    fecha: { title: 'Por fecha de entrega', cols: ['Fecha', 'Monto ₲', 'Peso (kg)', 'Líneas'], bar: true, rows: function (L) { var o = grp(L, function (l) { return l[4] || 'Sin fecha'; }); return Object.keys(o).map(function (k) { return [k, o[k][0], o[k][1], o[k][2]]; }).sort(function (a, b) { return a[0] < b[0] ? -1 : 1; }); } },
     etapa: { title: 'Por etapa del pedido', cols: ['Etapa', 'Monto ₲', 'Peso (kg)', 'Líneas'], bar: false, rows: function (L) { return arrSort(grp(L, function (l) { return l[1]; })); } }
   };
 
@@ -357,10 +355,23 @@
     '</section>' +
 
     '<section class="page" id="pedidos">' +
-    '<div class="pedfilters"><div class="fld"><label>Almacén</label><select id="fAlm"></select></div><div class="fld"><label>Etapa del pedido</label><select id="fEt"></select></div></div>' +
-    '<div class="grid g4" style="margin-bottom:16px"><div class="card"><h3>Líneas pendientes</h3><div class="big" id="p2Lin">–</div></div><div class="card"><h3>Pedidos</h3><div class="big" id="p2Ped">–</div></div><div class="card"><h3>Monto total</h3><div class="big"><span class="u">₲</span><span id="p2Tot">–</span></div></div><div class="card"><h3>Peso total</h3><div class="big"><span id="p2Peso">–</span><span class="u" style="font-size:14px"> kg</span></div></div></div>' +
-    '<div class="pill-row" id="pedPills"><button class="pill on" data-v="almacen">Por almacén</button><button class="pill" data-v="vext">Por vendedor externo</button><button class="pill" data-v="vint">Por vendedor interno</button><button class="pill" data-v="prod">Prod./Import</button><button class="pill" data-v="fecha">Por fecha de autorización</button><button class="pill" data-v="hora">Por hora de creación</button><button class="pill" data-v="peso">Por peso</button><button class="pill" data-v="etapa">Por etapa</button></div>' +
-    '<div class="grid g2"><div class="card"><h3 id="pedChTitle">Distribución</h3><div class="chartbox"><canvas id="chPed"></canvas></div></div><div class="card"><h3 id="pedTblTitle">Detalle</h3><div class="scrolltbl" style="max-height:360px" id="pedTblBox"></div></div></div>' +
+    '<div class="p2-tiles">' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M16.5 7.5c0-1.9-2-3-4.5-3S7.5 5.6 7.5 7.5 9.5 10.4 12 11s4.5 1.6 4.5 3.5-2 3-4.5 3-4.5-1.1-4.5-3"/></svg></i><span>Monto pendiente</span><em class="p2-c" id="pqCob">–</em></div><b class="p2-t__v">₲ <span id="p2Tot">–</span></b><small id="pqCobS">–</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5h12v19l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></i><span>Pedidos</span></div><b class="p2-t__v" id="p2Ped">–</b><small>esperando facturar</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></i><span>Líneas</span></div><b class="p2-t__v" id="p2Lin">–</b><small>artículos en esos pedidos</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8L12 3.5 20.5 8v8L12 20.5 3.5 16z"/><path d="M3.5 8L12 12.5 20.5 8M12 12.5v8"/></svg></i><span>Peso</span></div><b class="p2-t__v"><span id="p2Peso">–</span> kg</b><small>de los artículos con peso cargado</small></div>' +
+    '</div>' +
+    '<div class="card pq-card">' +
+      '<div class="pq-bar">' +
+        '<div class="pq-f"><span>Almacén</span><div class="pq-seg" id="pqAlm"></div></div>' +
+        '<div class="pq-f"><span>Etapa</span><div class="pq-seg" id="pqEt"></div></div>' +
+      '</div>' +
+      '<div class="pq-views"><div class="pq-seg pq-seg--v" id="pedPills">' +
+        '<button class="pill on" data-v="almacen">Por almacén</button><button class="pill" data-v="vext">Vendedor externo</button><button class="pill" data-v="vint">Vendedor interno</button><button class="pill" data-v="prod">Producción / Importados</button><button class="pill" data-v="fecha">Por fecha de entrega</button><button class="pill" data-v="etapa">Por etapa</button>' +
+      '</div></div>' +
+      '<div class="pq-head"><span id="pedChTitle">–</span><span class="pq-cols"><span>Monto ₲</span><span>Parte</span><span>Kg</span><span>Líneas</span></span></div>' +
+      '<div class="pq-list" id="pedTblBox"></div>' +
+    '</div>' +
     '</section>' +
 
     '<section class="page" id="config">' +
@@ -670,23 +681,57 @@
   }
 
   /* ── RENDER: PEDIDOS ── */
+  // Pastilla deslizante para los segmentos
+  function segPill(seg, anim) {
+    if (!seg) return; var on = q('.on', seg); if (!on) return;
+    var p = q('.pq-pill', seg); if (!p) { p = el('<span class="pq-pill"></span>'); seg.insertBefore(p, seg.firstChild); }
+    var x = on.offsetLeft, w = on.offsetWidth, y = on.offsetTop, h = on.offsetHeight;
+    if (window.gsap && anim) gsap.to(p, { x: x, y: y, width: w, height: h, duration: .38, ease: 'power3.out' }); else { p.style.transform = 'translate(' + x + 'px,' + y + 'px)'; p.style.width = w + 'px'; p.style.height = h + 'px'; }
+  }
   function renderPedidos() {
-    var fa = q('#fAlm'), fe = q('#fEt');
-    if (fa && !fa.options.length) { var alms = D.ped_lines.reduce(function (a, l) { if (a.indexOf(l[0]) < 0) a.push(l[0]); return a; }, []); fa.innerHTML = '<option value="todos">Todos los almacenes</option>' + alms.map(function (a) { return '<option value="' + esc(a) + '">' + esc(a) + '</option>'; }).join(''); fa.value = fAlm; }
-    if (fe && !fe.options.length) { var ets = D.ped_lines.reduce(function (a, l) { if (a.indexOf(l[1]) < 0) a.push(l[1]); return a; }, []); fe.innerHTML = '<option value="todos">Todas las etapas</option>' + ets.map(function (e) { return '<option value="' + esc(e) + '">' + esc(e) + '</option>'; }).join(''); fe.value = fEt; }
+    var G = !!window.gsap, P = function (v) { return v.toFixed(1).replace('.', ',') + '%'; };
+    // filtros (almacén y etapa) como segmentos
+    var mkSeg = function (id, vals, cur, todos, set) {
+      var box = q('#' + id); if (!box) return;
+      if (!box.dataset.ok) {
+        box.dataset.ok = '1';
+        box.innerHTML = [['todos', todos]].concat(vals.map(function (v) { return [v, v]; })).map(function (o) { return '<button type="button" data-v="' + esc(o[0]) + '"' + (o[0] === cur ? ' class="on"' : '') + '>' + esc(o[1]) + '</button>'; }).join('');
+        qa('button', box).forEach(function (bt) { bt.addEventListener('click', function () { if (bt.classList.contains('on')) return; qa('button', box).forEach(function (x) { x.classList.toggle('on', x === bt); }); segPill(box, true); set(bt.dataset.v); renderPedidos(); }); });
+        requestAnimationFrame(function () { segPill(box, false); });
+      }
+    };
+    var uniq = function (i) { var o = {}; D.ped_lines.forEach(function (l) { o[l[i]] = (o[l[i]] || 0) + l[7]; }); return Object.keys(o).sort(function (a, b) { return o[b] - o[a]; }); };
+    mkSeg('pqAlm', uniq(0), fAlm, 'Todos', function (v) { fAlm = v; });
+    mkSeg('pqEt', uniq(1), fEt, 'Todas', function (v) { fEt = v; });
+    var pv = q('#pedPills'); if (pv && !pv.dataset.p) { pv.dataset.p = '1'; qa('.pill', pv).forEach(function (x) { x.classList.toggle('on', x.dataset.v === pedView); }); requestAnimationFrame(function () { segPill(pv, false); }); pv.addEventListener('click', function () { setTimeout(function () { segPill(pv, true); }, 0); }); }
+
     var L = pedFiltered(), total = 0, peso = 0, docs = {};
     L.forEach(function (l) { total += l[7]; peso += l[6]; docs[l[9]] = 1; });
-    animCount(q('#p2Lin'), L.length, function (v) { return fmt(v); }, .9); animCount(q('#p2Ped'), Object.keys(docs).length, function (v) { return fmt(v); }, .9); animCount(q('#p2Tot'), total, function (v) { return fmt(v); }, .9); animCount(q('#p2Peso'), peso, function (v) { return fmt(v); }, .9);
-    var cfg = pedDef[pedView], rows = cfg.rows(L);
-    T('pedChTitle', cfg.title); T('pedTblTitle', 'Detalle · ' + cfg.title.toLowerCase());
-    var labels = rows.map(function (r) { return r[0]; }), vals = rows.map(function (r) { return r[1]; });
-    if (cfg.bar) { mk('chPed', { type: 'bar', data: { labels: labels, datasets: [{ data: vals, backgroundColor: AZ, borderRadius: 3 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return '₲ ' + fmt(c.raw); } } } }, scales: { y: { ticks: gsTick, grid: { color: '#EEF2F7' } }, x: { grid: { display: false }, ticks: { maxRotation: 60, autoSkip: true, maxTicksLimit: 16 } } } } }); }
-    else { var pal = ['#1466B0', '#E8833A', '#2BA84A', '#C0392B', '#8E5FBF', '#0FA3A3', '#D64C8B', '#8C9440', '#E0B33A', '#4A90D9', '#B5651D', '#3FA796', '#9B4DCA', '#DE6449', '#6C7A89', '#0B4F8A']; mk('chPed', { type: 'doughnut', data: { labels: labels, datasets: [{ data: vals.map(function (v) { return Math.abs(v); }), backgroundColor: pal, borderWidth: 2, borderColor: '#fff' }] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 11, font: { size: 11 } } }, tooltip: { callbacks: { label: function (c) { return c.label + ': ₲ ' + fmt(c.raw); } } } }, cutout: '55%' } }); }
-    var hh = '<table><thead><tr>' + cfg.cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr></thead><tbody>', tt = 0, tp = 0, tl = 0;
-    rows.forEach(function (r) { tt += r[1] || 0; tp += r[2] || 0; tl += r[3] || 0; hh += '<tr><td>' + esc(r[0]) + '</td><td>' + fmt(r[1]) + '</td><td>' + (r[2] == null ? '' : fmt(r[2])) + '</td><td>' + fmt(r[3]) + '</td></tr>'; });
-    hh += '<tr class="tot"><td>TOTAL</td><td>' + fmt(tt) + '</td><td>' + (cfg.cols[2] ? fmt(tp) : '') + '</td><td>' + fmt(tl) + '</td></tr></tbody></table>';
-    H('pedTblBox', hh);
-    if (window.gsap) gsap.from(qa('#pedTblBox tbody tr'), { opacity: 0, x: -8, duration: .3, stagger: .025, ease: 'power2.out', clearProps: 'all' });
+    animCount(q('#p2Lin'), L.length, fmt, .9); animCount(q('#p2Ped'), Object.keys(docs).length, fmt, .9); animCount(q('#p2Tot'), total, fmt, .9); animCount(q('#p2Peso'), peso, fmt, .9);
+    // cobertura de lo que falta para la meta del mes (total, sin filtros)
+    var k = kpis('tot'), cobE = q('#pqCob');
+    if (cobE) { if (k.faltaMes > 0) { var cv = pct(total, k.faltaMes); cobE.textContent = Math.round(cv) + '% de lo que falta'; cobE.className = 'p2-c ' + (cv >= 100 ? 'ok' : cv >= 60 ? 'warn' : 'bad'); T('pqCobS', 'para la meta faltan ₲ ' + fmt(k.faltaMes)); } else { cobE.textContent = 'Meta cumplida'; cobE.className = 'p2-c ok'; T('pqCobS', 'la meta del mes ya se alcanzó'); } }
+
+    // ranking con barras
+    var cfg = pedDef[pedView], rows = cfg.rows(L), sum = rows.reduce(function (a, r) { return a + (r[1] || 0); }, 0) || 1;
+    var max = Math.max.apply(null, rows.map(function (r) { return Math.abs(r[1] || 0); }).concat([1]));
+    T('pedChTitle', cfg.title + ' · ' + rows.length);
+    var fechaV = pedView === 'fecha', hoyS = fmtHoy(hoyDate());
+    var html = rows.map(function (r, i) {
+      var nm = r[0], lbl = esc(nm);
+      if (fechaV && /^\d{4}-\d{2}-\d{2}$/.test(nm)) { var dd = dOf(nm), dias = Math.round((dOf(hoyS) - dd) / 864e5); lbl = '<b>' + nm.slice(8) + '/' + nm.slice(5, 7) + '</b> ' + ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][dd.getDay()] + (dias > 0 ? ' <em class="pq-age' + (dias > 7 ? ' old' : '') + '">hace ' + dias + (dias === 1 ? ' día' : ' días') + '</em>' : ''); }
+      return '<div class="pq-r"><span class="pq-r__n">' + (fechaV ? '' : '<i class="pq-rk' + (i < 3 ? ' top' : '') + '">' + (i + 1) + '</i>') + '<span>' + lbl + '</span></span>' +
+        '<span class="pq-r__b"><i data-w="' + (Math.abs(r[1] || 0) / max * 100).toFixed(1) + '"></i></span>' +
+        '<span class="pq-r__v">' + fmt(r[1]) + '</span><span class="pq-r__p">' + P((r[1] || 0) / sum * 100) + '</span><span class="pq-r__k">' + (r[2] == null ? '–' : fmt(r[2])) + '</span><span class="pq-r__l">' + fmt(r[3]) + '</span></div>';
+    }).join('') || '<div class="pq-empty">No hay pedidos pendientes con estos filtros.</div>';
+    var tl = rows.reduce(function (a, r) { return a + (r[3] || 0); }, 0), tp = rows.reduce(function (a, r) { return a + (r[2] || 0); }, 0);
+    if (rows.length) html += '<div class="pq-r tot"><span class="pq-r__n"><span><b>Total</b></span></span><span></span><span class="pq-r__v">' + fmt(sum) + '</span><span class="pq-r__p">100%</span><span class="pq-r__k">' + fmt(tp) + '</span><span class="pq-r__l">' + fmt(tl) + '</span></div>';
+    H('pedTblBox', html);
+    var bars = qa('#pedTblBox .pq-r__b i'); bars.forEach(function (i2) { i2.style.width = i2.dataset.w + '%'; });
+    if (G) {
+      gsap.fromTo(bars, { scaleX: 0 }, { scaleX: 1, transformOrigin: '0% 50%', duration: .7, stagger: .02, ease: 'power3.out', clearProps: 'transform' });
+      gsap.from(qa('#pedTblBox .pq-r').slice(0, 14), { opacity: 0, y: 6, duration: .28, stagger: .025, ease: 'power2.out', clearProps: 'transform,opacity' });
+    }
   }
 
   /* ── RENDER: CONFIG ── */
