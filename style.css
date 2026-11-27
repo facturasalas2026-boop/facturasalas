@@ -966,3 +966,24 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd.up-page .up-hist{grid-area:hist;height:100%;max-height:none}
 #stage > .tbd.up-page{min-height:calc(100% - 80px)}
 @media(max-width:1000px){.tbd.up-page{grid-template-columns:1fr;grid-template-areas:"drop" "rules" "hist"}}
+
+/* ═════════ Principal cuadrado: todo ocupa el alto, sin chips en los KPI ═════════ */
+.tbd .p2-tiles--g .p2-t__h .p2-c{display:none}
+.tbd .p4.fit .p4-l{display:grid;grid-template-rows:minmax(0,auto) minmax(0,auto) minmax(0,1fr) auto;overflow:hidden;padding-right:0}
+.tbd .p4.fit .p4-l .card.hero,.tbd .p4.fit .p4-l .card.accent{min-height:186px}
+.tbd .p4.fit .p4-l .card.accent{align-content:center}
+.tbd .p4.fit .p4-l .card.accent.is-pending{justify-content:center}
+.tbd .p4.fit .p2-tiles--g{grid-auto-rows:1fr;min-height:0}
+.tbd .p4.fit .p2-tiles--g .p2-t{justify-content:center}
+.tbd .p4.fit .p2-dl{display:flex;flex-direction:column}
+.tbd .p4.fit .p2-dl .p2-d{flex:1 0 auto;min-height:26px}
+.tbd .p4.fit .p2-dl .p2-d.tot{flex:none}
+.tbd .p4.fit .p4-l{grid-template-rows:auto auto minmax(min-content,1fr) auto;gap:12px}
+.tbd .p4.fit .p4-l .card.hero,.tbd .p4.fit .p4-l .card.accent{min-height:0;height:178px;padding-top:14px;padding-bottom:14px}
+.tbd .p4.fit .p4-l .card.hero .gauge{width:116px;height:116px}
+.tbd .p4.fit .p4-l .card.accent .acc-num{font-size:28px}
+.tbd .p4.fit .p2-tiles--g{gap:12px}
+.tbd .p4.fit .p2-tiles--g .p2-t{padding:11px 16px;gap:4px}
+.tbd .p4.fit .p2-alm{padding:12px 20px}
+.tbd .p4.fit .p2-alm .p2-h{margin-bottom:6px}
+.tbd .p4.fit .p2-alm .p2-a__t{padding-top:7px;margin-top:2px}
