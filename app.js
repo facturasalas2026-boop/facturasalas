@@ -390,9 +390,63 @@
     '</section>';
 
   /* ── Filtro de segmento (Almacén) para la toolbar ── */
+  var SCOPES = [['tot', 'Total', 'grid', '#0B4F8A'], ['fer', 'Ferretería', 'deposito', '#0E7490'], ['hie', 'Hierros', 'fabrica', '#475569']];
   function scopeBarHtml() {
-    function b(s, ico, lbl) { return '<button class="scopebtn' + (SCOPE === s ? ' on' : '') + '" data-s="' + s + '">' + ico + lbl + '</button>'; }
-    return '<div class="scopebar" id="scopeSeg">' + b('tot', IC.grid, 'Total') + b('fer', IC.deposito, 'Ferretería') + b('hie', IC.fabrica, 'Hierros') + '</div>';
+    return '<div class="seg3" id="scopeSeg" role="tablist" aria-label="Almacén"><span class="seg3__pill"></span>' +
+      SCOPES.map(function (x) { return '<button type="button" class="seg3__btn scopebtn' + (SCOPE === x[0] ? ' on' : '') + '" data-s="' + x[0] + '" style="--c:' + x[3] + '">' + IC[x[2]] + '<span>' + x[1] + '</span></button>'; }).join('') + '</div>';
+  }
+  function moverPillScope(anim) {
+    var seg = q('#scopeSeg'); if (!seg) return;
+    var b = q('[data-s="' + SCOPE + '"]', seg), pill = q('.seg3__pill', seg); if (!b || !pill) return;
+    var col = (SCOPES.filter(function (x) { return x[0] === SCOPE; })[0] || SCOPES[0])[3];
+    qa('.seg3__btn', seg).forEach(function (x) { x.classList.toggle('on', x === b); });
+    if (window.gsap && anim) gsap.to(pill, { x: b.offsetLeft - 4, width: b.offsetWidth, backgroundColor: col, duration: .45, ease: 'back.out(1.5)' });
+    else { pill.style.transform = 'translateX(' + (b.offsetLeft - 4) + 'px)'; pill.style.width = b.offsetWidth + 'px'; pill.style.backgroundColor = col; }
+  }
+
+  /* ── Selector de mes: grilla de 12 meses (los que tienen datos se pueden elegir) ── */
+  var IC_CAL = '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
+  var IC_CHEV = '<svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  var MP_ANIO = null;
+  function mesPickHtml() { return '<div class="mpick" id="mPick"><button type="button" class="mpick__btn" id="mPickBtn" aria-haspopup="true">' + IC_CAL + '<span>' + esc(MESES[D.cur_month - 1] + ' ' + D.cur_year) + '</span>' + IC_CHEV + '</button></div>'; }
+  function cerrarMeses() {
+    var pop = q('#mPick .mpick__pop'); if (!pop) return;
+    q('#mPick').classList.remove('open');
+    document.removeEventListener('click', fueraMeses); document.removeEventListener('keydown', escMeses);
+    if (window.gsap) gsap.to(pop, { opacity: 0, y: -6, scale: .97, duration: .16, ease: 'power1.in', onComplete: function () { pop.remove(); } }); else pop.remove();
+  }
+  function fueraMeses(e) { var mp = q('#mPick'); if (mp && !mp.contains(e.target)) cerrarMeses(); }
+  function escMeses(e) { if (e.key === 'Escape') cerrarMeses(); }
+  function toggleMeses() {
+    if (q('#mPick .mpick__pop')) { cerrarMeses(); return; }
+    MP_ANIO = D.cur_year;
+    var pop = el('<div class="mpick__pop" role="dialog" aria-label="Elegir mes"><div class="mpick__hd"><button type="button" class="mpick__yr" data-d="-1" aria-label="Año anterior">‹</button><b id="mpAnio"></b><button type="button" class="mpick__yr" data-d="1" aria-label="Año siguiente">›</button></div><div class="mpick__grid" id="mpGrid"></div><div class="mpick__ft"><i></i>con datos cargados</div></div>');
+    q('#mPick').appendChild(pop); q('#mPick').classList.add('open');
+    qa('.mpick__yr', pop).forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); MP_ANIO += +b.dataset.d; pintarMeses(+b.dataset.d); }); });
+    pintarMeses(0);
+    if (window.gsap) gsap.fromTo(pop, { opacity: 0, y: -8, scale: .96, transformOrigin: '100% 0%' }, { opacity: 1, y: 0, scale: 1, duration: .32, ease: 'back.out(1.6)' });
+    setTimeout(function () { document.addEventListener('click', fueraMeses); document.addEventListener('keydown', escMeses); }, 0);
+  }
+  function pintarMeses(dir) {
+    var grid = q('#mpGrid'); if (!grid) return;
+    var ms = monthsList(), anios = ms.map(function (m) { return m.anio; }), aMin = Math.min.apply(null, anios.concat([MP_ANIO])), aMax = Math.max.apply(null, anios.concat([MP_ANIO]));
+    q('#mpAnio').textContent = MP_ANIO;
+    qa('.mpick__yr').forEach(function (b) { b.disabled = (+b.dataset.d < 0 && MP_ANIO <= aMin) || (+b.dataset.d > 0 && MP_ANIO >= aMax); });
+    grid.innerHTML = MESES.map(function (n, i) {
+      var has = ms.some(function (m) { return m.anio === MP_ANIO && m.mes === i + 1; }), on = MP_ANIO === D.cur_year && i + 1 === D.cur_month;
+      return '<button type="button" class="mpick__m' + (has ? ' has' : '') + (on ? ' on' : '') + '" data-m="' + (i + 1) + '"' + (has ? '' : ' disabled') + '>' + n + '</button>';
+    }).join('');
+    qa('.mpick__m.has', grid).forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var m = { anio: MP_ANIO, mes: +b.dataset.m };
+        if (m.anio === D.cur_year && m.mes === D.cur_month) { cerrarMeses(); return; }
+        qa('.mpick__m', grid).forEach(function (x) { x.classList.toggle('on', x === b); });
+        if (window.gsap) gsap.fromTo(b, { scale: .9 }, { scale: 1, duration: .35, ease: 'back.out(2.5)' });
+        setTimeout(function () { cerrarMeses(); gotoMonth(m); }, 160);
+      });
+    });
+    if (window.gsap) gsap.from(qa('.mpick__m', grid), { opacity: 0, x: dir ? dir * 10 : 0, y: dir ? 0 : 4, duration: .26, stagger: .018, ease: 'power2.out', clearProps: 'transform,opacity' });
   }
 
   /* ── Navegador de mes ── */
@@ -466,24 +520,24 @@
     killCharts();
     q('#stage').innerHTML =
       '<div class="tbd-toolbar"><div class="tbd-title"><h2>Tablero de Facturación Diaria</h2><span class="sub">Sin datos cargados todavía</span></div><span class="spacer"></span>' +
-      (isAdmin() ? '<button class="btn btn--primary btn--hero" id="btnActualizar">' + IC.upload + ' Actualizar base</button>' : '') + '</div>' +
-      '<div class="empty">' + IC.empty + '<h3>Todavía no hay una base cargada</h3><p>' + (isAdmin() ? 'Usá <b>Actualizar base</b> (arriba) para subir la planilla SAP. Se publicará para todo el equipo.' : 'Pedile a un administrador que cargue la base de facturación.') + '</p></div>';
+      '</div>' +
+      '<div class="empty">' + IC.empty + '<h3>Todavía no hay una base cargada</h3><p>' + (isAdmin() ? 'Usá <b>Actualizar datos</b> en la barra lateral para subir la planilla SAP. Se publicará para todo el equipo.' : 'Pedile a un administrador que cargue la base de facturación.') + '</p></div>';
     var b = q('#btnActualizar'); if (b) b.addEventListener('click', function () { q('#fileBase').click(); });
   }
 
   function renderShell() {
+    if (currentView === 'cargar') { renderCargar(false); return; }
     if (!D) { renderEmpty(); return; }
     killCharts();
     var scopeApplies = currentView === 'principal' || currentView === 'mesames';
     q('#stage').innerHTML =
-      '<div class="tbd-toolbar"><div class="tbd-title"><h2 id="tbdTitle"></h2><span class="sub" id="tbdSub"></span></div>' +
-      '<div id="scopeSlot"' + (scopeApplies ? '' : ' style="display:none"') + '>' + scopeBarHtml() + '</div>' +
-      '<span class="spacer"></span>' +
+      '<div class="tbd-toolbar tb3"><div class="tbd-title"><h2 id="tbdTitle"></h2><span class="sub" id="tbdSub"></span></div>' +
+      '<div class="tb3__mid" id="scopeSlot"' + (scopeApplies ? '' : ' style="visibility:hidden"') + '>' + scopeBarHtml() + '</div>' +
+      '<div class="tb3__right">' +
+      mesPickHtml() +
       updChipHtml() +
-      monthNavHtml() +
       '<button class="refresh-btn" id="btnRefresh" type="button" title="Refrescar datos" aria-label="Refrescar datos">' + IC.refresh + '</button>' +
-      (isAdmin() ? '<button class="btn btn--primary btn--hero" id="btnActualizar">' + IC.upload + ' Actualizar base</button>' : '') +
-      '</div><div class="tbd">' + SECTIONS_HTML + '</div>';
+      '</div></div><div class="tbd">' + SECTIONS_HTML + '</div>';
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === currentView); });
     setToolbarTitle(currentView);
     wireShell();
@@ -491,15 +545,17 @@
     if (window.gsap) {
       gsap.from('#stage .tbd-toolbar', { opacity: 0, y: -8, duration: .35, ease: 'power2.out', clearProps: 'all' });
       var sb = q('#scopeSlot');
-      if (sb && sb.style.display !== 'none') gsap.from(sb.querySelectorAll('.scopebtn'), { opacity: 0, y: -10, scale: .9, duration: .42, stagger: .07, ease: 'back.out(1.8)', clearProps: 'all', delay: .08 });
+      if (sb && sb.style.visibility !== 'hidden') gsap.from(sb.querySelector('.seg3'), { opacity: 0, y: -10, scale: .96, duration: .45, ease: 'back.out(1.6)', clearProps: 'transform,opacity', delay: .05 });
     }
   }
 
   function wireShell() {
-    wireMonthNav(q('#stage'));
+    var mpb = q('#mPickBtn'); if (mpb) mpb.addEventListener('click', function (e) { e.stopPropagation(); toggleMeses(); });
+    requestAnimationFrame(function () { moverPillScope(false); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { moverPillScope(false); });
     var ba = q('#btnActualizar'); if (ba) ba.addEventListener('click', function () { q('#fileBase').click(); });
     var rb = q('#btnRefresh'); if (rb) rb.addEventListener('click', refreshData);
-    qa('#scopeSeg .scopebtn').forEach(function (b) { b.addEventListener('click', function () { if (SCOPE === b.dataset.s) return; SCOPE = b.dataset.s; qa('#scopeSeg .scopebtn').forEach(function (x) { x.classList.toggle('on', x === b); }); popScope(b); renderPage(currentView); }); });
+    qa('#scopeSeg .scopebtn').forEach(function (b) { b.addEventListener('click', function () { if (SCOPE === b.dataset.s) return; SCOPE = b.dataset.s; moverPillScope(true); if (window.gsap) { var ic = b.querySelector('svg'); if (ic) gsap.fromTo(ic, { rotate: -18, scale: .7 }, { rotate: 0, scale: 1, duration: .5, ease: 'back.out(2.6)', clearProps: 'transform' }); } renderPage(currentView); }); });
     qa('#pedPills .pill').forEach(function (b) { b.addEventListener('click', function () { if (pedView === b.dataset.v) return; pedView = b.dataset.v; qa('#pedPills .pill').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); renderPedidos(); }); });
     var fa = q('#fAlm'), fe = q('#fEt');
     if (fa) fa.addEventListener('change', function (e) { fAlm = e.target.value; renderPedidos(); });
@@ -512,12 +568,13 @@
 
   function go(v) {
     currentView = v; setNav(v);
+    if (v === 'cargar') { if (_regUnsub) { _regUnsub(); _regUnsub = null; } renderCargar(true); return; }
     if (v === 'registro') { renderRegistro(); return; }
     if (_regUnsub) { _regUnsub(); _regUnsub = null; }  // saliendo del registro: cortar realtime
     if (!D) { renderEmpty(); return; }
     if (!q('#stage .tbd')) { renderShell(); return; }   // el shell no está montado (venías del registro/empty)
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === v); });
-    var ss = q('#scopeSlot'); if (ss) ss.style.display = (v === 'principal' || v === 'mesames') ? '' : 'none';
+    var ss = q('#scopeSlot'); if (ss) ss.style.visibility = (v === 'principal' || v === 'mesames') ? '' : 'hidden';
     setToolbarTitle(v);
     renderPage(v);
     var pg = q('#stage #' + v); if (window.gsap && pg) gsap.from(pg.children, { opacity: 0, y: 10, duration: .34, stagger: .04, ease: 'power2.out', clearProps: 'transform,opacity' });
@@ -826,6 +883,58 @@
     } });
   }
 
+  /* ── APARTADO: ACTUALIZAR DATOS (solo admin) ── */
+  function renderCargar(anim) {
+    killCharts();
+    var G = !!window.gsap && anim !== false;
+    var hist = (availableMonths || []).slice().sort(function (a, b) { return b.anio - a.anio || b.mes - a.mes; });
+    var fh = function (iso) { if (!iso) return '—'; var d = new Date(iso); return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+    q('#stage').innerHTML =
+      '<div class="tbd-toolbar"><div class="tbd-title"><h2>Actualizar datos</h2><span class="sub">Cargá la planilla de facturación de SAP tal como se exporta</span></div><span class="spacer"></span>' + updChipHtml() + '</div>' +
+      '<div class="tbd up-page">' +
+        '<div class="up-drop" id="upDrop" tabindex="0" role="button">' +
+          '<div class="up-drop__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg></div>' +
+          '<b>Arrastrá el Excel acá</b><span>o hacé clic para elegirlo · .xlsx</span>' +
+          '<em class="up-drop__btn">Elegir archivo</em>' +
+        '</div>' +
+        '<div class="up-side">' +
+          '<div class="card up-rules"><div class="p2-h"><h3>Qué se revisa antes de publicar</h3></div>' +
+            '<ul>' +
+              '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Que tenga las 4 hojas: <b>x monto de fc fecha</b>, <b>Facturacion historico</b>, <b>BASE PEDIDOS PEND. DE FACTURAR</b> y <b>Presupuesto de ventas (Meta)</b></span></li>' +
+              '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Que la hoja diaria traiga facturación con fecha</span></li>' +
+              '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Que los pedidos pendientes no vengan todos en 0 (fórmulas sin calcular)</span></li>' +
+              '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Si el mes ya estaba cargado, se reemplaza y te muestro qué cambió</span></li>' +
+            '</ul></div>' +
+          '<div class="card up-hist"><div class="p2-h"><h3>Meses cargados</h3><small class="cf-n">' + hist.length + '</small></div>' +
+            (hist.length ? hist.map(function (m) { var cur = D && m.anio === D.cur_year && m.mes === D.cur_month; return '<div class="up-h' + (cur ? ' cur' : '') + '"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></i><b>' + MESES[m.mes - 1] + ' ' + m.anio + '</b><small>' + fh(m.updated_at) + '</small></div>'; }).join('') : '<div class="pq-empty">Todavía no hay meses cargados.</div>') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    var dz = q('#upDrop');
+    var elegir = function () { q('#fileBase').click(); };
+    dz.addEventListener('click', elegir);
+    dz.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); elegir(); } });
+    ['dragenter', 'dragover'].forEach(function (t) { dz.addEventListener(t, function (e) { e.preventDefault(); dz.classList.add('over'); }); });
+    ['dragleave', 'drop'].forEach(function (t) { dz.addEventListener(t, function (e) { e.preventDefault(); dz.classList.remove('over'); }); });
+    dz.addEventListener('drop', function (e) { var f2 = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f2) onFile({ target: { files: [f2] } }); });
+    if (G) {
+      gsap.from('#stage .tbd-toolbar', { opacity: 0, y: -8, duration: .35, ease: 'power2.out', clearProps: 'all' });
+      gsap.from('.up-drop', { opacity: 0, y: 18, scale: .98, duration: .55, ease: 'power3.out', clearProps: 'transform,opacity' });
+      gsap.from('.up-drop__ico', { scale: 0, rotate: -20, duration: .6, delay: .15, ease: 'back.out(2.2)', clearProps: 'transform' });
+      gsap.from('.up-side > *', { opacity: 0, x: 18, duration: .5, stagger: .08, delay: .1, ease: 'power3.out', clearProps: 'transform,opacity' });
+      gsap.from('.up-rules li, .up-h', { opacity: 0, x: 10, duration: .3, stagger: .04, delay: .3, ease: 'power2.out', clearProps: 'transform,opacity' });
+    }
+  }
+  // Al terminar de cargar: transición a Facturación diaria
+  function irAFacturacion() {
+    var st = q('#stage'); currentView = 'principal'; setNav('principal');
+    if (!window.gsap || !st) { renderShell(); return; }
+    gsap.to(st, { opacity: 0, y: 14, scale: .985, duration: .3, ease: 'power2.in', onComplete: function () {
+      st.scrollTop = 0; renderShell();
+      gsap.fromTo(st, { opacity: 0, y: -12, scale: .99 }, { opacity: 1, y: 0, scale: 1, duration: .6, ease: 'power3.out', clearProps: 'transform,opacity' });
+    } });
+  }
+
   /* ── OVERLAY de carga (0→100% + check azul) ── */
   var UPL_C = 345.6, uplCur = 0, uplTarget = 0, uplRAF = null;
   function showUpload() {
@@ -863,9 +972,13 @@
       H('uplMsg', diff.summary);
       var card = ov.querySelector('.upl-card');
       if (diff.rows && diff.rows.length) { var box = document.createElement('div'); box.className = 'upl-diff'; box.innerHTML = diff.rows.map(function (r) { return '<div class="row"><span>' + esc(r[0]) + '</span><b>' + r[1] + '</b></div>'; }).join(''); card.appendChild(box); }
-      var btn = document.createElement('button'); btn.className = 'btn btn--primary upl-close'; btn.textContent = 'Entendido';
-      btn.addEventListener('click', function () { closeUpload(); renderShell(); });
+      var btn = document.createElement('button'); btn.className = 'btn btn--primary upl-close upl-go'; btn.innerHTML = 'Ver facturación diaria <span class="upl-cd"></span>';
+      var irYa = function () { clearInterval(tmr); if (!q('#uplOv')) return; closeUpload(); setTimeout(irAFacturacion, 120); };
+      btn.addEventListener('click', irYa);
       card.appendChild(btn);
+      if (window.gsap) { gsap.from(card.querySelectorAll('.upl-diff, .upl-close'), { opacity: 0, y: 10, duration: .4, stagger: .08, ease: 'power2.out', clearProps: 'transform,opacity' }); gsap.fromTo(card, { scale: .97 }, { scale: 1, duration: .45, ease: 'back.out(1.8)' }); }
+      var seg = 4, cd = card.querySelector('.upl-cd'); if (cd) cd.textContent = '· ' + seg;
+      var tmr = setInterval(function () { seg--; if (cd) cd.textContent = '· ' + seg; if (seg <= 0) irYa(); }, 1000);
     }, 650);
   }
 
@@ -1318,6 +1431,7 @@
     if (_booted) return; _booted = true;
     var fb = q('#fileBase'); if (fb) fb.addEventListener('change', onFile);
     qa('[data-nav]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.nav); }); });
+    var nc = q('#navCargar'); if (nc) nc.hidden = !isAdmin();
 
     // Rol restringido "registro": solo ve Control de facturas y entra directo.
     if (isRegistroOnly()) {
