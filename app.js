@@ -106,6 +106,11 @@
       if (i > D.cur_month - 1) { out[i] = out[i] || 0; continue; }
       var m = MT[y + '-' + (i + 1)];
       if ((!out[i] || Math.abs(out[i]) < 1) && m && m[campo]) out[i] = m[campo];
+      if (!out[i] || Math.abs(out[i]) < 1) {   // sin carga propia: lo toma del histórico de otra carga del mismo año que sí lo trae
+        var arr = 'a' + campo, best = 0;
+        Object.keys(MT).forEach(function (kk) { var r = MT[kk]; if (r.anio === y && r[arr] && Math.abs(r[arr][i] || 0) > 1) best = r[arr][i]; });
+        if (best) out[i] = best;
+      }
     }
     return out;
   }
