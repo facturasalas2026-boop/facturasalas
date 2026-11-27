@@ -387,8 +387,8 @@
         '<div class="cf-fer" id="ferList"></div>' +
         '<div class="cf-note">Los feriados se descuentan de los días hábiles y recalculan las proyecciones para todo el equipo.</div>' +
       '</div>' +
-    '</div>' +
     '<div class="card cf-ref"><div class="p2-h"><h3>Fecha de referencia</h3><small class="cf-n">para simular proyecciones</small></div><div class="cf-add"><input type="date" id="hoyInput"><button class="btn cf-btn" id="btnHoy">Aplicar</button><button class="btn" id="btnHoyReset">Volver a la última fecha con datos</button></div></div>' +
+    '</div>' +
     '</section>';
 
   /* ── Filtro de segmento (Almacén) para la toolbar ── */
@@ -848,7 +848,7 @@
         if (wd === 0) cls += ' dom'; else if (fer) cls += ' fer'; else { cls += ' hab'; if (wd === 6) cls += ' sab'; if (dt <= hoy) cls += ' pas'; }
         if (ds === fmtHoy(hoy)) cls += ' hoy';
         var hol = fer ? holidays.filter(function (x) { return x.date === ds; })[0] : null;
-        h += '<span class="' + cls + '" title="' + (hol ? 'Feriado' + (hol.name ? ': ' + esc(hol.name) : '') : fac[ds] != null ? 'Facturado ₲ ' + fmt(fac[ds]) : '') + '"><b>' + dd + '</b>' + (fac[ds] != null && wd !== 0 ? '<em>' + fmtM(fac[ds]) + '</em>' : fer ? '<em>feriado</em>' : '') + '</span>';
+        h += '<span class="' + cls + '" title="' + (hol ? 'Feriado' + (hol.name ? ': ' + esc(hol.name) : '') : fac[ds] != null ? 'Facturado ₲ ' + fmt(fac[ds]) : '') + '"><b>' + dd + '</b>' + (fac[ds] != null && wd !== 0 ? '<em>₲ ' + fmt(fac[ds]) + '</em>' : fer ? '<em>feriado</em>' : '') + '</span>';
       }
       cal.innerHTML = h;
       if (G) gsap.from(qa('.cf-d:not(.vac)', cal), { opacity: 0, scale: .85, duration: .3, stagger: .012, ease: 'back.out(1.8)', clearProps: 'transform,opacity' });

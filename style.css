@@ -1026,3 +1026,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .p4-l .card.accent .dz{align-self:center}
 .tbd .p4-l .card.accent .dz .acc-trend{justify-self:start}
 .tbd .p4-l .card.accent{justify-content:center}.tbd .p4-l .card.accent .dz{align-self:stretch}
+
+/* ═════════ Días hábiles: calendario a todo el ancho ═════════ */
+.tbd .cf-grid{grid-template-columns:1fr 1fr;align-items:stretch}
+.tbd .cf-grid > .card:first-child{grid-column:1/-1}
+.tbd .cf-grid .cf-ref{margin:0}
+.tbd .cf-cal{gap:8px}
+.tbd .cf-d{min-height:76px;padding:9px 12px;border-radius:13px;transition:transform .18s,box-shadow .18s}
+.tbd .cf-d b{font-size:15px}
+.tbd .cf-d em{font-family:'Sora',sans-serif;font-size:12.5px;font-weight:800;color:var(--azul);letter-spacing:-.2px}
+.tbd .cf-d.pas em{color:#fff}
+.tbd .cf-d.hab:not(.pas){background:#fff}
+.tbd .cf-d.pas:hover{transform:translateY(-2px);box-shadow:0 10px 20px -10px rgba(11,79,138,.7)}
+.tbd .cf-dn{font-size:11px;padding-bottom:4px}
+@media(max-width:1100px){.tbd .cf-grid{grid-template-columns:1fr}.tbd .cf-d em{font-size:10.5px}}
