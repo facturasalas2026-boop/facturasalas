@@ -310,37 +310,26 @@
   var SECTIONS_HTML =
     '<section class="page on" id="principal">' +
     '<div class="grid g2" style="margin-bottom:18px">' +
-    '<div class="p3-hero" id="p3Hero">' +
-      '<div class="p3-lbl"><span>Meta mensual · avance <b id="hScope"></b></span><em class="p3-st" id="p3St"></em><em class="p3-gap" id="p3Gap"></em></div>' +
-      '<div class="p3-body">' +
-        '<div class="p3-ring"><svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" id="p3Ring" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"/></svg><div class="p3-ring__c"><b id="gPct">–</b><span>de la meta</span></div></div>' +
-        '<div class="p3-main">' +
-          '<span class="p3-k">Meta del mes</span>' +
-          '<b class="p3-meta"><span class="u">₲</span><span id="hMeta">–</span></b>' +
-          '<div class="p3-bar"><span id="hBar"></span><i id="p3Mk" title="Proyección de fin de mes"><em>proyección</em></i></div>' +
-          '<div class="p3-bl"><span>Facturado <b id="hFact">–</b></span><span>Falta <b id="hFalta">–</b></span></div>' +
-        '</div>' +
-      '</div>' +
-    '</div>' +
+    '<div class="card hero"><h3>Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;font-weight:700">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="bar"><span id="hBar" style="width:0%"></span></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
     '<div class="card accent" id="cardDia">' +
-    '<div class="acc-top"><span class="acc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h3"/></svg></span><div class="acc-topx"><span class="acc-lbl">Facturación del día</span><span class="acc-sub" id="kDiaFecha">—</span></div></div>' +
+    '<div class="acc-top"><div class="acc-topx"><span class="acc-lbl">Facturación del día</span><span class="acc-sub" id="kDiaFecha">—</span></div></div>' +
     '<div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
     '<div class="acc-obj"><div class="acc-obj-hd"><span>Objetivo del día hábil</span><b id="kDiaObjPct">–</b></div><div class="acc-obj-bar"><span id="kDiaObjBar"></span></div><div class="acc-obj-sub">Necesario ₲ <span id="kDiaObj">–</span>/día en los <span id="kDiaObjDays">–</span> días hábiles que faltan</div></div>' +
     '<div class="acc-foot"><span class="acc-trend flat" id="kDiaVar">—</span><span class="acc-vs">vs mismo día hábil del año anterior · <b>₲ <span id="kDiaPrev">–</span></b></span></div>' +
     '<div class="acc-pending"><span class="acc-pending-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M9 14.5h6"/></svg></span><div class="acc-pending-t">Sin registros de hoy</div><div class="acc-pending-s">Cargá la planilla del <b id="accPendDate">—</b> para ver la facturación del día</div></div>' +
     '</div>' +
     '</div>' +
-    '<div class="p2-tiles">' +
-      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M6 15l4-4 3 3 5-6"/><path d="M15 8h3v3"/></svg></i><span>Proyección fin de mes</span><em class="p2-c" id="kProyPct">–</em></div><b class="p2-t__v">₲ <span id="kProy">–</span></b><div class="p2-tbar"><span id="kProyBar"></span><i id="kProyMk"></i></div><small>Al ritmo actual · sábado = <span id="kPs">–</span> de un día</small></div>' +
-      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg></i><span>Mes vs año pasado</span><em class="p2-c" id="kMesVar">–</em></div><b class="p2-t__v">₲ <span id="kMes">–</span></b><div class="p2-t__s">contra ₲ <span id="kMesPrev">–</span></div><small id="kMesPrevL">–</small></div>' +
-      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></i><span>Cumplimiento del año</span><em class="p2-c" id="kYtdPct">–</em></div><b class="p2-t__v">₲ <span id="kYtd">–</span></b><div class="p2-tbar"><span id="kYtdBar"></span></div><small>Meta a hoy ₲ <span id="kYtdMeta">–</span> · cierre estimado ₲ <span id="kAnio">–</span></small></div>' +
-      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1.5 11a2 2 0 01-2 1.7H7.5a2 2 0 01-2-1.7z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg></i><span>Lo que falta vs pendientes</span><em class="p2-c" id="kCob">–</em></div><b class="p2-t__v">₲ <span id="kCobPend">–</span></b><div class="p2-tbar"><span id="kCobBar"></span></div><small>en pedidos, de ₲ <span id="kCobFalta">–</span> que faltan · <a href="#" class="p2-link" data-go="pedidos">ver pedidos</a></small></div>' +
+    '<div class="p2-tiles p2-tiles--s">' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M6 15l4-4 3 3 5-6"/><path d="M15 8h3v3"/></svg></i><span>Cierre estimado del mes</span><em class="p2-c" id="stProy"></em></div><b class="p2-big" id="kProyPct">–</b><div class="p2-tbar"><span id="kProyBar"></span></div><small>₲ <span id="kProy">–</span> de la meta</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></svg></i><span>Contra el año pasado</span><em class="p2-c" id="stMes"></em></div><b class="p2-big" id="kMesVar">–</b><div class="p2-tbar p2-tbar--x"></div><small id="kMesPrevL">–</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></i><span>Meta del año a hoy</span><em class="p2-c" id="stYtd"></em></div><b class="p2-big" id="kYtdPct">–</b><div class="p2-tbar"><span id="kYtdBar"></span></div><small>₲ <span id="kYtd">–</span> facturado</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1.5 11a2 2 0 01-2 1.7H7.5a2 2 0 01-2-1.7z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg></i><span>Lo que falta, ya en pedidos</span><em class="p2-c" id="stCob"></em></div><b class="p2-big" id="kCob">–</b><div class="p2-tbar"><span id="kCobBar"></span></div><small>₲ <span id="kCobPend">–</span> de ₲ <span id="kCobFalta">–</span></small><a href="#" class="p2-go" data-go="pedidos">Ver pedidos <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>' +
     '</div>' +
     '<div class="p2-row">' +
       '<div class="card p2-daily"><div class="p2-h"><h3>Facturación día por día <span id="dScope"></span></h3><span class="p2-leg"><i></i>superó el objetivo del día</span></div><div class="p2-dl" id="dailyTbl"></div></div>' +
       '<div class="p2-col">' +
         '<div class="card"><div class="p2-h"><h3>Facturado por almacén</h3></div><div id="almBox"></div></div>' +
-        '<div class="card p2-ped"><div class="p2-h"><h3>Pedidos pendientes de facturar <span id="pScope"></span></h3><a href="#" class="p2-link" data-go="pedidos">Ver detalle →</a></div>' +
+        '<div class="card p2-ped"><div class="p2-h"><h3>Pedidos pendientes de facturar <span id="pScope"></span></h3><a href="#" class="p2-go" data-go="pedidos">Ver pedidos <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>' +
           '<div class="p2-ped__g"><div><b id="pgTot">–</b><span>monto ₲</span></div><div><b id="pgPed">–</b><span>pedidos</span></div><div><b id="pgLin">–</b><span>líneas</span></div><div><b id="pgPeso">–</b><span>kg</span></div></div></div>' +
       '</div>' +
     '</div>' +
@@ -538,20 +527,20 @@
     var k = kpis(SCOPE), S = scoped(SCOPE);
     T('hScope', k.label); T('dScope', k.label); T('pScope', k.label);
     var av = pct(k.fact, k.meta);
-    var G0 = !!window.gsap, pvH = pct(k.proyMes, k.meta);
-    var stH = av >= 100 ? ['ok', 'Meta cumplida'] : pvH >= 100 ? ['ok', 'En camino a la meta'] : pvH >= 90 ? ['warn', 'Cerca de la meta'] : ['bad', 'Por debajo del ritmo'];
-    var hero = q('#p3Hero'); if (hero) hero.className = 'p3-hero st-' + stH[0];
-    var stE = q('#p3St'); if (stE) { stE.className = 'p3-st ' + stH[0]; stE.innerHTML = '<i></i>' + stH[1]; }
-    var gp = q('#p3Gap'); if (gp) gp.innerHTML = 'Proyección <b>' + pvH.toFixed(1).replace('.', ',') + '%</b>';
-    var rg = q('#p3Ring'), offH = 314.16 * (1 - Math.min(av, 100) / 100);
-    if (rg) { if (G0) gsap.fromTo(rg, { attr: { 'stroke-dashoffset': 314.16 } }, { attr: { 'stroke-dashoffset': offH }, duration: 1.2, ease: 'power3.out' }); else rg.setAttribute('stroke-dashoffset', offH); }
-    animCount(q('#gPct'), av, function (v) { return v.toFixed(1).replace('.', ',') + '%'; }, 1.1);
-    animCount(q('#hMeta'), k.meta, fmt, 1.1);
-    var hb = q('#hBar'); if (hb) { if (G0) gsap.fromTo(hb, { width: '0%' }, { width: Math.min(av, 100) + '%', duration: 1.1, delay: .15, ease: 'power3.out' }); else hb.style.width = Math.min(av, 100) + '%'; }
-    var mk3 = q('#p3Mk'); if (mk3) { mk3.style.left = Math.min(pvH, 100) + '%'; if (G0) gsap.from(mk3, { opacity: 0, y: -6, duration: .4, delay: .9, ease: 'power2.out', clearProps: 'transform,opacity' }); }
-    animCount(q('#hFact'), k.fact, function (v) { return '₲ ' + fmt(v); }, 1.1);
-    animCount(q('#hFalta'), Math.max(0, k.meta - k.fact), function (v) { return '₲ ' + fmt(v); }, 1.1);
-    if (G0) { gsap.from('#p3Hero', { opacity: 0, y: 14, duration: .5, ease: 'power3.out', clearProps: 'transform,opacity' }); gsap.from('#p3Hero .p3-ring', { scale: .85, opacity: 0, duration: .6, delay: .1, ease: 'back.out(1.6)', clearProps: 'transform,opacity' }); gsap.from('#cardDia .acc-ico', { scale: 0, rotate: -20, duration: .5, delay: .2, ease: 'back.out(2.4)', clearProps: 'transform' }); }
+    mk('gauge', { type: 'doughnut', data: { datasets: [{ data: [Math.min(av, 100), Math.max(0, 100 - av)], backgroundColor: ['#fff', 'rgba(255,255,255,.22)'], borderWidth: 0, circumference: 360, cutout: '78%' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { animateRotate: true } } });
+    // Meta mensual · avance — animado con GSAP
+    if (window.gsap) gsap.fromTo('#principal .hero .gauge', { scale: .88, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.6)', clearProps: 'all' });
+    animCount(q('#gPct'), av, function (v) { return v.toFixed(1) + '%'; }, 1);
+    animCount(q('#hMeta'), k.meta, function (v) { return '₲ ' + fmt(v); }, 1.1);
+    var hb = q('#hBar');
+    if (hb) { if (window.gsap) { hb.style.transition = 'none'; gsap.fromTo(hb, { width: '0%' }, { width: Math.min(av, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else hb.style.width = Math.min(av, 100) + '%'; }
+    animCount(q('#hFact'), k.fact, function (v) { return 'Facturado ₲ ' + fmt(v); }, 1.1);
+    animCount(q('#hFalta'), Math.max(0, k.meta - k.fact), function (v) { return 'Falta ₲ ' + fmt(v); }, 1.1);
+    if (window.gsap) {
+      gsap.from('#principal .card.hero', { opacity: 0, y: 14, duration: .5, ease: 'power3.out', clearProps: 'transform,opacity' });
+      gsap.from('#principal .card.hero .med, #principal .card.hero .lbls span', { opacity: 0, y: 8, duration: .4, stagger: .06, delay: .15, ease: 'power2.out', clearProps: 'transform,opacity' });
+      gsap.from('#cardDia', { opacity: 0, y: 14, duration: .5, delay: .06, ease: 'power3.out', clearProps: 'transform,opacity' });
+    }
     animCount(q('#kFact'), k.fact, function (v) { return fmt(v); }, 1); animCount(q('#kMeta'), k.meta, function (v) { return '₲ ' + fmt(v); }, 1);
     var falta = k.meta - k.fact, cf = q('#kFalta'); if (cf) { cf.textContent = falta > 0 ? 'Falta ₲ ' + fmt(falta) : 'Meta superada +₲ ' + fmt(-falta); cf.className = 'chip ' + (falta > 0 ? 'flat' : 'up'); }
     animCount(q('#kProy'), k.proyMes, function (v) { return fmt(v); }, 1); var pp = q('#kProyPct'), pv = pct(k.proyMes, k.meta); if (pp) { pp.textContent = arrow(pv - 100) + ' ' + pv.toFixed(1) + '%'; pp.className = 'chip ' + (pv >= 100 ? 'up' : pv >= 90 ? 'flat' : 'down'); }
@@ -562,39 +551,44 @@
     T('kDiaFecha', 'Último día hábil · ' + (k.lastDate ? k.lastDate.split('-').reverse().join('/') : '—'));
     animCount(q('#kDiaPrev'), k.prev, function (v) { return fmt(v); }, 1.1);
     // Objetivo del día DINÁMICO: ritmo requerido = meta restante ÷ días hábiles que faltan
-    var remMeta = Math.max(0, k.meta - k.fact), remDays = Math.max(0, k.bd_rest), remW = Math.max(0, k.wTot - k.wEl);
-    var reqDaily = remW > 0 ? remMeta / remW : remMeta;   // por día de semana completo
-    var ultSab = k.lastDate && dOf(k.lastDate).getDay() === 6;
-    var pctObj = remMeta <= 0 ? 100 : pct(k.lastCur, ultSab ? reqDaily * k.ps : reqDaily);
+    var remMeta = Math.max(0, k.meta - k.fact), remDays = Math.max(0, k.bd_rest);
+    var reqDaily = remDays > 0 ? remMeta / remDays : remMeta;
+    var pctObj = remMeta <= 0 ? 100 : pct(k.lastCur, reqDaily);
     animCount(q('#kDiaObjPct'), pctObj, function (v) { return Math.round(v) + '%'; }, 1.1);
     animCount(q('#kDiaObj'), reqDaily, function (v) { return fmt(v); }, 1.1);
     animCount(q('#kDiaObjDays'), remDays, function (v) { return Math.round(v); }, .8);
     var ob = q('#kDiaObjBar'); if (ob) { if (ob.parentNode) ob.parentNode.classList.toggle('over', pctObj >= 100); if (window.gsap) { ob.style.transition = 'none'; gsap.fromTo(ob, { width: '0%' }, { width: Math.min(pctObj, 100) + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else ob.style.width = Math.min(pctObj, 100) + '%'; }
     var dv = q('#kDiaVar'); if (dv) { var _cls = chipCls(k.varDia); dv.className = 'acc-trend ' + _cls; dv.innerHTML = trendArrow(_cls) + fp(k.varDia); if (window.gsap) gsap.fromTo(dv, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)', delay: .4, clearProps: 'all' }); }
     if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.acc-top'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.acc-foot'), { y: 10, opacity: 0, duration: .5, delay: .22, ease: 'power2.out', clearProps: 'all' }); } }
-    // ── Tarjetas (diseño nuevo) ──
+    // ── Tarjetas: un dato grande, una barra, una línea ──
     var G = !!window.gsap, P = function (v) { return v.toFixed(1).replace('.', ',') + '%'; };
     var est = function (p) { return p >= 100 ? 'ok' : p >= 90 ? 'warn' : 'bad'; };
-    var pv2 = pct(k.proyMes, k.meta), ppc = q('#kProyPct'); if (ppc) { ppc.textContent = P(pv2) + ' de la meta'; ppc.className = 'p2-c ' + est(pv2); }
+    var big = function (id, v, cls, fmtF) { var e3 = q('#' + id); if (!e3) return; e3.className = 'p2-big ' + cls; animCount(e3, v, fmtF || P, 1); };
+    var pv2 = pct(k.proyMes, k.meta);
+    big('kProyPct', pv2, est(pv2)); animCount(q('#kProy'), k.proyMes, fmt, 1);
     var pb = q('#kProyBar'); if (pb) { pb.className = est(pv2); pb.dataset.w = Math.min(pv2, 100); }
-    T('kPs', Math.round(k.ps * 100) + ' %');
-    var mv = q('#kMesVar'); if (mv) { mv.textContent = fp(k.varYoY); mv.className = 'p2-c ' + (k.varYoY >= 0.5 ? 'ok' : k.varYoY <= -0.5 ? 'bad' : 'na'); }
-    animCount(q('#kMes'), k.fact, fmt, 1); animCount(q('#kMesPrev'), k.mesYoY, fmt, 1);
-    T('kMesPrevL', D.meses[k.mi] + ' ' + (k.y - 1) + ' al día hábil ' + k.bd_el + (k.yoyExacto ? '' : ' (estimado)') + ' · mes completo ₲ ' + fmt(k.mesYoYFull));
-    var yp = q('#kYtdPct'); if (yp) { yp.textContent = P(k.cumplYtd) + ' de la meta'; yp.className = 'p2-c ' + est(k.cumplYtd); }
+    big('kMesVar', k.varYoY, k.varYoY >= 0.5 ? 'ok' : k.varYoY <= -0.5 ? 'bad' : '', function (v) { return fp(v); });
+    T('kMesPrevL', '₲ ' + fmt(k.fact) + ' vs ₲ ' + fmt(k.mesYoY));
+    var mpl = q('#kMesPrevL'); if (mpl) mpl.title = D.meses[k.mi] + ' ' + (k.y - 1) + ' al mismo día hábil' + (k.yoyExacto ? '' : ' (estimado)') + ' · mes completo ₲ ' + fmt(k.mesYoYFull);
+    big('kYtdPct', k.cumplYtd, est(k.cumplYtd)); animCount(q('#kYtd'), k.ytd, fmt, 1);
     var yb = q('#kYtdBar'); if (yb) { yb.className = est(k.cumplYtd); yb.dataset.w = Math.min(k.cumplYtd, 100); }
-    animCount(q('#kYtd'), k.ytd, fmt, 1); animCount(q('#kYtdMeta'), k.metaYtd, fmt, 1); animCount(q('#kAnio'), k.proyAnio, fmt, 1);
-    var cbp = q('#kCob'), cbr = q('#kCobBar');
-    if (k.cobertura == null) { if (cbp) { cbp.textContent = 'Meta cumplida'; cbp.className = 'p2-c ok'; } if (cbr) { cbr.className = 'ok'; cbr.dataset.w = 100; } }
-    else { if (cbp) { cbp.textContent = Math.round(k.cobertura) + '% cubierto'; cbp.className = 'p2-c ' + (k.cobertura >= 100 ? 'ok' : k.cobertura >= 60 ? 'warn' : 'bad'); } if (cbr) { cbr.className = k.cobertura >= 100 ? 'ok' : k.cobertura >= 60 ? 'warn' : 'bad'; cbr.dataset.w = Math.min(k.cobertura, 100); } }
+    var cbr = q('#kCobBar');
+    if (k.cobertura == null) { big('kCob', 100, 'ok', function () { return 'Meta cumplida'; }); if (cbr) { cbr.className = 'ok'; cbr.dataset.w = 100; } }
+    else { var cv = k.cobertura; big('kCob', cv, cv >= 100 ? 'ok' : cv >= 60 ? 'warn' : 'bad', function (v) { return Math.round(v) + '%'; }); if (cbr) { cbr.className = cv >= 100 ? 'ok' : cv >= 60 ? 'warn' : 'bad'; cbr.dataset.w = Math.min(cv, 100); } }
     animCount(q('#kCobFalta'), k.faltaMes, fmt, 1); animCount(q('#kCobPend'), k.pend, fmt, 1);
+    var chip = function (id, cls, txt) { var c2 = q('#' + id); if (c2) { c2.className = 'p2-c ' + cls; c2.innerHTML = '<i></i>' + txt; } };
+    var TX = { ok: 'En meta', warn: 'Cerca', bad: 'Por debajo' };
+    chip('stProy', est(pv2), TX[est(pv2)]);
+    chip('stMes', k.varYoY >= 0.5 ? 'ok' : k.varYoY <= -0.5 ? 'bad' : 'na', k.varYoY >= 0.5 ? 'Arriba' : k.varYoY <= -0.5 ? 'Abajo' : 'Igual');
+    chip('stYtd', est(k.cumplYtd), TX[est(k.cumplYtd)]);
+    chip('stCob', k.cobertura == null || k.cobertura >= 100 ? 'ok' : k.cobertura >= 60 ? 'warn' : 'bad', k.cobertura == null || k.cobertura >= 100 ? 'Alcanza' : 'No alcanza');
     qa('#principal .p2-tbar span').forEach(function (sp) { if (G) gsap.fromTo(sp, { width: '0%' }, { width: sp.dataset.w + '%', duration: 1, delay: .25, ease: 'power3.out' }); else sp.style.width = sp.dataset.w + '%'; });
 
     // ── Día por día: barra + marca del objetivo del día (meta ÷ días hábiles, sábado ponderado) ──
-    var objBase = k.wTot > 0 ? k.meta / k.wTot : 0, maxD = Math.max.apply(null, S.daily.map(function (x) { return x[1]; }).concat([objBase, 1])), tt = 0, h = '';
-    var WD = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    var objBase = k.bd_tot > 0 ? k.meta / k.bd_tot : 0, maxD = Math.max.apply(null, S.daily.map(function (x) { return x[1]; }).concat([objBase, 1])), tt = 0, h = '';
+    var WD = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     S.daily.forEach(function (x) {
-      var dt = dOf(x[0]), v = x[1], obj = dt.getDay() === 6 ? objBase * k.ps : objBase, ok = obj > 0 && v >= obj; tt += v;
+      var dt = dOf(x[0]), v = x[1], obj = objBase, ok = obj > 0 && v >= obj; tt += v;
       h += '<div class="p2-d' + (ok ? ' ok' : '') + '" title="Objetivo del día ₲ ' + fmt(obj) + '"><span class="p2-d__f"><b>' + x[0].slice(8) + '</b>' + WD[dt.getDay()] + '</span>' +
         '<span class="p2-d__b"><i data-w="' + (Math.max(0, v) / maxD * 100).toFixed(1) + '"></i><em style="left:' + Math.min(100, obj / maxD * 100).toFixed(1) + '%"></em></span>' +
         '<span class="p2-d__v">' + fmt(v) + '</span></div>';
