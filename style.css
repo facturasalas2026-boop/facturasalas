@@ -1229,3 +1229,56 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .p4.fit .p2-alm .p2-h{margin-bottom:6px}
 .tbd .p4.fit .p4-l{gap:10px}.tbd .p4.fit .p2-tiles--g{gap:10px}.tbd .p4.fit .p2-tiles--g .p2-t{padding:10px 16px;row-gap:5px}
 .tbd .p4.fit .p4-l .card.hero,.tbd .p4.fit .p4-l .card.accent{height:166px}
+
+/* ═════════ Mes a mes: gráficos en tarjeta azul ═════════ */
+.tbd .mm-bc{position:relative;overflow:hidden;display:flex;flex-direction:column;padding:18px 20px 12px;border-radius:18px;color:#fff;background:linear-gradient(135deg,#0B4F8A 0%,#1466B0 60%,#1E7BC9 100%);box-shadow:0 12px 30px -12px rgba(11,79,138,.55)}
+.tbd .mm-bc::before{content:'';position:absolute;inset:-20% auto -20% 0;width:45%;pointer-events:none;background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.03) 25%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.03) 75%,transparent 100%);transform:translate3d(-120%,0,0) skewX(-14deg);animation:p3Sheen 11s cubic-bezier(.42,0,.2,1) infinite}
+.tbd .mm-bc:nth-child(2)::before{animation-delay:5.5s}
+.tbd .mm-bc__h{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tbd .mm-bc__h > span:first-child{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.75)}
+.tbd .mm-bc__leg{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:rgba(255,255,255,.75)}
+.tbd .mm-bc__leg i{display:inline-block;width:14px;height:0;margin-left:6px;border-top:2.5px solid #fff}
+.tbd .mm-bc__leg i.b{border-top:2px dashed rgba(255,255,255,.5)}
+.tbd .mm-bc__leg i.m{border-top:2px dotted #FDE68A}
+.tbd .mm-bc__k{position:relative;display:flex;align-items:baseline;gap:10px;margin:8px 0 4px}
+.tbd .mm-bc__k em{align-self:center;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent}
+.tbd .mm-bc__k em.up{border-bottom:13px solid #86EFAC}
+.tbd .mm-bc__k em.down{border-top:13px solid #FCA5A5}
+.tbd .mm-bc__k b{font-family:'Sora',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.2px;line-height:1}
+.tbd .mm-bc__k small{font-size:12px;font-weight:700;color:rgba(255,255,255,.8)}
+.tbd .mm-bc__c{position:relative;flex:1;min-height:210px;height:230px}
+@media (prefers-reduced-motion: reduce){.tbd .mm-bc::before{animation:none}}
+
+/* ═════════ Pedidos pendientes: KPIs en azul ═════════ */
+.tbd #pedidos > .p2-tiles .p2-t{position:relative;overflow:hidden;border:0;color:#fff;background:linear-gradient(135deg,#0B4F8A 0%,#1466B0 60%,#1E7BC9 100%);box-shadow:0 12px 26px -12px rgba(11,79,138,.55)}
+.tbd #pedidos > .p2-tiles .p2-t:nth-child(2){background:linear-gradient(135deg,#0E5596 0%,#1A6FBE 100%)}
+.tbd #pedidos > .p2-tiles .p2-t:nth-child(3){background:linear-gradient(135deg,#125EA3 0%,#2580D4 100%)}
+.tbd #pedidos > .p2-tiles .p2-t:nth-child(4){background:linear-gradient(135deg,#1767B0 0%,#3B8FD4 100%)}
+.tbd #pedidos > .p2-tiles .p2-t::before{content:'';position:absolute;right:-50px;top:-60px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 65%);pointer-events:none}
+.tbd #pedidos > .p2-tiles .p2-t:hover{transform:translateY(-3px);box-shadow:0 16px 30px -12px rgba(11,79,138,.65)}
+.tbd #pedidos > .p2-tiles .p2-t__h i{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.22)}
+.tbd #pedidos > .p2-tiles .p2-t__h i.gs{font-family:'Sora',sans-serif;font-style:normal;font-size:15px;font-weight:800}
+.tbd #pedidos > .p2-tiles .p2-t__h span{color:rgba(255,255,255,.78)}
+.tbd #pedidos > .p2-tiles .p2-t__v{color:#fff;font-size:24px}
+.tbd #pedidos > .p2-tiles .p2-t small{color:rgba(255,255,255,.78)}
+.tbd #pedidos > .p2-tiles .p2-c,.tbd #pedidos > .p2-tiles .p2-c.ok,.tbd #pedidos > .p2-tiles .p2-c.warn,.tbd #pedidos > .p2-tiles .p2-c.bad{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);color:#fff}
+
+/* ═════════ Meta mensual y Facturación del día: mismas medidas ═════════ */
+.tbd .p4-l .card.hero,.tbd .p4-l .card.accent{height:178px !important;min-height:0;padding:16px 22px !important;border-radius:18px;box-sizing:border-box}
+.tbd .p4-l .card.hero h3,.tbd .p4-l .card.accent .dz-date{font-size:11px !important;font-weight:800;text-transform:uppercase;letter-spacing:.7px;line-height:1.2}
+.tbd .p4-l .card.accent .dz-date{color:var(--gris-2)}
+.tbd .p4-l .card.accent .dz-date .dz-f{text-transform:none;letter-spacing:0;font-size:11.5px;color:var(--gris)}
+/* anillos del mismo tamaño */
+.tbd .p4-l .card.hero .gauge,.tbd .p4-l .card.accent .dz-ring{width:112px !important;height:112px !important;flex:none}
+.tbd .p4-l .card.hero .gauge .pc .v,.tbd .p4-l .card.accent .dz-ring b,.tbd .p4-l .card.accent .dz-ring strong{font-size:24px !important;line-height:1}
+.tbd .p4-l .card.hero .gauge .pc .l,.tbd .p4-l .card.accent .dz-ring small,.tbd .p4-l .card.accent .dz-ring span{font-size:9px !important;letter-spacing:.6px}
+.tbd .p4-l .card.hero .gaugewrap,.tbd .p4-l .card.accent .dz-body{gap:22px;align-items:center}
+/* etiqueta, monto, barra y pie iguales */
+.tbd .p4-l .card.hero .barwrap .mini,.tbd .p4-l .card.accent .dz-main-lbl{font-size:10.5px !important;font-weight:800;text-transform:uppercase;letter-spacing:.6px}
+.tbd .p4-l .card.hero .med,.tbd .p4-l .card.accent .acc-num{font-family:'Sora',sans-serif;font-size:28px !important;font-weight:800;letter-spacing:-.6px;line-height:1.1;margin:2px 0 8px !important}
+.tbd .p4-l .card.accent .acc-num .u{font-size:.6em}
+.tbd .p4-l .card.hero .bar,.tbd .p4-l .card.accent .acc-obj-bar{height:12px !important;border-radius:99px;margin:0}
+.tbd .p4-l .card.hero .barwrap .lbls,.tbd .p4-l .card.accent .dz-foot,.tbd .p4-l .card.accent .dz-main > div:last-child{font-size:12.5px !important;margin-top:8px}
+.tbd .p4-l .card.accent .dz-days{font-size:11px}
+@media(max-width:760px){.tbd .p4-l .card.hero,.tbd .p4-l .card.accent{height:auto !important}.tbd .p4-l .card.hero .gauge,.tbd .p4-l .card.accent .dz-ring{width:92px !important;height:92px !important}.tbd .p4-l .card.hero .med,.tbd .p4-l .card.accent .acc-num{font-size:21px !important}}
+.tbd .p4-l .card.accent .dz-date span,.tbd .p4-l .card.accent .dz-date i{font-size:11px !important}.tbd .p4-l .card.accent .dz-date .dz-f{font-size:11.5px !important}.tbd .p4-l .card.accent .dz-objectives{font-size:12.5px}

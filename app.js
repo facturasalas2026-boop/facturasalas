@@ -356,15 +356,19 @@
       '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2.6 17.3A2 2 0 004.3 20h15.4a2 2 0 001.7-2.7L13.7 3.9a2 2 0 00-3.4 0z"/></svg></i><span>Mes más flojo</span><em class="p2-c bad" id="mmWorstP">–</em></div><b class="p2-t__v" id="mmWorst">–</b><small id="mmWorstS">–</small></div>' +
     '</div>' +
     '<div class="mm-charts">' +
-      '<div class="card"><div class="p2-h"><h3>Facturación por mes</h3><span class="mm-leg"><span><i class="b"></i><span class="yA">año</span></span><span><i class="g"></i><span class="yB">año anterior</span></span><span><i class="m"></i>Meta</span></span></div><div class="chartbox mm-box"><canvas id="chTrend"></canvas></div></div>' +
-      '<div class="card"><div class="p2-h"><h3>Acumulado del año</h3><span class="mm-leg"><span><i class="b"></i><span class="yA">año</span></span><span><i class="g"></i><span class="yB">año anterior</span></span><span><i class="m"></i>Meta</span></span></div><div class="chartbox mm-box"><canvas id="chAcum"></canvas></div></div>' +
+      '<div class="mm-bc"><div class="mm-bc__h"><span>Tendencia de la facturación</span><span class="mm-bc__leg"><i class="a"></i><span class="yA">año</span><i class="b"></i><span class="yB">año anterior</span><i class="m"></i>Meta</span></div>' +
+        '<div class="mm-bc__k"><em id="mmTAr"></em><b id="mmTV">–</b><small id="mmTL">–</small></div>' +
+        '<div class="mm-bc__c"><canvas id="chTrend"></canvas></div></div>' +
+      '<div class="mm-bc"><div class="mm-bc__h"><span>Acumulado del año</span><span class="mm-bc__leg"><i class="a"></i><span class="yA">año</span><i class="b"></i><span class="yB">año anterior</span><i class="m"></i>Meta</span></div>' +
+        '<div class="mm-bc__k"><em id="mmAAr"></em><b id="mmAV">–</b><small id="mmAL">–</small></div>' +
+        '<div class="mm-bc__c"><canvas id="chAcum"></canvas></div></div>' +
     '</div>' +
     '<div class="card"><div class="p2-h"><h3>Mes a mes</h3><span class="p2-leg"><i></i>alcanzó la meta del mes</span></div><div class="mm-tbl"><table id="tblMM"><thead><tr><th>Mes</th><th class="r yA">año</th><th class="r yB">año anterior</th><th class="r">Var. vs <span class="yB">año anterior</span></th><th class="r">Meta</th><th>Cumplimiento</th><th class="r">Acumulado <span class="yA">año</span></th></tr></thead><tbody></tbody></table></div></div>' +
     '</section>' +
 
     '<section class="page" id="pedidos">' +
     '<div class="p2-tiles">' +
-      '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M16.5 7.5c0-1.9-2-3-4.5-3S7.5 5.6 7.5 7.5 9.5 10.4 12 11s4.5 1.6 4.5 3.5-2 3-4.5 3-4.5-1.1-4.5-3"/></svg></i><span>Monto pendiente</span><em class="p2-c" id="pqCob">–</em></div><b class="p2-t__v">₲ <span id="p2Tot">–</span></b><small id="pqCobS">–</small></div>' +
+      '<div class="p2-t"><div class="p2-t__h"><i class="gs">₲</i><span>Monto pendiente</span><em class="p2-c" id="pqCob">–</em></div><b class="p2-t__v">₲ <span id="p2Tot">–</span></b><small id="pqCobS">–</small></div>' +
       '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5h12v19l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></i><span>Pedidos</span></div><b class="p2-t__v" id="p2Ped">–</b><small>esperando facturar</small></div>' +
       '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></i><span>Líneas</span></div><b class="p2-t__v" id="p2Lin">–</b><small>artículos en esos pedidos</small></div>' +
       '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8L12 3.5 20.5 8v8L12 20.5 3.5 16z"/><path d="M3.5 8L12 12.5 20.5 8M12 12.5v8"/></svg></i><span>Peso</span></div><b class="p2-t__v"><span id="p2Peso">–</span> kg</b><small>de los artículos con peso cargado</small></div>' +
@@ -777,24 +781,31 @@
     }
     qa('#mesames .p2-tbar span').forEach(function (sp) { if (G) gsap.fromTo(sp, { width: '0%' }, { width: sp.dataset.w + '%', duration: 1, delay: .2, ease: 'power3.out' }); else sp.style.width = sp.dataset.w + '%'; });
 
-    // Gráfico por mes: barras 2026 (color según la meta), línea 2025 y meta
-    var COL = { ok: '#16A34A', warn: '#D97706', bad: '#DC2626', cur: '#1466B0' };
-    var barCol = v26.map(function (v, i) { if (v == null) return 'transparent'; if (i === mi) return COL.cur; return COL[est(pct(v, meta[i]))]; });
-    var labels = D.meses.slice();
-    var tip = { callbacks: { label: function (c) { return c.dataset.label + ': ₲ ' + fmt(c.parsed.y); } } };
-    mk('chTrend', { type: 'bar', data: { labels: labels, datasets: [
-      { type: 'bar', label: String(k.y), data: v26, backgroundColor: barCol, borderRadius: 7, maxBarThickness: 34, order: 3 },
-      { type: 'line', label: String(k.y - 1), data: v25, borderColor: '#B8C4D0', borderWidth: 2, borderDash: [5, 4], pointRadius: 2, tension: .35, order: 2 },
-      { type: 'line', label: 'Meta', data: meta, borderColor: '#0B4F8A', borderWidth: 0, pointStyle: 'line', pointRadius: 11, pointBorderWidth: 3, pointBorderColor: '#0B4F8A', showLine: false, order: 1 }
-    ] }, options: { maintainAspectRatio: false, animation: { duration: 900, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: tip }, scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 } } }, y: { beginAtZero: true, ticks: gsTick, grid: { color: '#EEF2F7' } } } } });
-    // Acumulado: 2026 vs 2025 vs meta
+    // ── Gráficos estilo tarjeta azul: línea blanca con área degradada ──
+    var MS = D.meses.map(function (m) { return m.slice(0, 3).toUpperCase(); });
+    var grad = function (c) { var ch = c.chart, ar = ch.chartArea; if (!ar) return 'rgba(255,255,255,.2)'; var g2 = ch.ctx.createLinearGradient(0, ar.top, 0, ar.bottom); g2.addColorStop(0, 'rgba(255,255,255,.42)'); g2.addColorStop(1, 'rgba(255,255,255,0)'); return g2; };
+    var opt = function (yFmt) { return { maintainAspectRatio: false, animation: { duration: 1100, easing: 'easeOutQuart' }, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#fff', titleColor: '#0B3E6E', bodyColor: '#334155', borderColor: '#D3E4F5', borderWidth: 1, padding: 10, cornerRadius: 10, callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ₲ ' + fmt(c.parsed.y); } } } },
+      scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: 'rgba(255,255,255,.7)', font: { size: 10, weight: '700' }, maxRotation: 0, autoSkip: false } }, y: { display: false, beginAtZero: yFmt } } }; };
+    var pts = function (arr) { return arr.map(function (v, j) { return v == null ? 0 : (j === mi ? 6 : 3.5); }); };
+    var ultimo = mi > 0 ? mi - 1 : mi, prevM = ultimo > 0 ? ultimo - 1 : null;
+    var vm = prevM != null && v26[prevM] ? pct(v26[ultimo] - v26[prevM], v26[prevM]) : 0;
+    var setK = function (id, v, txt) { var ar = q('#' + id + 'Ar'); if (ar) { ar.className = v >= 0 ? 'up' : 'down'; } var e2 = q('#' + id + 'V'); if (e2) animCount(e2, Math.abs(v), function (x) { return x.toFixed(2).replace('.', ',') + '%'; }, 1); T(id + 'L', txt); };
+    setK('mmT', vm, 'vs mes anterior · ' + D.meses[ultimo] + ' ' + k.y);
+    mk('chTrend', { type: 'line', data: { labels: MS, datasets: [
+      { label: String(k.y), data: v26, borderColor: '#fff', backgroundColor: grad, fill: true, borderWidth: 2.5, tension: .35, pointRadius: pts(v26), pointBackgroundColor: '#fff', pointBorderColor: 'rgba(255,255,255,.45)', pointBorderWidth: 3, spanGaps: false },
+      { label: String(k.y - 1), data: v25, borderColor: 'rgba(255,255,255,.4)', borderDash: [5, 4], borderWidth: 1.5, tension: .35, pointRadius: 0, fill: false },
+      { label: 'Meta', data: meta, borderColor: 'rgba(253,230,138,.85)', borderDash: [2, 4], borderWidth: 1.5, tension: .35, pointRadius: 0, fill: false }
+    ] }, options: opt(false) });
     var a25 = [], a26 = [], am = [], s25 = 0, s26 = 0, sm = 0;
-    for (var m = 0; m < 12; m++) { s25 += v25[m] || 0; sm += meta[m] || 0; a25.push(s25); am.push(sm); if (v26[m] != null) { s26 += v26[m]; a26.push(s26); } else a26.push(null); }
-    mk('chAcum', { type: 'line', data: { labels: labels, datasets: [
-      { label: String(k.y), data: a26, borderColor: '#1466B0', backgroundColor: 'rgba(20,102,176,.10)', fill: true, borderWidth: 3, tension: .3, pointRadius: 3, pointBackgroundColor: '#1466B0' },
-      { label: String(k.y - 1), data: a25, borderColor: '#B8C4D0', borderWidth: 2, borderDash: [5, 4], tension: .3, pointRadius: 0 },
-      { label: 'Meta', data: am, borderColor: '#0B4F8A', borderWidth: 1.5, borderDash: [2, 3], tension: .3, pointRadius: 0 }
-    ] }, options: { maintainAspectRatio: false, animation: { duration: 900, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: tip }, scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 } } }, y: { ticks: gsTick, grid: { color: '#EEF2F7' } } } } });
+    for (var m2 = 0; m2 < 12; m2++) { s25 += v25[m2] || 0; sm += meta[m2] || 0; a25.push(s25); am.push(sm); if (v26[m2] != null) { s26 += v26[m2]; a26.push(s26); } else a26.push(null); }
+    setK('mmA', vv, 'vs año pasado · enero a ' + D.meses[mi].toLowerCase() + ' ' + k.y);
+    mk('chAcum', { type: 'line', data: { labels: MS, datasets: [
+      { label: String(k.y), data: a26, borderColor: '#fff', backgroundColor: grad, fill: true, borderWidth: 2.5, tension: .3, pointRadius: pts(a26), pointBackgroundColor: '#fff', pointBorderColor: 'rgba(255,255,255,.45)', pointBorderWidth: 3 },
+      { label: String(k.y - 1), data: a25, borderColor: 'rgba(255,255,255,.4)', borderDash: [5, 4], borderWidth: 1.5, tension: .3, pointRadius: 0, fill: false },
+      { label: 'Meta', data: am, borderColor: 'rgba(253,230,138,.85)', borderDash: [2, 4], borderWidth: 1.5, tension: .3, pointRadius: 0, fill: false }
+    ] }, options: opt(true) });
+    if (G) { gsap.from('#mesames .mm-bc', { opacity: 0, y: 14, duration: .5, stagger: .08, ease: 'power3.out', clearProps: 'transform,opacity' }); gsap.from('#mesames .mm-bc__k', { opacity: 0, x: -10, duration: .45, stagger: .08, delay: .15, ease: 'power2.out', clearProps: 'transform,opacity' }); }
 
     // Tabla
     var tb = q('#tblMM tbody'); if (!tb) return;
