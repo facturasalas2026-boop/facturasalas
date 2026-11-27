@@ -249,11 +249,17 @@
     var S = function (n) { return wb.Sheets[wb.SheetNames.find(function (x) { return x.trim().toLowerCase() === n.toLowerCase(); })]; };
     var ms = S('Presupuesto de ventas (Meta)');
     if (ms) { var a = XLSX.utils.sheet_to_json(ms, { header: 1 }); var mt = [], ml = [], mf = []; for (var i = 0; i < 12; i++) { var r = a[2 + i] || []; ml.push(num(r[1])); mf.push(num(r[2])); mt.push(num(r[3]) || num(r[1]) + num(r[2])); } d.meta_tot = mt; d.meta_ldal = ml; d.meta_ldfa = mf; }
+    // año en curso = el más frecuente en la hoja diaria (antes estaba fijo en 2026)
+    var Y0 = (function () {
+      var xs0 = S('x monto de fc fecha'), cnt = {};
+      if (xs0) XLSX.utils.sheet_to_json(xs0).forEach(function (r) { var dt = asDate(keyOf(r, 'Fecha de documento')); if (dt) cnt[dt.getFullYear()] = (cnt[dt.getFullYear()] || 0) + 1; });
+      var ks = Object.keys(cnt); return ks.length ? +ks.sort(function (a, b) { return cnt[b] - cnt[a]; })[0] : new Date().getFullYear();
+    })();
     var hs = S('Facturacion historico');
     var v25 = Array(12).fill(0), v26 = Array(12).fill(0), v25f = Array(12).fill(0), v26f = Array(12).fill(0), v25h = Array(12).fill(0), v26h = Array(12).fill(0), hrows = [];
     if (hs) {
       hrows = XLSX.utils.sheet_to_json(hs);
-      hrows.forEach(function (r) { var dt = asDate(keyOf(r, 'Fecha de facturacion')); if (!dt) return; var mo = num(keyOf(r, 'Monto')), y = dt.getFullYear(), m = dt.getMonth(); var code = (keyOf(r, 'Almacen_codigo') || '').toString().trim(); var g = code === 'Alas' ? 'fer' : (code === 'Alas Dep. Fabric' ? 'hie' : null); if (y === 2025) { v25[m] += mo; if (g === 'fer') v25f[m] += mo; else if (g === 'hie') v25h[m] += mo; } else if (y === 2026) { v26[m] += mo; if (g === 'fer') v26f[m] += mo; else if (g === 'hie') v26h[m] += mo; } });
+      hrows.forEach(function (r) { var dt = asDate(keyOf(r, 'Fecha de facturacion')); if (!dt) return; var mo = num(keyOf(r, 'Monto')), y = dt.getFullYear(), m = dt.getMonth(); var code = (keyOf(r, 'Almacen_codigo') || '').toString().trim(); var g = code === 'Alas' ? 'fer' : (code === 'Alas Dep. Fabric' ? 'hie' : null); if (y === Y0 - 1) { v25[m] += mo; if (g === 'fer') v25f[m] += mo; else if (g === 'hie') v25h[m] += mo; } else if (y === Y0) { v26[m] += mo; if (g === 'fer') v26f[m] += mo; else if (g === 'hie') v26h[m] += mo; } });
       d.v2025 = v25; d.v2026 = v26; d.v2025_fer = v25f; d.v2026_fer = v26f; d.v2025_hie = v25h; d.v2026_hie = v26h;
     }
     var xs = S('x monto de fc fecha');
@@ -348,10 +354,10 @@
       '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2.6 17.3A2 2 0 004.3 20h15.4a2 2 0 001.7-2.7L13.7 3.9a2 2 0 00-3.4 0z"/></svg></i><span>Mes más flojo</span><em class="p2-c bad" id="mmWorstP">–</em></div><b class="p2-t__v" id="mmWorst">–</b><small id="mmWorstS">–</small></div>' +
     '</div>' +
     '<div class="mm-charts">' +
-      '<div class="card"><div class="p2-h"><h3>Facturación por mes</h3><span class="mm-leg"><span><i class="b"></i>2026</span><span><i class="g"></i>2025</span><span><i class="m"></i>Meta</span></span></div><div class="chartbox mm-box"><canvas id="chTrend"></canvas></div></div>' +
-      '<div class="card"><div class="p2-h"><h3>Acumulado del año</h3><span class="mm-leg"><span><i class="b"></i>2026</span><span><i class="g"></i>2025</span><span><i class="m"></i>Meta</span></span></div><div class="chartbox mm-box"><canvas id="chAcum"></canvas></div></div>' +
+      '<div class="card"><div class="p2-h"><h3>Facturación por mes</h3><span class="mm-leg"><span><i class="b"></i><span class="yA">año</span></span><span><i class="g"></i><span class="yB">año anterior</span></span><span><i class="m"></i>Meta</span></span></div><div class="chartbox mm-box"><canvas id="chTrend"></canvas></div></div>' +
+      '<div class="card"><div class="p2-h"><h3>Acumulado del año</h3><span class="mm-leg"><span><i class="b"></i><span class="yA">año</span></span><span><i class="g"></i><span class="yB">año anterior</span></span><span><i class="m"></i>Meta</span></span></div><div class="chartbox mm-box"><canvas id="chAcum"></canvas></div></div>' +
     '</div>' +
-    '<div class="card"><div class="p2-h"><h3>Mes a mes</h3><span class="p2-leg"><i></i>alcanzó la meta del mes</span></div><div class="mm-tbl"><table id="tblMM"><thead><tr><th>Mes</th><th class="r">2026</th><th class="r">2025</th><th class="r">Var. vs 2025</th><th class="r">Meta</th><th>Cumplimiento</th><th class="r">Acumulado 2026</th></tr></thead><tbody></tbody></table></div></div>' +
+    '<div class="card"><div class="p2-h"><h3>Mes a mes</h3><span class="p2-leg"><i></i>alcanzó la meta del mes</span></div><div class="mm-tbl"><table id="tblMM"><thead><tr><th>Mes</th><th class="r yA">año</th><th class="r yB">año anterior</th><th class="r">Var. vs <span class="yB">año anterior</span></th><th class="r">Meta</th><th>Cumplimiento</th><th class="r">Acumulado <span class="yA">año</span></th></tr></thead><tbody></tbody></table></div></div>' +
     '</section>' +
 
     '<section class="page" id="pedidos">' +
@@ -454,7 +460,7 @@
   /* ── Título/subtítulo por vista ── */
   function toolbarInfo(v) {
     var per = MESES[D.cur_month - 1] + ' ' + D.cur_year;
-    if (v === 'mesames') return { t: 'Mes a mes & tendencias', s: 'Comparativa 2026 vs 2025 · metas' };
+    if (v === 'mesames') return { t: 'Mes a mes & tendencias', s: 'Comparativa ' + D.cur_year + ' vs ' + (D.cur_year - 1) + ' · metas' };
     if (v === 'pedidos') return { t: 'Pedidos pendientes', s: 'Agrupá y filtrá lo pendiente de facturar' };
     if (v === 'config') return { t: 'Días hábiles & feriados', s: 'Cálculo del mes · ' + per };
     return { t: 'Facturación diaria', s: '' };
@@ -624,6 +630,7 @@
   /* ── RENDER: MES A MES ── */
   function renderMesAMes() {
     var S = scoped(SCOPE), k = kpis(SCOPE), mi = k.mi, G = !!window.gsap;
+    qa('#mesames .yA').forEach(function (e) { e.textContent = k.y; }); qa('#mesames .yB').forEach(function (e) { e.textContent = k.y - 1; });
     var P = function (v) { return v.toFixed(1).replace('.', ',') + '%'; };
     var est = function (p) { return p >= 100 ? 'ok' : p >= 90 ? 'warn' : 'bad'; };
     var v25 = S.v25, meta = S.meta, v26 = S.v26.map(function (v, i) { return i <= mi ? (v || 0) : null; });
@@ -652,16 +659,16 @@
     var labels = D.meses.slice();
     var tip = { callbacks: { label: function (c) { return c.dataset.label + ': ₲ ' + fmt(c.parsed.y); } } };
     mk('chTrend', { type: 'bar', data: { labels: labels, datasets: [
-      { type: 'bar', label: '2026', data: v26, backgroundColor: barCol, borderRadius: 7, maxBarThickness: 34, order: 3 },
-      { type: 'line', label: '2025', data: v25, borderColor: '#B8C4D0', borderWidth: 2, borderDash: [5, 4], pointRadius: 2, tension: .35, order: 2 },
+      { type: 'bar', label: String(k.y), data: v26, backgroundColor: barCol, borderRadius: 7, maxBarThickness: 34, order: 3 },
+      { type: 'line', label: String(k.y - 1), data: v25, borderColor: '#B8C4D0', borderWidth: 2, borderDash: [5, 4], pointRadius: 2, tension: .35, order: 2 },
       { type: 'line', label: 'Meta', data: meta, borderColor: '#0B4F8A', borderWidth: 0, pointStyle: 'line', pointRadius: 11, pointBorderWidth: 3, pointBorderColor: '#0B4F8A', showLine: false, order: 1 }
     ] }, options: { maintainAspectRatio: false, animation: { duration: 900, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: tip }, scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 } } }, y: { beginAtZero: true, ticks: gsTick, grid: { color: '#EEF2F7' } } } } });
     // Acumulado: 2026 vs 2025 vs meta
     var a25 = [], a26 = [], am = [], s25 = 0, s26 = 0, sm = 0;
     for (var m = 0; m < 12; m++) { s25 += v25[m] || 0; sm += meta[m] || 0; a25.push(s25); am.push(sm); if (v26[m] != null) { s26 += v26[m]; a26.push(s26); } else a26.push(null); }
     mk('chAcum', { type: 'line', data: { labels: labels, datasets: [
-      { label: '2026', data: a26, borderColor: '#1466B0', backgroundColor: 'rgba(20,102,176,.10)', fill: true, borderWidth: 3, tension: .3, pointRadius: 3, pointBackgroundColor: '#1466B0' },
-      { label: '2025', data: a25, borderColor: '#B8C4D0', borderWidth: 2, borderDash: [5, 4], tension: .3, pointRadius: 0 },
+      { label: String(k.y), data: a26, borderColor: '#1466B0', backgroundColor: 'rgba(20,102,176,.10)', fill: true, borderWidth: 3, tension: .3, pointRadius: 3, pointBackgroundColor: '#1466B0' },
+      { label: String(k.y - 1), data: a25, borderColor: '#B8C4D0', borderWidth: 2, borderDash: [5, 4], tension: .3, pointRadius: 0 },
       { label: 'Meta', data: am, borderColor: '#0B4F8A', borderWidth: 1.5, borderDash: [2, 3], tension: .3, pointRadius: 0 }
     ] }, options: { maintainAspectRatio: false, animation: { duration: 900, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: tip }, scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 } } }, y: { ticks: gsTick, grid: { color: '#EEF2F7' } } } } });
 
@@ -884,6 +891,9 @@
           var vld = validateWB(wb);
           if (!vld.ok) { failUpload(vld.reason); return; }
           var newSnap = parseWB(wb);
+          var pl = newSnap.ped_lines || [];
+          if (pl.length && !pl.some(function (l) { return l[7] > 0; })) { failUpload('Los pedidos pendientes vienen todos con monto 0. Abrí el Excel, dejá que calcule las fórmulas (o guardalo de nuevo) y volvé a subirlo.'); return; }
+          if (!newSnap.daily || !newSnap.daily.length) { failUpload('La hoja «x monto de fc fecha» no tiene facturación con fecha. Revisá que sea la planilla del día.'); return; }
           setProg(60, 'Comparando con lo cargado…');
           var anio = newSnap.cur_year, mes = newSnap.cur_month;
           var oldP = (window.TableroDB && TableroDB.ready) ? TableroDB.pullSnapshotFor(anio, mes) : Promise.resolve((D && D.cur_year === anio && D.cur_month === mes) ? { snapshot: D } : null);
