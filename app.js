@@ -314,15 +314,15 @@
     '<div class="card hero"><h3 class="h-hd">Meta mensual · avance <span id="hScope" style="font-weight:600"></span></h3><div class="gaugewrap"><div class="gauge"><canvas id="gauge"></canvas><div class="pc"><div><div class="v" id="gPct">–</div><div class="l">de la meta</div></div></div></div><div style="flex:1;min-width:180px" class="barwrap"><div class="mini" style="color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;font-weight:700">Meta del mes</div><div class="med" id="hMeta" style="margin:2px 0 10px">–</div><div class="bar"><span id="hBar" style="width:0%"></span></div><div class="lbls"><span id="hFact">Facturado –</span><span id="hFalta">Falta –</span></div></div></div></div>' +
     '<div class="card accent" id="cardDia">' +
     '<div class="dz">' +
-      '<div class="dz-hd"><span>Facturación del día</span><i>·</i><span class="dz-f" id="kDiaFecha">—</span></div>' +
+      '<div class="dz-hd"><div class="dz-date"><span>Facturación del día</span><i>·</i><span class="dz-f" id="kDiaFecha">—</span></div>' +
+        '<div class="dz-compare"><span class="acc-trend flat" id="kDiaVar" title="">—</span><span class="dz-vs">vs año pasado · ₲ <b id="kDiaPrev">–</b></span></div></div>' +
       '<div class="dz-body">' +
         '<div class="dz-ring" role="img" aria-label="Avance del objetivo diario"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="bg" cx="32" cy="32" r="27"/><circle class="fg" id="kDiaRing" cx="32" cy="32" r="27" stroke-dasharray="169.65" stroke-dashoffset="169.65"/></svg><div class="dz-ring-center"><b id="kDiaObjPct">–</b><span>del objetivo</span></div></div>' +
         '<div class="dz-main"><span class="dz-main-lbl">Facturación del día</span><div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
           '<div class="acc-obj-bar" id="kDiaObjProgress" role="progressbar" aria-label="Avance del objetivo diario" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="kDiaObjBar"></span></div>' +
           '<div class="dz-objectives"><span class="dz-target">Objetivo <b>₲ <span id="kDiaObj">–</span></b></span><span class="dz-gap" id="kDiaObjGap"><span id="kDiaObjGapLabel">Faltan</span> <b>₲ <span id="kDiaObjResta">–</span></b></span></div></div>' +
       '</div>' +
-      '<div class="dz-foot"><div class="dz-compare"><span class="acc-trend flat" id="kDiaVar" title="">—</span><span class="dz-vs">vs año pasado · ₲ <b id="kDiaPrev">–</b></span></div>' +
-        '<div class="dz-days">faltan <b><span id="kDiaObjDays">–</span> <span id="kDiaObjDaysUnit">días hábiles</span></b></div></div>' +
+      '<div class="dz-foot"><div class="dz-days">faltan <b><span id="kDiaObjDays">–</span> <span id="kDiaObjDaysUnit">días hábiles</span></b></div></div>' +
     '</div>' +
     '<div class="acc-pending"><span class="acc-pending-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M9 14.5h6"/></svg></span><div class="acc-pending-t">Sin registros de hoy</div><div class="acc-pending-s">Cargá la planilla del <b id="accPendDate">—</b> para ver la facturación del día</div></div>' +
     '</div>' +

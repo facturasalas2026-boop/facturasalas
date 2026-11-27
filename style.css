@@ -991,9 +991,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 /* ═════════ Facturación del día: avance contra objetivo ═════════ */
 .tbd .p4-l .card.accent{display:flex;align-items:stretch;justify-content:center;padding:18px 22px}
 .tbd .p4-l .card.accent .dz{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px;width:100%;align-self:stretch}
-.tbd .dz-hd{display:flex;align-items:baseline;gap:8px;min-width:0}
-.tbd .dz-hd>span:first-child{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;color:var(--gris)}
-.tbd .dz-hd i{font-style:normal;color:#9aabba;font-weight:700}
+.tbd .dz-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;min-width:0}
+.tbd .dz-date{display:flex;align-items:baseline;gap:8px;min-width:0}
+.tbd .dz-date>span:first-child{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;color:var(--gris)}
+.tbd .dz-date i{font-style:normal;color:#9aabba;font-weight:700}
 .tbd .dz-f{font-size:12px;font-weight:700;color:var(--gris)}
 .tbd .dz-body{display:grid;grid-template-columns:148px minmax(0,1fr);gap:22px;align-items:center;min-width:0}
 .tbd .dz-ring{position:relative;flex:none;width:148px;height:148px}
@@ -1017,8 +1018,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .dz-gap.is-met{color:var(--pos)}
 .tbd .dz-gap.is-met b{color:var(--pos)}
 .tbd .dz-gap.is-month-done b{display:none}
-.tbd .dz-foot{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap}
-.tbd .dz-compare{display:flex;align-items:center;gap:9px;min-width:0}
+.tbd .dz-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px 16px;flex-wrap:wrap}
+.tbd .dz-compare{display:flex;align-items:center;gap:9px;min-width:0;margin-left:auto}
 .tbd .dz .acc-trend{font-size:12.5px;padding:5px 11px;border-radius:999px}
 .tbd .dz-vs{font-size:11.5px;font-weight:600;color:var(--gris-2)}
 .tbd .dz-vs b{font-weight:800;color:var(--tinta);white-space:nowrap}
@@ -1028,6 +1029,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .p4.fit .p4-l .card.accent{height:auto;min-height:250px}
 @media(max-width:760px){
   .tbd .p4-l .card.accent{padding:16px 18px}
+  .tbd .dz-hd{align-items:flex-start}
+  .tbd .dz-compare{margin-left:0;flex-wrap:wrap}
   .tbd .dz-body{grid-template-columns:112px minmax(0,1fr);gap:14px}
   .tbd .dz-ring{width:112px;height:112px}
   .tbd .dz-ring-center b{font-size:23px}
@@ -1044,7 +1047,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
   .tbd .dz-main{gap:6px}
   .tbd .dz-main-lbl{font-size:10px}
   .tbd .dz .acc-num{font-size:clamp(23px,6vw,28px)}
-  .tbd .dz-foot{align-items:flex-start;flex-direction:column;gap:7px}
+  .tbd .dz-foot{align-items:flex-end;flex-direction:column;gap:7px}
 }
 
 /* ═════════ Días hábiles: calendario a todo el ancho ═════════ */
