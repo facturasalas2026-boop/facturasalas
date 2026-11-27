@@ -578,7 +578,7 @@
     if (v === 'registro') { renderRegistro(); return; }
     if (_regUnsub) { _regUnsub(); _regUnsub = null; }  // saliendo del registro: cortar realtime
     if (!D) { renderEmpty(); return; }
-    if (!q('#stage .tbd')) { renderShell(); return; }   // el shell no está montado (venías del registro/empty)
+    if (!q('#stage .tbd') || q('#stage .tbd.up-page')) { renderShell(); return; }   // reconstruir si venías de registro, vacío o Actualizar datos
     qa('#stage .tbd .page').forEach(function (s) { s.classList.toggle('on', s.id === v); });
     var ss = q('#scopeSlot'); if (ss) ss.style.visibility = (v === 'principal' || v === 'mesames') ? '' : 'hidden';
     setToolbarTitle(v);
