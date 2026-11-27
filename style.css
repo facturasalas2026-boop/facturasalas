@@ -990,7 +990,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 
 /* ═════════ Facturación del día: avance contra objetivo ═════════ */
 .tbd .p4-l .card.accent{display:flex;align-items:stretch;justify-content:center;padding:18px 22px}
-.tbd .p4-l .card.accent .dz{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px;width:100%;align-self:stretch}
+.tbd .p4-l .card.accent .dz{display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;width:100%;align-self:stretch}
 .tbd .dz-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;min-width:0}
 .tbd .dz-date{display:flex;align-items:baseline;gap:8px;min-width:0}
 .tbd .dz-date>span:first-child{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;color:var(--gris)}
@@ -1012,13 +1012,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
 .tbd .dz .acc-obj-bar{height:15px;margin:0;border-radius:8px;background:#d8e7f1}
 .tbd .dz .acc-obj-bar span{background:linear-gradient(90deg,#1466B0,#4197cf)}
 .tbd .dz .acc-obj-bar.over span{background:linear-gradient(90deg,#1B8A5A,#2BA84A)}
+.tbd .dz-bar-head{display:flex;justify-content:flex-end;align-items:center;margin-bottom:-5px}
 .tbd .dz-objectives{display:flex;align-items:baseline;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;font-size:12px;color:var(--gris)}
 .tbd .dz-target,.tbd .dz-gap{white-space:nowrap}
 .tbd .dz-target b,.tbd .dz-gap b{font-family:'Sora',sans-serif;font-size:13px;font-weight:800;color:var(--tinta)}
 .tbd .dz-gap.is-met{color:var(--pos)}
 .tbd .dz-gap.is-met b{color:var(--pos)}
 .tbd .dz-gap.is-month-done b{display:none}
-.tbd .dz-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px 16px;flex-wrap:wrap}
 .tbd .dz-compare{display:flex;align-items:center;gap:9px;min-width:0;margin-left:auto}
 .tbd .dz .acc-trend{font-size:12.5px;padding:5px 11px;border-radius:999px}
 .tbd .dz-vs{font-size:11.5px;font-weight:600;color:var(--gris-2)}
@@ -1047,7 +1047,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--alas-bg);color:va
   .tbd .dz-main{gap:6px}
   .tbd .dz-main-lbl{font-size:10px}
   .tbd .dz .acc-num{font-size:clamp(23px,6vw,28px)}
-  .tbd .dz-foot{align-items:flex-end;flex-direction:column;gap:7px}
 }
 
 /* ═════════ Días hábiles: calendario a todo el ancho ═════════ */

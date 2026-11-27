@@ -319,10 +319,10 @@
       '<div class="dz-body">' +
         '<div class="dz-ring" role="img" aria-label="Avance del objetivo diario"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="bg" cx="32" cy="32" r="27"/><circle class="fg" id="kDiaRing" cx="32" cy="32" r="27" stroke-dasharray="169.65" stroke-dashoffset="169.65"/></svg><div class="dz-ring-center"><b id="kDiaObjPct">–</b><span>del objetivo</span></div></div>' +
         '<div class="dz-main"><span class="dz-main-lbl">Facturación del día</span><div class="acc-num"><span class="u">₲</span><span id="kDia">–</span></div>' +
+          '<div class="dz-bar-head"><div class="dz-days">faltan <b><span id="kDiaObjDays">–</span> <span id="kDiaObjDaysUnit">días hábiles</span></b></div></div>' +
           '<div class="acc-obj-bar" id="kDiaObjProgress" role="progressbar" aria-label="Avance del objetivo diario" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="kDiaObjBar"></span></div>' +
           '<div class="dz-objectives"><span class="dz-target">Objetivo <b>₲ <span id="kDiaObj">–</span></b></span><span class="dz-gap" id="kDiaObjGap"><span id="kDiaObjGapLabel">Faltan</span> <b>₲ <span id="kDiaObjResta">–</span></b></span></div></div>' +
       '</div>' +
-      '<div class="dz-foot"><div class="dz-days">faltan <b><span id="kDiaObjDays">–</span> <span id="kDiaObjDaysUnit">días hábiles</span></b></div></div>' +
     '</div>' +
     '<div class="acc-pending"><span class="acc-pending-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M9 14.5h6"/></svg></span><div class="acc-pending-t">Sin registros de hoy</div><div class="acc-pending-s">Cargá la planilla del <b id="accPendDate">—</b> para ver la facturación del día</div></div>' +
     '</div>' +
@@ -651,7 +651,7 @@
     if (dr) { if (window.gsap) gsap.fromTo(dr, { attr: { 'stroke-dashoffset': 169.65 } }, { attr: { 'stroke-dashoffset': drOff }, duration: 1.1, delay: .2, ease: 'power3.out' }); else dr.setAttribute('stroke-dashoffset', drOff); }
     var ob = q('#kDiaObjBar'), op = q('#kDiaObjProgress'); if (op) op.setAttribute('aria-valuenow', pctFill.toFixed(0)); if (ob) { if (ob.parentNode) ob.parentNode.classList.toggle('over', pctObj >= 100); if (window.gsap) { ob.style.transition = 'none'; gsap.fromTo(ob, { width: '0%' }, { width: pctFill + '%', duration: 1.1, ease: 'power2.out', delay: .2 }); } else ob.style.width = pctFill + '%'; }
     var dv = q('#kDiaVar'); if (dv) { var _cls = chipCls(k.varDia); dv.className = 'acc-trend ' + _cls; dv.innerHTML = trendArrow(_cls) + fp(k.varDia); if (window.gsap) gsap.fromTo(dv, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)', delay: .4, clearProps: 'all' }); }
-    if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.dz-hd'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.dz-main .acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.dz-foot'), { y: 10, opacity: 0, duration: .5, delay: .22, ease: 'power2.out', clearProps: 'all' }); } }
+    if (window.gsap) { var cd = q('#cardDia'); if (cd) { gsap.from(cd.querySelector('.dz-hd'), { x: -10, opacity: 0, duration: .5, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.dz-main .acc-num'), { y: 8, opacity: 0, duration: .5, delay: .1, ease: 'power2.out', clearProps: 'all' }); gsap.from(cd.querySelector('.dz-bar-head'), { y: 5, opacity: 0, duration: .4, delay: .2, ease: 'power2.out', clearProps: 'all' }); } }
     // ── Tarjetas: un dato grande, una barra, una línea ──
     var G = !!window.gsap, P = function (v) { return v.toFixed(1).replace('.', ',') + '%'; };
     var est = function (p) { return p >= 100 ? 'ok' : p >= 90 ? 'warn' : 'bad'; };
