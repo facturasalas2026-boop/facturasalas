@@ -356,12 +356,12 @@
       '<div class="p2-t"><div class="p2-t__h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2.6 17.3A2 2 0 004.3 20h15.4a2 2 0 001.7-2.7L13.7 3.9a2 2 0 00-3.4 0z"/></svg></i><span>Mes más flojo</span><em class="p2-c bad" id="mmWorstP">–</em></div><b class="p2-t__v" id="mmWorst">–</b><small id="mmWorstS">–</small></div>' +
     '</div>' +
     '<div class="mm-charts">' +
-      '<div class="mm-bc"><div class="mm-bc__h"><span>Tendencia de la facturación</span><span class="mm-bc__leg"><i class="a"></i><span class="yA">año</span><i class="b"></i><span class="yB">año anterior</span><i class="m"></i>Meta</span></div>' +
+      '<div class="mm-bc"><div class="mm-bc__h"><span>Tendencia de la facturación</span><span class="mm-bc__leg"><i class="a"></i><span class="yA">año</span><i class="b"></i><span class="yB">año anterior</span><i class="m"></i>Meta<i class="p"></i>Proyección</span></div>' +
         '<div class="mm-bc__k"><em id="mmTAr"></em><b id="mmTV">–</b><small id="mmTL">–</small></div>' +
-        '<div class="mm-bc__c"><canvas id="chTrend"></canvas></div></div>' +
-      '<div class="mm-bc"><div class="mm-bc__h"><span>Acumulado del año</span><span class="mm-bc__leg"><i class="a"></i><span class="yA">año</span><i class="b"></i><span class="yB">año anterior</span><i class="m"></i>Meta</span></div>' +
+        '<div class="mm-bc__s" id="mmTS"></div><div class="mm-bc__c"><canvas id="chTrend"></canvas></div></div>' +
+      '<div class="mm-bc"><div class="mm-bc__h"><span>Acumulado del año</span><span class="mm-bc__leg"><i class="a"></i><span class="yA">año</span><i class="b"></i><span class="yB">año anterior</span><i class="m"></i>Meta<i class="p"></i>Proyección</span></div>' +
         '<div class="mm-bc__k"><em id="mmAAr"></em><b id="mmAV">–</b><small id="mmAL">–</small></div>' +
-        '<div class="mm-bc__c"><canvas id="chAcum"></canvas></div></div>' +
+        '<div class="mm-bc__s" id="mmAS"></div><div class="mm-bc__c"><canvas id="chAcum"></canvas></div></div>' +
     '</div>' +
     '<div class="card"><div class="p2-h"><h3>Mes a mes</h3><span class="p2-leg"><i></i>alcanzó la meta del mes</span></div><div class="mm-tbl"><table id="tblMM"><thead><tr><th>Mes</th><th class="r yA">año</th><th class="r yB">año anterior</th><th class="r">Var. vs <span class="yB">año anterior</span></th><th class="r">Meta</th><th>Cumplimiento</th><th class="r">Acumulado <span class="yA">año</span></th></tr></thead><tbody></tbody></table></div></div>' +
     '</section>' +
@@ -781,31 +781,53 @@
     }
     qa('#mesames .p2-tbar span').forEach(function (sp) { if (G) gsap.fromTo(sp, { width: '0%' }, { width: sp.dataset.w + '%', duration: 1, delay: .2, ease: 'power3.out' }); else sp.style.width = sp.dataset.w + '%'; });
 
-    // ── Gráficos estilo tarjeta azul: línea blanca con área degradada ──
+    // ── Gráficos estilo tarjeta azul (v2): proyección del mes en curso, meta visible, cruz al pasar el mouse ──
     var MS = D.meses.map(function (m) { return m.slice(0, 3).toUpperCase(); });
-    var grad = function (c) { var ch = c.chart, ar = ch.chartArea; if (!ar) return 'rgba(255,255,255,.2)'; var g2 = ch.ctx.createLinearGradient(0, ar.top, 0, ar.bottom); g2.addColorStop(0, 'rgba(255,255,255,.42)'); g2.addColorStop(1, 'rgba(255,255,255,0)'); return g2; };
-    var opt = function (yFmt) { return { maintainAspectRatio: false, animation: { duration: 1100, easing: 'easeOutQuart' }, interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#fff', titleColor: '#0B3E6E', bodyColor: '#334155', borderColor: '#D3E4F5', borderWidth: 1, padding: 10, cornerRadius: 10, callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ₲ ' + fmt(c.parsed.y); } } } },
-      scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: 'rgba(255,255,255,.7)', font: { size: 10, weight: '700' }, maxRotation: 0, autoSkip: false } }, y: { display: false, beginAtZero: yFmt } } }; };
-    var pts = function (arr) { return arr.map(function (v, j) { return v == null ? 0 : (j === mi ? 6 : 3.5); }); };
-    var ultimo = mi > 0 ? mi - 1 : mi, prevM = ultimo > 0 ? ultimo - 1 : null;
+    var enCurso = k.bd_rest > 0 && v26[mi] != null;            // el mes visible todavía no terminó
+    var grad = function (c) { var ch = c.chart, ar = ch.chartArea; if (!ar) return 'rgba(255,255,255,.2)'; var g2 = ch.ctx.createLinearGradient(0, ar.top, 0, ar.bottom); g2.addColorStop(0, 'rgba(255,255,255,.40)'); g2.addColorStop(1, 'rgba(255,255,255,0)'); return g2; };
+    var cruz = { id: 'cruz', afterDatasetsDraw: function (ch) { var t = ch.tooltip; if (!t || !t.getActiveElements().length) return; var x = t.getActiveElements()[0].element.x, ar = ch.chartArea, c2 = ch.ctx; c2.save(); c2.strokeStyle = 'rgba(255,255,255,.45)'; c2.lineWidth = 1; c2.setLineDash([3, 3]); c2.beginPath(); c2.moveTo(x, ar.top); c2.lineTo(x, ar.bottom); c2.stroke(); c2.restore(); } };
+    var opt = function (zero) { return { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      animation: { duration: 900, easing: 'easeOutCubic', delay: function (c) { return c.type === 'data' && c.mode === 'default' ? c.dataIndex * 70 + c.datasetIndex * 120 : 0; } },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(255,255,255,.97)', titleColor: '#0B3E6E', titleFont: { weight: '800' }, bodyColor: '#334155', borderColor: '#D3E4F5', borderWidth: 1, padding: 11, cornerRadius: 12, boxPadding: 5, usePointStyle: true, filter: function (it) { return it.parsed.y != null; },
+        callbacks: { title: function (it) { return D.meses[it[0].dataIndex] + (enCurso && it[0].dataIndex === mi ? ' · en curso' : ''); }, label: function (c) { return ' ' + c.dataset.label + ': ₲ ' + fmt(c.parsed.y); } } } },
+      scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: 'rgba(255,255,255,.72)', font: { size: 10, weight: '700' }, maxRotation: 0, autoSkip: false } }, y: { display: false, beginAtZero: zero } } }; };
+    var bajo = function (vals, metas) { return vals.map(function (v, j) { return v != null && metas[j] && v < metas[j] ? '#FCA5A5' : '#fff'; }); };
+    // datos de la línea real (sin el mes en curso) + tramo proyectado
+    var real = v26.map(function (v, j) { return enCurso && j === mi ? null : v; });
+    var proy = v26.map(function () { return null; }); if (enCurso && mi > 0) { proy[mi - 1] = v26[mi - 1]; proy[mi] = k.proyMes; }
+    var parcial = v26.map(function (v, j) { return enCurso && j === mi ? v : null; });
+    var ultimo = enCurso ? mi - 1 : mi, prevM = ultimo > 0 ? ultimo - 1 : null;
     var vm = prevM != null && v26[prevM] ? pct(v26[ultimo] - v26[prevM], v26[prevM]) : 0;
-    var setK = function (id, v, txt) { var ar = q('#' + id + 'Ar'); if (ar) { ar.className = v >= 0 ? 'up' : 'down'; } var e2 = q('#' + id + 'V'); if (e2) animCount(e2, Math.abs(v), function (x) { return x.toFixed(2).replace('.', ',') + '%'; }, 1); T(id + 'L', txt); };
+    var setK = function (id, v, txt) { var ar = q('#' + id + 'Ar'); if (ar) ar.className = v >= 0 ? 'up' : 'down'; var e2 = q('#' + id + 'V'); if (e2) animCount(e2, Math.abs(v), function (x) { return x.toFixed(2).replace('.', ',') + '%'; }, 1); T(id + 'L', txt); };
     setK('mmT', vm, 'vs mes anterior · ' + D.meses[ultimo] + ' ' + k.y);
-    mk('chTrend', { type: 'line', data: { labels: MS, datasets: [
-      { label: String(k.y), data: v26, borderColor: '#fff', backgroundColor: grad, fill: true, borderWidth: 2.5, tension: .35, pointRadius: pts(v26), pointBackgroundColor: '#fff', pointBorderColor: 'rgba(255,255,255,.45)', pointBorderWidth: 3, spanGaps: false },
-      { label: String(k.y - 1), data: v25, borderColor: 'rgba(255,255,255,.4)', borderDash: [5, 4], borderWidth: 1.5, tension: .35, pointRadius: 0, fill: false },
-      { label: 'Meta', data: meta, borderColor: 'rgba(253,230,138,.85)', borderDash: [2, 4], borderWidth: 1.5, tension: .35, pointRadius: 0, fill: false }
+    var cerr = v26.filter(function (v, j) { return v != null && !(enCurso && j === mi); }), prom = cerr.length ? cerr.reduce(function (x, y) { return x + y; }, 0) / cerr.length : 0;
+    var mejorI = 0; v26.forEach(function (v, j) { if (v != null && !(enCurso && j === mi) && v > (v26[mejorI] || 0)) mejorI = j; });
+    H('mmTS', '<span><small>' + D.meses[ultimo] + '</small><b>₲ ' + fmt(v26[ultimo] || 0) + '</b></span><span><small>Promedio mensual</small><b>₲ ' + fmt(prom) + '</b></span><span><small>Mejor mes</small><b>' + D.meses[mejorI] + '</b></span>' + (enCurso ? '<span class="pr"><small>Cierre estimado ' + D.meses[mi].toLowerCase() + '</small><b>₲ ' + fmt(k.proyMes) + '</b></span>' : ''));
+    mk('chTrend', { type: 'line', plugins: [cruz], data: { labels: MS, datasets: [
+      { label: String(k.y), data: real, borderColor: '#fff', backgroundColor: grad, fill: true, borderWidth: 2.6, tension: .35, pointRadius: 4, pointHoverRadius: 7, pointBackgroundColor: bajo(real, meta), pointBorderColor: 'rgba(255,255,255,.5)', pointBorderWidth: 2.5 },
+      { label: 'Proyección', data: proy, borderColor: 'rgba(255,255,255,.85)', borderDash: [6, 5], borderWidth: 2.2, tension: .35, pointRadius: function (c) { return c.dataIndex === mi ? 6 : 0; }, pointBackgroundColor: 'rgba(255,255,255,.25)', pointBorderColor: '#fff', pointBorderWidth: 2, fill: false },
+      { label: 'Facturado a hoy', data: parcial, showLine: false, pointRadius: 4, pointBackgroundColor: '#93C5FD', pointBorderColor: '#fff', pointBorderWidth: 1.5 },
+      { label: String(k.y - 1), data: v25, borderColor: 'rgba(255,255,255,.35)', borderDash: [5, 4], borderWidth: 1.5, tension: .35, pointRadius: 0, fill: false },
+      { label: 'Meta', data: meta, borderColor: 'rgba(253,230,138,.95)', borderWidth: 2, tension: .35, pointRadius: 0, fill: false }
     ] }, options: opt(false) });
-    var a25 = [], a26 = [], am = [], s25 = 0, s26 = 0, sm = 0;
-    for (var m2 = 0; m2 < 12; m2++) { s25 += v25[m2] || 0; sm += meta[m2] || 0; a25.push(s25); am.push(sm); if (v26[m2] != null) { s26 += v26[m2]; a26.push(s26); } else a26.push(null); }
+    // acumulado
+    var a25 = [], a26 = [], am = [], ap = [], s25 = 0, s26 = 0, sm = 0;
+    for (var m2 = 0; m2 < 12; m2++) { s25 += v25[m2] || 0; sm += meta[m2] || 0; a25.push(s25); am.push(sm); if (v26[m2] != null && !(enCurso && m2 === mi)) { s26 += v26[m2]; a26.push(s26); } else a26.push(null); ap.push(null); }
+    if (enCurso && mi > 0) { ap[mi - 1] = a26[mi - 1]; ap[mi] = (a26[mi - 1] || 0) + k.proyMes; }
     setK('mmA', vv, 'vs año pasado · enero a ' + D.meses[mi].toLowerCase() + ' ' + k.y);
-    mk('chAcum', { type: 'line', data: { labels: MS, datasets: [
-      { label: String(k.y), data: a26, borderColor: '#fff', backgroundColor: grad, fill: true, borderWidth: 2.5, tension: .3, pointRadius: pts(a26), pointBackgroundColor: '#fff', pointBorderColor: 'rgba(255,255,255,.45)', pointBorderWidth: 3 },
-      { label: String(k.y - 1), data: a25, borderColor: 'rgba(255,255,255,.4)', borderDash: [5, 4], borderWidth: 1.5, tension: .3, pointRadius: 0, fill: false },
-      { label: 'Meta', data: am, borderColor: 'rgba(253,230,138,.85)', borderDash: [2, 4], borderWidth: 1.5, tension: .3, pointRadius: 0, fill: false }
+    var faltaA = Math.max(0, k.metaYtd - k.ytd);
+    H('mmAS', '<span><small>Facturado en el año</small><b>₲ ' + fmt(k.ytd) + '</b></span><span><small>Meta a hoy</small><b>₲ ' + fmt(k.metaYtd) + '</b></span><span class="' + (faltaA > 0 ? 'neg' : 'pos') + '"><small>' + (faltaA > 0 ? 'Bajo la meta' : 'Sobre la meta') + '</small><b>₲ ' + fmt(Math.abs(k.metaYtd - k.ytd)) + '</b></span>');
+    mk('chAcum', { type: 'line', plugins: [cruz], data: { labels: MS, datasets: [
+      { label: String(k.y), data: a26, borderColor: '#fff', backgroundColor: grad, fill: true, borderWidth: 2.6, tension: .3, pointRadius: 4, pointHoverRadius: 7, pointBackgroundColor: bajo(a26, am), pointBorderColor: 'rgba(255,255,255,.5)', pointBorderWidth: 2.5 },
+      { label: 'Proyección', data: ap, borderColor: 'rgba(255,255,255,.85)', borderDash: [6, 5], borderWidth: 2.2, tension: .3, pointRadius: function (c) { return c.dataIndex === mi ? 6 : 0; }, pointBackgroundColor: 'rgba(255,255,255,.25)', pointBorderColor: '#fff', pointBorderWidth: 2, fill: false },
+      { label: String(k.y - 1), data: a25, borderColor: 'rgba(255,255,255,.35)', borderDash: [5, 4], borderWidth: 1.5, tension: .3, pointRadius: 0, fill: false },
+      { label: 'Meta', data: am, borderColor: 'rgba(253,230,138,.95)', borderWidth: 2, tension: .3, pointRadius: 0, fill: false }
     ] }, options: opt(true) });
-    if (G) { gsap.from('#mesames .mm-bc', { opacity: 0, y: 14, duration: .5, stagger: .08, ease: 'power3.out', clearProps: 'transform,opacity' }); gsap.from('#mesames .mm-bc__k', { opacity: 0, x: -10, duration: .45, stagger: .08, delay: .15, ease: 'power2.out', clearProps: 'transform,opacity' }); }
+    if (G) {
+      gsap.from('#mesames .mm-bc', { opacity: 0, y: 14, duration: .5, stagger: .08, ease: 'power3.out', clearProps: 'transform,opacity' });
+      gsap.from('#mesames .mm-bc__k', { opacity: 0, x: -10, duration: .45, stagger: .08, delay: .15, ease: 'power2.out', clearProps: 'transform,opacity' });
+      gsap.from('#mesames .mm-bc__s > span', { opacity: 0, y: 8, duration: .35, stagger: .05, delay: .25, ease: 'power2.out', clearProps: 'transform,opacity' });
+    }
 
     // Tabla
     var tb = q('#tblMM tbody'); if (!tb) return;
